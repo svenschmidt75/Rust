@@ -21,18 +21,76 @@ impl<T: Sized> Queue<T> {
     // T: Sized, as T must have a defined size (like value types,
     // or trait objects)
     fn dequeue(&mut self) -> T {
-        if self.empty() {
-            panic!("pop: Stack is empty")
+        if self.is_empty() {
+            panic!("dequeue: Queue is empty")
         }
-
+        if self.stack2.is_empty() == false {
+            return self.stack2.pop()
+        }
+        // pop off of stack1 and insert in reversed order onto stack2
+        // then return stack1 pop
+        while self.stack1.is_empty() == false {
+            let v = self.stack1.pop();
+            self.stack2.push(v);
+        }
+        self.stack2.pop()
     }
 
     fn len(&self) -> usize {
         self.stack1.len() + self.stack2.len()
     }
 
-    pub fn empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.stack1.is_empty() && self.stack2.is_empty()
     }
 
+}
+
+#[test]
+fn test_euqueue() {
+    // Arrange
+    let mut queue = Queue::<i32>::new();
+
+    // Act
+    // Assert
+    queue.enqueue(10);
+}
+
+#[test]
+fn test_dequeue() {
+    // Arrange
+    let mut queue = Queue::<i32>::new();
+
+    // Act
+    queue.enqueue(10);
+
+    // Assert
+    assert_eq!(10, queue.dequeue())
+}
+
+#[test]
+fn test_fifo() {
+    // Arrange
+    let mut queue = Queue::<i32>::new();
+
+    // Act
+    queue.enqueue(10);
+    queue.enqueue(11);
+
+    // Assert
+    assert_eq!(10, queue.dequeue());
+    assert_eq!(11, queue.dequeue())
+}
+
+#[test]
+fn test_len() {
+    // Arrange
+    let mut queue = Queue::<i32>::new();
+
+    // Act
+    queue.enqueue(10);
+    queue.enqueue(11);
+
+    // Assert
+    assert_eq!(2, queue.len())
 }
