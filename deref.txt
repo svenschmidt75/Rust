@@ -1,0 +1,44 @@
+Sven Schmidt
+12/05/2015
+
+The Deref trait is something like a convert operator is C++.
+It basically allows to coerse (decay in C++?) one type to another.
+For example, String coerces into &str like this:
+
+let s: String = String::from("hjdgfhjdsg");
+let st: &str = &s;
+
+Deref is declared like this:
+
+pub trait Deref {
+    type Target: ?Sized;
+
+    fn deref(&self) -> &Self::Target;
+}
+
+As we can see, Deref is an associated type (Target).
+So, what happens when the compiler sees 
+
+let st: &str = &s;
+
+The desired coercion is from &String to &str. Deref is implemented
+for String with Target = str, i.e.
+
+impl Deref for String {
+    type Target = str;   
+}
+
+
+Example:
+
+fn foo(s: &str) {
+    // borrow a string for a second
+}
+
+let owned: String = "Hello".to_string();
+
+// String implements Deref<Target=str>
+// therefore, this works, i.e. the compiler
+// will call 'deref' on the String to convert
+// &String to &str.
+foo(&owned);
