@@ -82,3 +82,49 @@ fn test_top_panics_when_empty() {
     // Act
     stack.top();
 }
+
+#[test]
+fn test_palindrome() {
+    // Arrange
+    let input = "aabaabaXabaabaa";
+    let pair = input.split('X').collect::<Vec<&str>>();
+    let part1 = pair[0];
+    let part2 = pair[1];
+    let mut stack = Stack::<char>::new();
+    for c in part1.chars() {
+        stack.push(c);
+    }
+
+    // Act
+    // Assert
+    assert_eq!(part1.len(), part2.len());
+
+    for c2 in part2.chars() {
+        let c1 = stack.pop();
+        assert_eq!(c1, c2);
+    }
+}
+
+#[test]
+fn test_reverse_elements() {
+    // Arrange
+    let input = vec![1, 2, 3];
+
+    let mut input_reversed_expected= input.clone();
+    input_reversed_expected.reverse();
+
+    let mut stack1 = Stack::<i32>::new();
+    for c in &input {
+        stack1.push(*c);
+    }
+    let mut input_reversed= Vec::<i32>::new();
+
+    // Act
+    while stack1.is_empty() == false {
+        let v = stack1.pop();
+        input_reversed.push(v);
+    }
+
+    // Assert
+    assert_eq!(input_reversed_expected, input_reversed)
+}
