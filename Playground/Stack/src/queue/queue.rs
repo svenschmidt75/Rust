@@ -27,8 +27,8 @@ impl<T: Sized> Queue<T> {
         if self.stack2.is_empty() == false {
             return self.stack2.pop()
         }
-        // pop off of stack1 and insert in reversed order onto stack2
-        // then return stack1 pop
+        // Pop off elements of stack1 and insert into stack2. That reverses the
+        // order of the elements which we need.
         while self.stack1.is_empty() == false {
             let v = self.stack1.pop();
             self.stack2.push(v);
