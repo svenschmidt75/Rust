@@ -1,0 +1,7 @@
+Sven Schmidt
+12/05/2015
+
+What is the meaning of trait ?Sized?
+
+Basically, whenever a type has a known constant size at compile time, this
+trait is used. It is nothing more than a marker trait, like Send is.

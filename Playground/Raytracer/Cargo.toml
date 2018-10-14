@@ -1,0 +1,15 @@
+[package]
+name = "Raytracer"
+version = "0.1.0"
+authors = ["Sven Schmidt <svenschmidt75@googlemail.com>"]
+
+[lib]
+name = "Primitives"
+path = "Primitives/src/lib.rs"
+
+[[bin]]
+name = "Raytracer"
+path = "src/main.rs"
+
+[dependencies]
+sdl2 = "0.9"

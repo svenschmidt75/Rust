@@ -1,0 +1,33 @@
+Sven Schmidt
+12/05/2015
+
+What does string_literal.to_string() do and why does is work?
+
+String literals are of type &str, i.e.
+
+let s: &str = "string";
+
+There is a generic trait called ToString declared like this:
+
+trait ToString {
+    fn to_string(&self) -> String;
+}
+
+and in particular, it is implemented for &str:
+
+impl ToString for str {
+    fn to_string(from: &str) -> String {
+        String::from(from)
+    }
+}
+
+Actually, the trait is a little more generic in the sense that it is NOT
+directly implemented for str, bur rather like this:
+
+impl<T> ToString for T where T: Display + ?Sized {
+}
+
+This is more generic than just str, i.e. any type that implements traits
+Display and ?Sized will work and str implements the std::fmt::Display trait:
+
+impl Display for str

@@ -1,0 +1,9 @@
+[package]
+name = "mandelbrot_multi_threaded"
+version = "0.1.0"
+authors = ["Sven Schmidt <svenschmidt75@googlemail.com>"]
+
+[dependencies]
+num = "0.1.27"
+image = "0.13.0"
+crossbeam = "0.2.8"

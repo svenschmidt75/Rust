@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{78C9907C-C22D-4F8D-B13A-49F213FF1631}") = "HelloWorld", "HelloWorld\HelloWorld.rsproj", "{F2935D82-02E6-4839-B0D3-F8614D0F219A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|default = Debug|default
+		Release|default = Release|default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F2935D82-02E6-4839-B0D3-F8614D0F219A}.Debug|default.ActiveCfg = Debug|default
+		{F2935D82-02E6-4839-B0D3-F8614D0F219A}.Debug|default.Build.0 = Debug|default
+		{F2935D82-02E6-4839-B0D3-F8614D0F219A}.Release|default.ActiveCfg = Release|default
+		{F2935D82-02E6-4839-B0D3-F8614D0F219A}.Release|default.Build.0 = Release|default
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
