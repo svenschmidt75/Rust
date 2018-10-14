@@ -5,15 +5,15 @@ pub struct Stack<T> {
 }
 
 impl<T> Stack<T> {
-    fn new() -> Stack<T> {
+    pub fn new() -> Stack<T> {
         Stack { data: Vec::new() }
     }
 
-    fn push(&mut self, value: T) {
+    pub fn push(&mut self, value: T) {
         self.data.push(value);
     }
 
-    fn pop(&mut self) -> T {
+    pub fn pop(&mut self) -> T {
         if self.data.len() == 0 {
             panic!("pop: Stack is empty")
         }
@@ -22,11 +22,19 @@ impl<T> Stack<T> {
         v
     }
 
-    fn top(&self) -> &T {
+    pub fn top(&self) -> &T {
         if self.data.len() == 0 {
             panic!("pop: Stack is empty")
         }
         self.data.last().unwrap()
+    }
+
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
     }
 }
 
