@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use queue::queue::Queue;
+
 pub enum BinaryTree<T> {
     Empty,
     NonEmpty(Box<TreeNode<T>>),
@@ -12,9 +14,12 @@ pub struct TreeNode<T> {
 }
 
 impl<'a, T> BinaryTree<T>
-    where
-        T: std::fmt::Display,
+where
+    T: std::fmt::Display,
 {
+    /* SS: Here we are tying the lifetime of data which we pass to func to the lifetime
+     * of the BinaryTree instance itself.
+     */
     fn visit_preorder(&'a self, func: &mut FnMut(&'a T)) {
         match *self {
             BinaryTree::Empty => {}
@@ -44,6 +49,22 @@ impl<'a, T> BinaryTree<T>
                 node.left.visit_postorder(func);
                 node.right.visit_postorder(func);
                 func(&node.data);
+            }
+        }
+    }
+
+    fn visit_levelorder(&'a self, func: &mut FnMut(&'a T)) {
+        let mut q = Queue::<&BinaryTree<T>>::new();
+        q.enqueue(&self);
+        while q.is_empty() == false {
+            let tree = q.dequeue();
+            match *tree {
+                BinaryTree::Empty => {}
+                BinaryTree::NonEmpty(ref node) => {
+                    func(&node.data);
+                    q.enqueue(&node.left);
+                    q.enqueue(&node.right);
+                }
             }
         }
     }
@@ -129,4 +150,17 @@ fn test_nonempty_visit_postorder() {
 
     // Assert
     assert_eq!(vec![&4, &5, &2, &6, &7, &3, &1], flattened_list)
+}
+
+#[test]
+fn test_nonempty_visit_levelorder() {
+    // Arrange
+    let bt = create_tree();
+    let mut flattened_list = Vec::new();
+
+    // Act
+    bt.visit_levelorder(&mut |value| flattened_list.push(value));
+
+    // Assert
+    assert_eq!(vec![&1, &2, &3, &4, &5, &6, &7], flattened_list)
 }

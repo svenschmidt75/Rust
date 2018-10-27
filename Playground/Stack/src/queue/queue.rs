@@ -10,14 +10,14 @@ impl<T: Sized> Queue<T> {
         Queue { stack1: Stack::new(), stack2: Stack::new() }
     }
 
-    fn enqueue(&mut self, value: T) {
+    pub fn enqueue(&mut self, value: T) {
         self.stack1.push(value);
     }
 
     // we return T by value (i.e. we relinquish ownership), so
     // T: Sized, as T must have a defined size (like value types,
     // or trait objects)
-    fn dequeue(&mut self) -> T {
+    pub fn dequeue(&mut self) -> T {
         if self.is_empty() {
             panic!("dequeue: Queue is empty")
         }
@@ -33,7 +33,7 @@ impl<T: Sized> Queue<T> {
         self.stack2.pop()
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.stack1.len() + self.stack2.len()
     }
 
