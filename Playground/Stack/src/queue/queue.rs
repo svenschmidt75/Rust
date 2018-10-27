@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use stack::stack::Stack;
 
 pub struct Queue<T> {
@@ -8,7 +6,6 @@ pub struct Queue<T> {
 }
 
 impl<T: Sized> Queue<T> {
-
     pub fn new() -> Queue<T> {
         Queue { stack1: Stack::new(), stack2: Stack::new() }
     }
@@ -43,7 +40,6 @@ impl<T: Sized> Queue<T> {
     pub fn is_empty(&self) -> bool {
         self.stack1.is_empty() && self.stack2.is_empty()
     }
-
 }
 
 #[test]
