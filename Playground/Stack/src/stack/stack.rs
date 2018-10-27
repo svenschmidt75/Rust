@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 pub struct Stack<T> {
-    data: Vec<T>
+    data: Vec<T>,
 }
 
 impl<T> Stack<T> {
@@ -110,14 +110,14 @@ fn test_reverse_elements() {
     // Arrange
     let input = vec![1, 2, 3];
 
-    let mut input_reversed_expected= input.clone();
+    let mut input_reversed_expected = input.clone();
     input_reversed_expected.reverse();
 
     let mut stack1 = Stack::<i32>::new();
     for c in &input {
         stack1.push(*c);
     }
-    let mut input_reversed= Vec::<i32>::new();
+    let mut input_reversed = Vec::<i32>::new();
 
     // Act
     while stack1.is_empty() == false {
