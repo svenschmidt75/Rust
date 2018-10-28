@@ -15,7 +15,7 @@ pub struct TreeNode<T> {
 
 impl<'a, T> BinaryTree<T>
 where
-    T: std::fmt::Display,
+    T: Ord
 {
     /* SS: Here we are tying the lifetime of data which we pass to func to the lifetime
      * of the BinaryTree instance itself.
@@ -42,6 +42,9 @@ where
         }
     }
 
+    // SS: take via self -> FnOnce
+    //     take via &self -> Fn
+    //     take via &mut self -> FnMut
     fn visit_postorder(&'a self, func: &mut FnMut(&'a T)) {
         match *self {
             BinaryTree::Empty => {}
@@ -68,6 +71,48 @@ where
             }
         }
     }
+
+    fn find_max_element(&self) -> Option<&T> {
+        /* Find max. element in a BinaryTree. We could flatten the tree into a list
+         * using any of the traversal methods, and then find the max. element in that
+         * list, or we traverse in-place.
+         */
+        match &self {
+            &BinaryTree::Empty => None,
+            &BinaryTree::NonEmpty(ref node) => {
+                let mut elements = vec![&node.data];
+                let left_max_element = node.left.find_max_element();
+                let right_max_element = node.right.find_max_element();
+                if let Some(lval) = left_max_element {
+                    elements.push(lval);
+                }
+                if let Some(rval) = right_max_element {
+                    elements.push(rval);
+                }
+                elements.into_iter().max()
+            }
+        }
+    }
+
+    fn find_element(&self, item: &T) -> bool {
+        /* Find element in a BinaryTree. We could flatten the tree into a list
+         * using any of the traversal methods, and then find the element in that
+         * list, or we traverse in-place.
+         */
+        match &self {
+            &BinaryTree::Empty => false,
+            &BinaryTree::NonEmpty(ref node) => {
+                if &node.data == item {
+                    return true;
+                }
+                if node.left.find_element(item) {
+                    return true;
+                }
+                node.right.find_element(item)
+            }
+        }
+    }
+
 }
 
 #[test]
@@ -163,4 +208,52 @@ fn test_nonempty_visit_levelorder() {
 
     // Assert
     assert_eq!(vec![&1, &2, &3, &4, &5, &6, &7], flattened_list)
+}
+
+#[test]
+fn test_nonempty_find_max_element() {
+    // Arrange~
+    let bt = create_tree();
+
+    // Act
+    let max_element = bt.find_max_element().unwrap();
+
+    // Assert
+    assert_eq!(7, *max_element)
+}
+
+#[test]
+fn test_empty_find_max_element() {
+    // Arrange~
+    let bt: BinaryTree<i32> = BinaryTree::Empty;
+
+    // Act
+    let max_element = bt.find_max_element();
+
+    // Assert
+    assert_eq!(None, max_element)
+}
+
+#[test]
+fn test_empty_find_element() {
+    // Arrange~
+    let bt: BinaryTree<i32> = BinaryTree::Empty;
+
+    // Act
+    let max_element = bt.find_element(&5);
+
+    // Assert
+    assert_eq!(false, max_element)
+}
+
+#[test]
+fn test_nonempty_find_element() {
+    // Arrange~
+    let bt: BinaryTree<i32> = create_tree();
+
+    // Act
+    let max_element = bt.find_element(&5);
+
+    // Assert
+    assert_eq!(true, max_element)
 }
