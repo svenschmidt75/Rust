@@ -14,8 +14,8 @@ pub struct TreeNode<T> {
 }
 
 impl<'a, T> BinaryTree<T>
-where
-    T: Ord
+    where
+        T: Ord
 {
     /* SS: Here we are tying the lifetime of data which we pass to func to the lifetime
      * of the BinaryTree instance itself.
@@ -113,6 +113,41 @@ where
         }
     }
 
+    fn delete_tree(self) {
+        // Just by moving, the BinaryTree is destroyed...
+        match self {
+            BinaryTree::Empty => {},
+            BinaryTree::NonEmpty(node) => {
+                let tr = *node;
+                tr.left.delete_tree();
+                tr.right.delete_tree();
+            }
+        }
+    }
+
+    fn size(&self) -> u32 {
+        match *self {
+            BinaryTree::Empty => 0,
+            BinaryTree::NonEmpty(ref node) => {
+                let left_size = node.left.size();
+                let right_size = node.right.size();
+                return 1 + left_size + right_size;
+            }
+        }
+    }
+
+    fn height(&self) -> u32 {
+        // height of BT is the length of the path from the root to its
+        // deepest node
+        match *self {
+            BinaryTree::Empty => 0,
+            BinaryTree::NonEmpty(ref node) => {
+                let left_size = node.left.height();
+                let right_size = node.right.height();
+                return 1 + std::cmp::max(left_size, right_size);
+            }
+        }
+    }
 }
 
 #[test]
@@ -212,7 +247,7 @@ fn test_nonempty_visit_levelorder() {
 
 #[test]
 fn test_nonempty_find_max_element() {
-    // Arrange~
+    // Arrange
     let bt = create_tree();
 
     // Act
@@ -224,7 +259,7 @@ fn test_nonempty_find_max_element() {
 
 #[test]
 fn test_empty_find_max_element() {
-    // Arrange~
+    // Arrange
     let bt: BinaryTree<i32> = BinaryTree::Empty;
 
     // Act
@@ -236,7 +271,7 @@ fn test_empty_find_max_element() {
 
 #[test]
 fn test_empty_find_element() {
-    // Arrange~
+    // Arrange
     let bt: BinaryTree<i32> = BinaryTree::Empty;
 
     // Act
@@ -248,7 +283,7 @@ fn test_empty_find_element() {
 
 #[test]
 fn test_nonempty_find_element() {
-    // Arrange~
+    // Arrange
     let bt: BinaryTree<i32> = create_tree();
 
     // Act
@@ -256,4 +291,60 @@ fn test_nonempty_find_element() {
 
     // Assert
     assert_eq!(true, max_element)
+}
+
+#[test]
+fn test_empty_size() {
+    // Arrange
+    let bt: BinaryTree<i32> = BinaryTree::Empty;
+
+    // Act
+    let size = bt.size();
+
+    // Assert
+    assert_eq!(0, size)
+}
+
+#[test]
+fn test_nonempty_size() {
+    // Arrange
+    let bt: BinaryTree<i32> = create_tree();
+
+    // Act
+    let size = bt.size();
+
+    // Assert
+    assert_eq!(7, size)
+}
+
+#[test]
+fn test_nonempty_height() {
+    // Arrange
+    let mut bt: BinaryTree<i32> = create_tree();
+    match bt {
+        BinaryTree::NonEmpty(ref mut n1) => {
+            match n1.left {
+                BinaryTree::NonEmpty(ref mut n2) => {
+                    match n2.left {
+                        BinaryTree::NonEmpty(ref mut n3) => {
+                            n3.left = BinaryTree::NonEmpty(Box::new(TreeNode {
+                                data: 8,
+                                left: BinaryTree::Empty,
+                                right: BinaryTree::Empty,
+                            }))
+                        },
+                        _ => {}
+                    }
+                },
+                _ => {}
+            }
+        },
+        _ => {}
+    }
+
+    // Act
+    let height = bt.height();
+
+    // Assert
+    assert_eq!(4, height)
 }
