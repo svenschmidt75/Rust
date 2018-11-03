@@ -1,6 +1,10 @@
 #![allow(dead_code)]
 
 use queue::queue::Queue;
+use std::vec::Vec;
+
+// SS: this brings max_by-Key into scope so we can
+use std::iter::Iterator;
 
 pub enum BinaryTree<T> {
     Empty,
@@ -11,6 +15,28 @@ pub struct TreeNode<T> {
     data: T,
     left: BinaryTree<T>,
     right: BinaryTree<T>,
+}
+
+fn deepest_node_helper<T>(bt: &BinaryTree<T>, level: u32) -> (u32, Option<&TreeNode<T>>) {
+    match *bt {
+        BinaryTree::NonEmpty(ref node) => {
+            let mut v: Vec<(u32, &TreeNode<T>)> = Vec::new();
+            let (left_depth, left_node) = deepest_node_helper(&node.left, level + 1);
+            left_node.and_then(|val| {
+                v.push((left_depth, val));
+                Some(true)
+            });
+            let (right_depth, right_node) = deepest_node_helper(&node.right, level + 1);
+            right_node.and_then(|val| {
+                v.push((right_depth, val));
+                Some(true)
+            });
+            let a = (level, node.as_ref());
+            let (max_level, tree_node) = v.iter().max_by_key(|(v1, _)| *v1).unwrap_or(&a);
+            (*max_level, Some(*tree_node))
+        },
+        BinaryTree::Empty => (level, None),
+    }
 }
 
 impl<'a, T> BinaryTree<T>
@@ -148,6 +174,15 @@ impl<'a, T> BinaryTree<T>
             }
         }
     }
+
+    fn deepest_node(&self) -> Option<&TreeNode<T>> {
+        // Deepest node: length of the path from root to node, where that path length
+        // is maximal.
+        // could use a max heap...
+        let (_, tree_node) = deepest_node_helper(self, 0);
+        tree_node
+    }
+
 }
 
 #[test]
@@ -347,4 +382,36 @@ fn test_nonempty_height() {
 
     // Assert
     assert_eq!(4, height)
+}
+
+#[test]
+fn test_nonempty_deepest_node() {
+    // Arrange
+    let mut bt: BinaryTree<i32> = create_tree();
+    match bt {
+        BinaryTree::NonEmpty(ref mut n1) => {
+            match n1.right {
+                BinaryTree::NonEmpty(ref mut n2) => {
+                    match n2.left {
+                        BinaryTree::NonEmpty(ref mut n3) => {
+                            n3.right = BinaryTree::NonEmpty(Box::new(TreeNode {
+                                data: 8,
+                                left: BinaryTree::Empty,
+                                right: BinaryTree::Empty,
+                            }))
+                        },
+                        _ => {}
+                    }
+                },
+                _ => {}
+            }
+        },
+        _ => {}
+    }
+
+    // Act
+    let node = bt.deepest_node().unwrap();
+
+    // Assert
+    assert_eq!(8, node.data)
 }
