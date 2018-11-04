@@ -183,6 +183,32 @@ impl<'a, T> BinaryTree<T>
         tree_node
     }
 
+    fn deepest_node2(&self) -> Option<&TreeNode<T>> {
+        // Deepest node: length of the path from root to node, where that path length
+        // is maximal.
+        // Use Breadth-First Search approach
+        let mut queue = Queue::new();
+        match *self {
+            BinaryTree::Empty => return None,
+            BinaryTree::NonEmpty(ref node) => {
+                queue.enqueue(node.as_ref());
+            }
+        }
+        let mut deepest_node = None;
+        while queue.is_empty() == false {
+            let n = queue.dequeue();
+            deepest_node = Some(n);
+            if let BinaryTree::NonEmpty(ref node) = n.left {
+                queue.enqueue(node);
+            }
+            if let BinaryTree::NonEmpty(ref node) = n.right {
+                queue.enqueue(node);
+            }
+        }
+        deepest_node
+    }
+
+
 }
 
 #[test]
@@ -411,7 +437,11 @@ fn test_nonempty_deepest_node() {
 
     // Act
     let node = bt.deepest_node().unwrap();
+    // Assert
+    assert_eq!(8, node.data);
 
+    // Act
+    let node = bt.deepest_node2().unwrap();
     // Assert
     assert_eq!(8, node.data)
 }
