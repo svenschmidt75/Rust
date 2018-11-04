@@ -60,7 +60,7 @@ impl<'a, T: 'a> IntoIterator for &'a Stack<T> {
 
 impl<'a, T> Iterator for StackIter<'a, T> {
     type Item = &'a T;
-    fn next(&mut self) -> Option<&'a T> {
+    fn next(&mut self) -> Option<Self::Item> {
         if self.pos < self.stack.data.len() {
             self.pos += 1;
             return Some(&self.stack.data[self.pos - 1])
