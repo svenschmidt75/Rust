@@ -1,5 +1,8 @@
 #![allow(dead_code)]
 
+use std::iter::{Iterator, IntoIterator};
+
+
 pub struct Stack<T> {
     data: Vec<T>,
 }
@@ -36,7 +39,36 @@ impl<T> Stack<T> {
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
+
+    fn iter(&self) -> StackIter<T> {
+        StackIter { stack: &self, pos: 0 }
+    }
 }
+
+pub struct StackIter<'a, T: 'a> {
+    stack: &'a Stack<T>,
+    pos: usize,
+}
+
+impl<'a, T: 'a> IntoIterator for &'a Stack<T> {
+    type Item = &'a T;
+    type IntoIter = StackIter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, T> Iterator for StackIter<'a, T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<&'a T> {
+        if self.pos < self.stack.data.len() {
+            self.pos += 1;
+            return Some(&self.stack.data[self.pos - 1])
+        }
+        None
+    }
+}
+
 
 #[test]
 fn test_push() {
@@ -127,4 +159,21 @@ fn test_reverse_elements() {
 
     // Assert
     assert_eq!(input_reversed_expected, input_reversed)
+}
+
+#[test]
+fn test_stack_iterator() {
+    // Arrange
+    let input = vec![1, 2, 3];
+    let mut stack = Stack::<i32>::new();
+    for c in &input {
+        stack.push(*c);
+    }
+    let iter = stack.iter();
+
+    // Act
+    let values: Vec<i32> = iter.map(|a| *a).collect();
+
+    // Assert
+    assert_eq!(input, values)
 }
