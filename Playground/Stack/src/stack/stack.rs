@@ -40,7 +40,7 @@ impl<T> Stack<T> {
         self.data.is_empty()
     }
 
-    fn iter(&self) -> StackIter<T> {
+    pub fn iter(&self) -> StackIter<T> {
         StackIter { stack: &self, pos: 0 }
     }
 }

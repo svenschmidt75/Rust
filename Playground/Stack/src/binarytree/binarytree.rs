@@ -1,7 +1,10 @@
 #![allow(dead_code)]
 
 use queue::queue::Queue;
+use stack::stack::Stack;
 use std::vec::Vec;
+use std::fmt;
+
 
 // SS: this brings max_by-Key into scope so we can
 use std::iter::Iterator;
@@ -41,7 +44,7 @@ fn deepest_node_helper<T>(bt: &BinaryTree<T>, level: u32) -> (u32, Option<&TreeN
 
 impl<'a, T> BinaryTree<T>
     where
-        T: Ord
+        T: Ord + fmt::Display
 {
     /* SS: Here we are tying the lifetime of data which we pass to func to the lifetime
      * of the BinaryTree instance itself.
@@ -208,8 +211,54 @@ impl<'a, T> BinaryTree<T>
         deepest_node
     }
 
-
+    fn root_to_leaf_paths(&self) {
+        let mut stack = Stack::new();
+        stack.push(self);
+        root_to_leaf_paths_helper(&self, &mut stack);
+    }
 }
+
+fn root_to_leaf_paths_helper<'a, 'b, T: fmt::Display>(bt: &'a BinaryTree<T>, stack: &'b mut Stack<&'a BinaryTree<T>>) {
+    match *bt {
+        BinaryTree::Empty => {},
+        BinaryTree::NonEmpty(ref node) => {
+            if node.is_leaf() {
+                let _: Vec<i32> = stack.iter().map(|tree: &&BinaryTree<T>| {
+                    match *tree {
+                        BinaryTree::Empty => { 1 as i32 },
+                        BinaryTree::NonEmpty(ref node) => {
+                            print!(" - {}", &node.data);
+                            return 1;
+                        },
+                    }
+                }).collect();
+                println!();
+            } else {
+                stack.push(&node.left);
+                root_to_leaf_paths_helper(&node.left, stack);
+                stack.pop();
+                stack.push(&node.right);
+                root_to_leaf_paths_helper(&node.right, stack);
+                stack.pop();
+            }
+        },
+    }
+}
+
+
+impl<T> TreeNode<T> {
+    fn is_leaf(&self) -> bool {
+        match self.left {
+            BinaryTree::Empty => {},
+            BinaryTree::NonEmpty(_) => return false,
+        }
+        match self.right {
+            BinaryTree::Empty => true,
+            BinaryTree::NonEmpty(_) => false,
+        }
+    }
+}
+
 
 #[test]
 fn test_empty_visit_preorder() {
@@ -444,4 +493,35 @@ fn test_nonempty_deepest_node() {
     let node = bt.deepest_node2().unwrap();
     // Assert
     assert_eq!(8, node.data)
+}
+
+#[test]
+fn test_nonempty_root_to_leaf_paths() {
+    // Arrange
+    let mut bt: BinaryTree<i32> = create_tree();
+    match bt {
+        BinaryTree::NonEmpty(ref mut n1) => {
+            match n1.right {
+                BinaryTree::NonEmpty(ref mut n2) => {
+                    match n2.left {
+                        BinaryTree::NonEmpty(ref mut n3) => {
+                            n3.right = BinaryTree::NonEmpty(Box::new(TreeNode {
+                                data: 8,
+                                left: BinaryTree::Empty,
+                                right: BinaryTree::Empty,
+                            }))
+                        },
+                        _ => {}
+                    }
+                },
+                _ => {}
+            }
+        },
+        _ => {}
+    }
+
+    // Act
+    bt.root_to_leaf_paths();
+
+    // Assert
 }
