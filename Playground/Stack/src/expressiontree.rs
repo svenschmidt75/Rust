@@ -11,13 +11,13 @@ enum Operator {
     Div,
 }
 
-impl Operator {
-    fn print(&self) {
+impl fmt::Display for Operator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Operator::Add => print!(" + "),
-            Operator::Sub => print!(" - "),
-            Operator::Mul => print!(" * "),
-            Operator::Div => print!(" / "),
+            Operator::Add => write!(f, " + "),
+            Operator::Sub => write!(f, " - "),
+            Operator::Mul => write!(f, " * "),
+            Operator::Div => write!(f, " / "),
         }
     }
 }
@@ -27,21 +27,24 @@ enum Expression<'a> {
     Operator(Operator)
 }
 
-impl<'a> Expression<'a> {
-    fn print(&self) {
+impl<'a> fmt::Display for BinaryTree<Expression<'a>> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Expression::Constant(ref v) => print!("{}", v),
-            Expression::Operator(op) => op.print(),
+            BinaryTree::NonEmpty(ref node) => {
+                match node.as_ref() {
+                    TreeNode { data: op, left, right } => {
+                        match *op {
+                            Expression::Constant(ref c) => write!(f, "{}", c),
+                            Expression::Operator(ref op) => {
+                                write!(f, "({}{}{})", left, op, right)
+                            },
+                        }
+                    }
+                }
+            },
+            BinaryTree::Empty => write!(f, "empty")
         }
     }
-}
-
-impl<'a> fmt::Display for Expression<'a> {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
-    }
-
 }
 
 trait Expr<T> {
@@ -86,5 +89,5 @@ fn test_expressiontree() {
     let expression_tree = create(postfix);
 
     // Assert
-    expression_tree.visit_inorder(&mut |v| v.print());
+    println!("{}", expression_tree);
 }
