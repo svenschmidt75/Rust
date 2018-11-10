@@ -15,9 +15,9 @@ pub enum BinaryTree<T> {
 }
 
 pub struct TreeNode<T> {
-    data: T,
-    left: BinaryTree<T>,
-    right: BinaryTree<T>,
+    pub data: T,
+    pub left: BinaryTree<T>,
+    pub right: BinaryTree<T>,
 }
 
 fn deepest_node_helper<T>(bt: &BinaryTree<T>, level: u32) -> (u32, Option<&TreeNode<T>>) {
