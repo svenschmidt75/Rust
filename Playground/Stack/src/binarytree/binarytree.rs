@@ -44,7 +44,7 @@ fn deepest_node_helper<T>(bt: &BinaryTree<T>, level: u32) -> (u32, Option<&TreeN
 
 impl<'a, T> BinaryTree<T>
     where
-        T: Ord + fmt::Display
+        T: fmt::Display
 {
     /* SS: Here we are tying the lifetime of data which we pass to func to the lifetime
      * of the BinaryTree instance itself.
@@ -60,7 +60,7 @@ impl<'a, T> BinaryTree<T>
         }
     }
 
-    fn visit_inorder(&'a self, func: &mut FnMut(&'a T)) {
+    pub fn visit_inorder(&'a self, func: &mut FnMut(&'a T)) {
         match *self {
             BinaryTree::Empty => {}
             BinaryTree::NonEmpty(ref node) => {
@@ -101,7 +101,7 @@ impl<'a, T> BinaryTree<T>
         }
     }
 
-    fn find_max_element(&self) -> Option<&T> {
+    fn find_max_element(&self) -> Option<&T> where T: Ord {
         /* Find max. element in a BinaryTree. We could flatten the tree into a list
          * using any of the traversal methods, and then find the max. element in that
          * list, or we traverse in-place.
@@ -123,7 +123,7 @@ impl<'a, T> BinaryTree<T>
         }
     }
 
-    fn find_element(&self, item: &T) -> bool {
+    fn find_element(&self, item: &T) -> bool where T: Ord {
         /* Find element in a BinaryTree. We could flatten the tree into a list
          * using any of the traversal methods, and then find the element in that
          * list, or we traverse in-place.
