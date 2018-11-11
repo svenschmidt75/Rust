@@ -20,7 +20,7 @@ impl Triangle {
 		let normal = operations::cross(v1v2, v2v3);
 		let normalized_normal = normal / normal.norm();
 		assert!(normal.norm() > 0.0);
-		Triangle{v1: v1, v2: v2, v3: v3, normal: normalized_normal}
+		Triangle{v1, v2, v3, normal: normalized_normal}
 	}
 
 	pub fn normal(&self) -> Vector4f::Vector4f {

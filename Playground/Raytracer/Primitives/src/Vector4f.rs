@@ -15,7 +15,7 @@ pub struct Vector4f {
 
 impl Vector4f {
 	pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
-		Vector4f{x: x, y: y, z: z, w: w}
+		Vector4f{x, y, z, w }
 	}
 
 	pub fn norm(&self) -> f64 {

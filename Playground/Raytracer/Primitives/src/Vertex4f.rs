@@ -20,7 +20,7 @@ pub struct Vertex4f {
 
 impl Vertex4f {
 	pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
-		Vertex4f{x: x, y: y, z: z, w: w}
+		Vertex4f{x, y, z, w }
 	}
 
 	pub fn x(&self) -> f64 {
