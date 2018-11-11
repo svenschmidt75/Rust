@@ -2,7 +2,12 @@
 
 use binarytree::binarytree::{BinaryTree
                              , TreeNode};
-use std::fmt;
+use std::{fmt};
+use std::str::{FromStr};
+use std::ops::{Add
+               , Sub
+               , Mul
+               , Div};
 
 enum Operator {
     Add,
@@ -22,12 +27,13 @@ impl fmt::Display for Operator {
     }
 }
 
-enum Expression<'a> {
+enum Expression<'a, T> {
     Constant(&'a str),
-    Operator(Operator)
+    Operator(Operator),
+    Literal(T),
 }
 
-impl<'a> fmt::Display for BinaryTree<Expression<'a>> {
+impl<'a, T: fmt::Display> fmt::Display for BinaryTree<Expression<'a, T>> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             BinaryTree::NonEmpty(ref node) => {
@@ -38,6 +44,7 @@ impl<'a> fmt::Display for BinaryTree<Expression<'a>> {
                             Expression::Operator(ref op) => {
                                 write!(f, "({}{}{})", left, op, right)
                             },
+                            Expression::Literal(ref c) => write!(f, "{}", c),
                         }
                     }
                 }
@@ -47,18 +54,63 @@ impl<'a> fmt::Display for BinaryTree<Expression<'a>> {
     }
 }
 
-trait Expr<T> {
+trait Eval<T> {
     fn eval(&self) -> T;
 }
 
-fn create(postfix: &str) -> BinaryTree<Expression> {
-    let items = postfix.split(' ').collect::<Vec<&str>>();
+impl<'a, T> Eval<T> for BinaryTree<Expression<'a, T>>
+    where T: Default +
+    Copy +
+    Add<Output=T> +
+    Sub<Output=T> +
+    Mul<Output=T> +
+    Div<Output=T> {
+    fn eval(&self) -> T {
+        match self {
+            BinaryTree::Empty => Default::default(),
+            BinaryTree::NonEmpty(node) => {
+                match node.data {
+                    Expression::Literal(c) => {
+                        c
+                    },
+                    Expression::Operator(ref op) => {
+                        let left = node.left.eval();
+                        let right = node.right.eval();
+                        match op {
+                            Operator::Add => {
+                                left + right
+                            },
+                            Operator::Sub => {
+                                left - right
+                            },
+                            Operator::Mul => {
+                                left * right
+                            },
+                            Operator::Div => {
+                                right / left
+                            },
+                        }
+                    },
+                    _ => panic!("not defined"),
+                }
+            },
+        }
+    }
+}
+
+fn create<'a, T>(postfix: &'a str) -> BinaryTree<Expression<T>>
+    where T: FromStr, <T as std::str::FromStr>::Err: std::fmt::Debug {
+    let items = postfix.split(' ').collect::<Vec<&'a str>>();
     let mut stack = Vec::new();
 
     // build expression tree
     for item in items {
-        if item.chars().all(char::is_alphanumeric) {
+        if item.chars().all(char::is_alphabetic) {
             let node = TreeNode { data: Expression::Constant(item), left: BinaryTree::Empty, right: BinaryTree::Empty };
+            stack.push(node);
+        } else if item.chars().all(char::is_numeric) {
+            let c = T::from_str(item).unwrap();
+            let node = TreeNode { data: Expression::Literal(c), left: BinaryTree::Empty, right: BinaryTree::Empty };
             stack.push(node);
         } else {
             let d = match item {
@@ -86,8 +138,19 @@ fn test_expressiontree() {
     let postfix = "A B C * + D /";
 
     // Act
-    let expression_tree = create(postfix);
+    let expression_tree = create::<f32>(postfix);
 
     // Assert
     println!("{}", expression_tree);
+}
+#[test]
+fn test_eval_expressiontree() {
+    // Arrange
+    let postfix = "1 2 3 * + 5 /";
+
+    // Act
+    let result = create::<f32>(postfix).eval();
+
+    // Assert
+    assert_eq!((1_f32 + 2_f32 * 3_f32) / 5_f32, result)
 }
