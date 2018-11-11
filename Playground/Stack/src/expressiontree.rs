@@ -87,7 +87,7 @@ impl<'a, T> Eval<T> for BinaryTree<Expression<'a, T>>
                                 left * right
                             },
                             Operator::Div => {
-                                right / left
+                                left / right
                             },
                         }
                     },
@@ -109,6 +109,7 @@ fn create<'a, T>(postfix: &'a str) -> BinaryTree<Expression<T>>
             let node = TreeNode { data: Expression::Constant(item), left: BinaryTree::Empty, right: BinaryTree::Empty };
             stack.push(node);
         } else if item.chars().all(char::is_numeric) {
+            // SS: parse simple number
             let c = T::from_str(item).unwrap();
             let node = TreeNode { data: Expression::Literal(c), left: BinaryTree::Empty, right: BinaryTree::Empty };
             stack.push(node);
@@ -121,8 +122,8 @@ fn create<'a, T>(postfix: &'a str) -> BinaryTree<Expression<T>>
                 _ => panic!("error"),
             };
             // fetch previous 2 nodes
-            let left = stack.pop().unwrap();
             let right = stack.pop().unwrap();
+            let left = stack.pop().unwrap();
             let node = TreeNode { data: d, left: BinaryTree::NonEmpty(Box::new(left)), right: BinaryTree::NonEmpty(Box::new(right)) };
             stack.push(node);
         }
