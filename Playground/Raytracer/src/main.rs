@@ -3,6 +3,7 @@ extern crate sdl2;
 use sdl2::pixels::{Color, PixelFormatEnum};
 use std::thread;
 use ::sdl2::render::{Texture, TextureAccess};
+use std::time::{Duration};
 
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
@@ -22,7 +23,7 @@ fn main() {
         .position_centered().opengl()
         .build().unwrap();
 
-    let mut renderer = window.renderer()
+    let mut renderer = window.into_canvas()
         .accelerated()
         .build().unwrap();
 
@@ -30,8 +31,9 @@ fn main() {
 //    renderer.set_draw_color(Color::RGB(0, 0, 0));
     renderer.clear();
 
-    // create textur we render in
-    let mut texture = renderer.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, (width, height)).unwrap();
+    // create texture we render in
+    let texture_creator = renderer.texture_creator();
+    let mut texture = texture_creator.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, width, height).unwrap();
 
     // pixel data for texture
     let mut pixel_data = vec![0; (width * height * 4) as usize];
@@ -52,5 +54,5 @@ fn main() {
 
     renderer.present();
 
-    thread::sleep_ms(3000);
+    std::thread::sleep(Duration::from_millis(3000));
 }
