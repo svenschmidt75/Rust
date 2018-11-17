@@ -52,3 +52,5 @@ Playground/Raytracer/\.idea/
 Playground/ConwayGameOfLife/Cargo\.lock
 
 Playground/ConwayGameOfLife/\.idea/
+
+Playground/ConwayGameOfLife/target/
