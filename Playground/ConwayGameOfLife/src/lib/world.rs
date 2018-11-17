@@ -14,10 +14,9 @@ impl World {
         let mut transformed_world = World::new(self.width, self.height);
         for row in 0..self.height {
             for col in 0..self.width {
-                let neighbors = self.neighbors(row, col);
                 let live_neighbors = self.live_neighbors(row, col);
                 if self.is_alive(row, col) {
-                    if live_neighbors.len() < 2 {
+                    if live_neighbors < 2 {
                         // Any live cell with fewer than two live neighbors dies, as if by underpopulation.
                         transformed_world.set_dead(row, col);
                     }
