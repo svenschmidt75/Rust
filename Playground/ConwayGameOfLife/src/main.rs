@@ -4,7 +4,7 @@ use lib::world::World;
 
 
 fn main() {
-    let mut world = World::new(10, 10);
+    //let mut world = World::new(10, 10);
 
     // initialize world state
 
