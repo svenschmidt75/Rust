@@ -48,3 +48,7 @@ ProgrammingRust/gcd/Cargo\.lock
 ProgrammingRust/iron-gcd/Cargo\.lock
 
 Playground/Raytracer/\.idea/
+
+Playground/ConwayGameOfLife/Cargo\.lock
+
+Playground/ConwayGameOfLife/\.idea/
