@@ -1,13 +1,60 @@
-#[warn(dead_code)]
+#[allow(dead_code)]
 pub struct World {
-    pub width: u16,
-    pub height: u16,
+    pub width: u32,
+    pub height: u32,
     grid: Vec<u8>
 }
 
 impl World {
-    pub fn new(width: u16, height: u16) -> World {
+    pub fn new(width: u32, height: u32) -> World {
         World { width, height, grid: vec![0; (width * height) as usize] }
+    }
+
+    pub fn blinker_period_2(&mut self, row: u32, col: u32) {
+        assert!(row < self.height);
+        assert!(col < self.width);
+        let cells = vec![(0, 0), (0, 1), (0, 2)];
+        for (r, c) in cells {
+            let index = self.index(row + r, col + c);
+            self.grid[index] = 1;
+        }
+    }
+
+
+    pub fn pulsar_period_3(&mut self, row: u32, col: u32) {
+        assert!(row < self.height);
+        assert!(col < self.width);
+        let cells: Vec<(i32, i32)> = vec![
+                         (-1, -2), (-1, -3), (-1, -4),
+                         (-2, -1), (-2, -6),
+                         (-3, -1), (-3, -6),
+                         (-4, -1), (-4, -6),
+                         (-6, -2), (-6, -3), (-6, -4),
+
+                         (-1, 2), (-1, 3), (-1, 4),
+                         (-2, 1), (-2, 6),
+                         (-3, 1), (-3, 6),
+                         (-4, 1), (-4, 6),
+                         (-6, 2), (-6, 3), (-6, 4),
+
+                         (1, -2), (1, -3), (1, -4),
+                         (2, -1), (2, -6),
+                         (3, -1), (3, -6),
+                         (4, -1), (4, -6),
+                         (6, -2), (6, -3), (6, -4),
+
+                         (1, 2), (1, 3), (1, 4),
+                         (2, 1), (2, 6),
+                         (3, 1), (3, 6),
+                         (4, 1), (4, 6),
+                         (6, 2), (6, 3), (6, 4),
+        ];
+        for (r, c) in cells {
+            let rn = row as i32 + r;
+            let cn = col as i32 + c;
+            let index = self.index(rn as u32, cn as u32);
+            self.grid[index] = 1;
+        }
     }
 
     pub fn evolve(&self) -> World {
@@ -19,17 +66,14 @@ impl World {
                     if live_neighbors < 2 {
                         // Any live cell with fewer than two live neighbors dies, as if by underpopulation.
                         transformed_world.set_dead(row, col);
-                    }
-                    else if live_neighbors == 2 || live_neighbors == 3 {
+                    } else if live_neighbors == 2 || live_neighbors == 3 {
                         // Any live cell with two or three live neighbors lives on to the next generation.
                         transformed_world.set_alive(row, col);
-                    }
-                    else if live_neighbors > 3 {
+                    } else if live_neighbors > 3 {
                         // Any live cell with more than three live neighbors dies, as if by overpopulation.
                         transformed_world.set_dead(row, col);
                     }
-                }
-                else {
+                } else {
                     if live_neighbors == 3 {
                         // Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
                         transformed_world.set_alive(row, col);
@@ -41,48 +85,63 @@ impl World {
         transformed_world
     }
 
-    fn live_neighbors(&self, row: u16, col: u16) -> usize {
+    fn live_neighbors(&self, row: u32, col: u32) -> usize {
         let neighbors = self.neighbors(row, col);
         neighbors.iter().filter(|(r, c)| self.is_alive(*r, *c)).count()
     }
 
-    fn index(&self, row: u16, col: u16) -> usize {
+    fn index(&self, row: u32, col: u32) -> usize {
         (row * self.width + col) as usize
     }
 
-    fn set_alive(&mut self, row: u16, col: u16) {
+    fn set_alive(&mut self, row: u32, col: u32) {
         assert!(row < self.height);
         assert!(col < self.width);
         let index = self.index(row, col);
         self.grid[index] = 1;
     }
 
-    fn is_alive(&self, row: u16, col: u16) -> bool {
+    pub fn is_alive(&self, row: u32, col: u32) -> bool {
         assert!(row < self.height);
         assert!(col < self.width);
         let index = self.index(row, col);
         self.grid[index] == 1
     }
 
-    fn set_dead(&mut self, row: u16, col: u16) {
+    fn set_dead(&mut self, row: u32, col: u32) {
         assert!(row < self.height);
         assert!(col < self.width);
         let index = self.index(row, col);
         self.grid[index] = 0;
     }
 
-    fn neighbors(&self, row: u16, col: u16) -> Vec<(u16, u16)> {
+    fn neighbors(&self, row: u32, col: u32) -> Vec<(u32, u32)> {
         let mut cells = Vec::with_capacity(8);
-        cells.push((row - 1, col - 1));
-        cells.push((row - 1, col));
-        cells.push((row - 1, col + 1));
-        cells.push((row, col - 1));
-        cells.push((row, col + 1));
-        cells.push((row + 1, col - 1));
-        cells.push((row + 1, col));
-        cells.push((row + 1, col + 1));
-        cells.into_iter().filter(|(r, c)| *r < self.height && *c < self.width).collect()
+        let mut rows = vec![row];
+        if row > 0 {
+            rows.push(row - 1);
+        }
+        if row < self.height - 1 {
+            rows.push(row + 1);
+        }
+        let mut cols = vec![col];
+        if col > 0 {
+            cols.push(col - 1);
+        }
+        if col < self.width - 1 {
+            cols.push(col + 1);
+        }
+        for r in &rows {
+            for c in &cols {
+                if *r == row && *c == col {
+                    continue;
+                }
+                cells.push((*r, *c));
+            }
+        }
+        cells
     }
+
 }
 
 #[test]

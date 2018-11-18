@@ -1,21 +1,31 @@
 extern crate sdl2;
 
-use std::time::{Duration};
-use std::thread;
-
 use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::render::{Texture, TextureAccess};
+use sdl2::render::{TextureAccess};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use std::thread;
 
 mod lib;
 use lib::world::World;
 
+fn set_grid(pixel_data: &mut [u8], world: &mut World, width: u32, height: u32) {
+    for row in 0..height {
+        for col in 0..width {
+            let index = ((row * width + col) * 4) as usize;
+            let color = match world.is_alive(row, col) {
+                true => Color::RGB(255, 255, 255),
+                false => Color::RGB(0, 0, 0),
+            };
+            pixel_data[index] = 1;              // A
+            pixel_data[index + 1] = color.b;    // B
+            pixel_data[index + 2] = color.g;    // G
+            pixel_data[index + 3] = color.r;    // R
+        }
+    }
+}
 
 fn main() {
-    let mut world = World::new(10, 10);
-    // TODO SS: initialize world state
-
     // Initialize SDL2
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
@@ -25,11 +35,10 @@ fn main() {
 
     // Create the window
     let window = video.window("Conway's Game Of Life", width, height)
-        .position_centered().opengl()
+        .position_centered()
         .build().unwrap();
 
     let mut renderer = window.into_canvas()
-        .accelerated()
         .build().unwrap();
 
     renderer.clear();
@@ -39,9 +48,13 @@ fn main() {
     let mut texture = texture_creator.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, width, height).unwrap();
 
     // pixel data for texture
-    let mut pixel_data = vec![0; (width * height * 4) as usize];
+    let mut pixel_data: Vec<u8> = vec![0; (width * height * 4) as usize];
 
     let mut event_pump = sdl_context.event_pump().unwrap();
+
+    let mut world = World::new(width, height);
+    world.blinker_period_2(10, 10);
+    world.pulsar_period_3(100, 100);
 
     'running: loop {
         for event in event_pump.poll_iter() {
@@ -51,26 +64,14 @@ fn main() {
                 },
                 _ => {
                     world = world.evolve();
-
-
-                    // render world into pixel_data
-
-
-                    texture.update(None, &pixel_data, (width * 4) as usize);
-                    renderer.copy(&texture, None, None);
+                    set_grid(&mut pixel_data, &mut world, width, height);
+                    texture.update(None, &pixel_data, (width * 4) as usize).unwrap();
+                    renderer.copy(&texture, None, None).unwrap();
                     renderer.present();
                 }
             }
         }
-        ::std::thread::sleep(::std::time::Duration::new(0, 1_000_000_000u32 / 60));
+//        ::std::thread::sleep(::std::time::Duration::new(0, 1_000_000_000u32 / 60));
+        thread::sleep(::std::time::Duration::new(1, 0));
     }
-
-
-//    for i in 0..(width * height) as usize {
-//        let index = i * 4;
-//        pixel_data[index] = 1;   // A
-//        pixel_data[index + 1] = 77;  // B
-//        pixel_data[index + 2] = 171; // G
-//        pixel_data[index + 3] = 243; // R
-//    }
 }
