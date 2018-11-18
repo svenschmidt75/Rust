@@ -1,4 +1,9 @@
 #[allow(dead_code)]
+
+extern crate rand;
+
+use self::rand::{Rng};
+
 pub struct World {
     pub width: u32,
     pub height: u32,
@@ -8,6 +13,21 @@ pub struct World {
 impl World {
     pub fn new(width: u32, height: u32) -> World {
         World { width, height, grid: vec![0; (width * height) as usize] }
+    }
+
+    pub fn init_random(&mut self) {
+        let mut rng = rand::thread_rng();
+        for row in 0..self.height {
+            for col in 0..self.width {
+                let rnd = rng.gen_range(0, 100);
+                if rnd > 50 {
+                    self.set_dead(row, col);
+                }
+                else {
+                    self.set_alive(row, col);
+                }
+            }
+        }
     }
 
     pub fn blinker_period_2(&mut self, row: u32, col: u32) {
@@ -20,6 +40,29 @@ impl World {
         }
     }
 
+    pub fn pentadecathlon(&mut self, row: u32, col: u32) {
+        assert!(row < self.height);
+        assert!(col < self.width);
+        let cells: Vec<(i32, i32)> = vec![(0, 0), (0, 1), (-1, 2), (1, 2), (0, 3), (0, 4), (0, 5), (0, 6), (-1, 7), (1, 7), (0, 8), (0, 9)];
+        for (r, c) in cells {
+            let rn = row as i32 + r;
+            let cn = col as i32 + c;
+            let index = self.index(rn as u32, cn as u32);
+            self.grid[index] = 1;
+        }
+    }
+
+    pub fn glider(&mut self, row: u32, col: u32) {
+        assert!(row < self.height);
+        assert!(col < self.width);
+        let cells: Vec<(i32, i32)> = vec![(-1, 0), (0, 1), (1, 0), (1, -1), (1, 1)];
+        for (r, c) in cells {
+            let rn = row as i32 + r;
+            let cn = col as i32 + c;
+            let index = self.index(rn as u32, cn as u32);
+            self.grid[index] = 1;
+        }
+    }
 
     pub fn pulsar_period_3(&mut self, row: u32, col: u32) {
         assert!(row < self.height);
