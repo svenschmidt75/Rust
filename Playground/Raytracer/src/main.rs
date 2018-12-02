@@ -1,10 +1,10 @@
 extern crate sdl2;
 
-use sdl2::pixels::{Color, PixelFormatEnum};
 use std::thread;
-use ::sdl2::render::{Texture, TextureAccess};
-use std::time::{Duration};
+use std::time::Duration;
 
+use ::sdl2::render::{Texture, TextureAccess};
+use sdl2::pixels::{Color, PixelFormatEnum};
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!
