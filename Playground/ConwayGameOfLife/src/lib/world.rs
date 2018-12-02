@@ -1,5 +1,4 @@
 #[allow(dead_code)]
-
 extern crate rand;
 
 use self::rand::{Rng};
@@ -22,8 +21,7 @@ impl World {
                 let rnd = rng.gen_range(0, 100);
                 if rnd > 50 {
                     self.set_dead(row, col);
-                }
-                else {
+                } else {
                     self.set_alive(row, col);
                 }
             }
@@ -68,29 +66,26 @@ impl World {
         assert!(row < self.height);
         assert!(col < self.width);
         let cells: Vec<(i32, i32)> = vec![
-                         (-1, -2), (-1, -3), (-1, -4),
-                         (-2, -1), (-2, -6),
-                         (-3, -1), (-3, -6),
-                         (-4, -1), (-4, -6),
-                         (-6, -2), (-6, -3), (-6, -4),
-
-                         (-1, 2), (-1, 3), (-1, 4),
-                         (-2, 1), (-2, 6),
-                         (-3, 1), (-3, 6),
-                         (-4, 1), (-4, 6),
-                         (-6, 2), (-6, 3), (-6, 4),
-
-                         (1, -2), (1, -3), (1, -4),
-                         (2, -1), (2, -6),
-                         (3, -1), (3, -6),
-                         (4, -1), (4, -6),
-                         (6, -2), (6, -3), (6, -4),
-
-                         (1, 2), (1, 3), (1, 4),
-                         (2, 1), (2, 6),
-                         (3, 1), (3, 6),
-                         (4, 1), (4, 6),
-                         (6, 2), (6, 3), (6, 4),
+            (-1, -2), (-1, -3), (-1, -4),
+            (-2, -1), (-2, -6),
+            (-3, -1), (-3, -6),
+            (-4, -1), (-4, -6),
+            (-6, -2), (-6, -3), (-6, -4),
+            (-1, 2), (-1, 3), (-1, 4),
+            (-2, 1), (-2, 6),
+            (-3, 1), (-3, 6),
+            (-4, 1), (-4, 6),
+            (-6, 2), (-6, 3), (-6, 4),
+            (1, -2), (1, -3), (1, -4),
+            (2, -1), (2, -6),
+            (3, -1), (3, -6),
+            (4, -1), (4, -6),
+            (6, -2), (6, -3), (6, -4),
+            (1, 2), (1, 3), (1, 4),
+            (2, 1), (2, 6),
+            (3, 1), (3, 6),
+            (4, 1), (4, 6),
+            (6, 2), (6, 3), (6, 4),
         ];
         for (r, c) in cells {
             let rn = row as i32 + r;
@@ -184,45 +179,51 @@ impl World {
         }
         cells
     }
-
 }
 
-#[test]
-fn test_neighbors() {
-    // Arrange
-    let world = World::new(2, 2);
+#[cfg(test)]
+mod tests {
 
-    // Act
-    let neighbors = world.neighbors(1, 1);
+    use super::*;
 
-    // Assert
-    assert_eq!(3, neighbors.len());
-    assert_eq!(Option::Some(&(0, 0)), neighbors.iter().find(|(r, c)| *r == 0 && *c == 0));
-    assert_eq!(Option::Some(&(0, 1)), neighbors.iter().find(|(r, c)| *r == 0 && *c == 1));
-    assert_eq!(Option::Some(&(1, 0)), neighbors.iter().find(|(r, c)| *r == 1 && *c == 0));
-}
 
-#[test]
-fn test_set_alive() {
-    // Arrange
-    let mut world = World::new(2, 2);
+    #[test]
+    fn test_neighbors() {
+        // Arrange
+        let world = World::new(2, 2);
 
-    // Act
-    world.set_alive(1, 1);
+        // Act
+        let neighbors = world.neighbors(1, 1);
 
-    // Assert
-    assert_eq!(1, world.grid[3]);
-}
+        // Assert
+        assert_eq!(3, neighbors.len());
+        assert_eq!(Option::Some(&(0, 0)), neighbors.iter().find(|(r, c)| *r == 0 && *c == 0));
+        assert_eq!(Option::Some(&(0, 1)), neighbors.iter().find(|(r, c)| *r == 0 && *c == 1));
+        assert_eq!(Option::Some(&(1, 0)), neighbors.iter().find(|(r, c)| *r == 1 && *c == 0));
+    }
 
-#[test]
-fn test_set_dead() {
-    // Arrange
-    let mut world = World::new(2, 2);
+    #[test]
+    fn test_set_alive() {
+        // Arrange
+        let mut world = World::new(2, 2);
 
-    // Act
-    world.set_alive(1, 1);
-    world.set_dead(1, 1);
+        // Act
+        world.set_alive(1, 1);
 
-    // Assert
-    assert_eq!(0, world.grid[3]);
+        // Assert
+        assert_eq!(1, world.grid[3]);
+    }
+
+    #[test]
+    fn test_set_dead() {
+        // Arrange
+        let mut world = World::new(2, 2);
+
+        // Act
+        world.set_alive(1, 1);
+        world.set_dead(1, 1);
+
+        // Assert
+        assert_eq!(0, world.grid[3]);
+    }
 }
