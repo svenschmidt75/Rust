@@ -5,6 +5,8 @@ use std::time::Duration;
 
 use ::sdl2::render::{Texture, TextureAccess};
 use sdl2::pixels::{Color, PixelFormatEnum};
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!
@@ -15,8 +17,8 @@ fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
 
-    let width = 800;
-    let height = 600;
+    let width = 600;
+    let height = 480;
 
     // Create the window
     let window = video.window("Sven's Raytracer", width, height)
@@ -35,8 +37,13 @@ fn main() {
     let texture_creator = renderer.texture_creator();
     let mut texture = texture_creator.create_texture(PixelFormatEnum::RGBA8888, TextureAccess::Static, width, height).unwrap();
 
+    let mut event_pump = sdl_context.event_pump().unwrap();
+
     // pixel data for texture
     let mut pixel_data = vec![0; (width * height * 4) as usize];
+
+    // create scene objects
+
 
     for i in 0..(width * height) as usize {
         let index = i * 4;
@@ -47,12 +54,17 @@ fn main() {
     }
 
     texture.update(None, &pixel_data, (width * 4) as usize);
-
-
     renderer.copy(&texture, None, None);
-
-
     renderer.present();
 
-    std::thread::sleep(Duration::from_millis(3000));
+    'running: loop {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    break 'running
+                },
+                _ => {},
+            }
+        }
+    }
 }
