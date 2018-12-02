@@ -3,10 +3,13 @@ extern crate sdl2;
 use std::thread;
 use std::time::Duration;
 
-use ::sdl2::render::{Texture, TextureAccess};
+use sdl2::render::{Texture, TextureAccess};
 use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+
+use Vertex4f::{Vertex4f};
+
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!
@@ -42,9 +45,23 @@ fn main() {
     // pixel data for texture
     let mut pixel_data = vec![0; (width * height * 4) as usize];
 
+
+
+    /* Raytrace a scene
+     *
+     * The camera coordinate system is right-handed, with x pointing to the right, y pointing up and
+     * the negative z axis pointing into the screen.
+     * The camera is positioned at (0, 0, 0), the display screen at z=-1 with x in [-1, -1]
+     * and y in [-1, -1].
+     */
+    let upper_left_corner = Vertex4f::new();
+
+
+
+
     // create scene objects
 
-
+    // render
     for i in 0..(width * height) as usize {
         let index = i * 4;
         pixel_data[index] = 1;   // A

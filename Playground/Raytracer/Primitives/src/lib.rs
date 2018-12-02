@@ -4,7 +4,7 @@
 pub mod Vertex4f;
 pub mod Vector4f;
 pub mod Ray;
-pub mod triangle;
+pub mod Triangle;
 
 mod operations;
 mod Matrix4f;

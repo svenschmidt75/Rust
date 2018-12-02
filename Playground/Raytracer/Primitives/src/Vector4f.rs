@@ -19,6 +19,7 @@ impl Vector4f {
 	}
 
 	pub fn norm(&self) -> f64 {
+
 		(self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt()
 	}
 
@@ -53,7 +54,6 @@ impl fmt::Display for Vector4f {
 
 // We want Vector4f to behave as value type, i.e. instead of moving, it gets copied
 // when passing to a function. The Copy trait depends on the Clone trait.
-
 impl Clone for Vector4f {
     fn clone(&self) -> Self {
     	Vector4f::new(self.x, self.y, self.z, self.w)
@@ -65,6 +65,14 @@ impl Copy for Vector4f {}
 
 
 // Operator overloading
+
+impl ops::Mul<Vector4f> for f64 {
+	type Output = Vector4f;
+
+	fn mul(self, vector: Vector4f) -> Self::Output {
+		Vector4f::new(self * vector.x, self * vector.y, self * vector.z, self * vector.w)
+	}
+}
 
 impl ops::Div<f64> for Vector4f {
 	type Output = Vector4f;
@@ -82,11 +90,19 @@ impl ops::Add<Vector4f> for Vector4f {
     }
 }
 
+impl ops::Sub<Vector4f> for Vector4f {
+	type Output = Vector4f;
+
+	fn sub(self, rhs: Self) -> Self::Output {
+		Vector4f::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.y, self.w - rhs.w)
+	}
+}
+
 
 #[cfg(test)]
 mod tests {
 
-	use super::Vector4f;
+	use super::*;
 	use operations;
 
 
@@ -101,4 +117,20 @@ mod tests {
 		let vec = Vector4f::new(1.34, 2.53, -9.547, 1.0).normalize();
 		assert!(operations::float_cmp(1.0, vec.norm(), 1E-8));
 	}
+
+	#[test]
+	fn test_mul_scalar() {
+		// Arrange
+		let vec = Vector4f::new(1.34, 2.53, -9.547, 1.12);
+
+		// Act
+		let scaled_vec = 2_f64 * vec;
+
+		// Assert
+		assert!(operations::float_cmp(2_f64 * vec.x, scaled_vec.x, 1E-5));
+		assert!(operations::float_cmp(2_f64 * vec.y, scaled_vec.y, 1E-5));
+		assert!(operations::float_cmp(2_f64 * vec.z, scaled_vec.z, 1E-5));
+		assert!(operations::float_cmp(2_f64 * vec.w, scaled_vec.w, 1E-5));
+	}
+
 }

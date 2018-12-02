@@ -94,6 +94,14 @@ impl ops::Add<Vertex4f> for Vertex4f {
     }
 }
 
+impl ops::Add<Vector4f> for Vertex4f {
+	type Output = Vertex4f;
+
+	fn add(self, rhs: Vector4f) -> Self::Output {
+		Vertex4f::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z, self.w + rhs.w)
+	}
+}
+
 impl ops::Neg for Vertex4f {
 	type Output = Self;
 
