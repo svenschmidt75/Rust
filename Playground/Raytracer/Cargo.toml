@@ -1,14 +1,14 @@
 [package]
-name = "Raytracer"
+name = "raytracer"
 version = "0.1.0"
 authors = ["Sven Schmidt <svenschmidt75@googlemail.com>"]
 
 [lib]
-name = "Primitives"
-path = "Primitives/src/lib.rs"
+name = "primitives"
+path = "primitives/src/lib.rs"
 
 [[bin]]
-name = "Raytracer"
+name = "raytracer"
 path = "src/main.rs"
 
 [dependencies]

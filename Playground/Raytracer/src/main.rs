@@ -1,18 +1,15 @@
-extern crate Primitives;
+extern crate primitives;
 extern crate sdl2;
-
-use std::thread;
-use std::time::Duration;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::{PixelFormatEnum};
-use sdl2::render::{Texture, TextureAccess};
+use sdl2::render::{TextureAccess};
 
-use Primitives::Ray::Ray;
-use Primitives::Vector4f::Vector4f;
-use Primitives::Vertex4f::Vertex4f;
-use Primitives::Color::Color;
+use primitives::Ray::Ray;
+use primitives::Vector4f::Vector4f;
+use primitives::Vertex4f::Vertex4f;
+use primitives::Color::Color;
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!

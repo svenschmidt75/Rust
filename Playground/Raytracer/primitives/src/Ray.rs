@@ -3,7 +3,7 @@ use Vertex4f::{Vertex4f};
 
 pub struct Ray {
     // start of ray
-    pub reference_point: Vertex4f,
+    pub origin: Vertex4f,
 
     // normalized direction vector
     pub direction: Vector4f,
@@ -12,14 +12,14 @@ pub struct Ray {
 impl Ray {
     pub fn new(vertex: Vertex4f, direction: Vector4f) -> Self {
         Ray {
-            reference_point: vertex,
+            origin: vertex,
             direction: direction.normalize()
         }
     }
 
     pub fn point_on_ray(&self, t: f64) -> Vertex4f {
         // SS: translate vertex by scaled vector
-        self.reference_point + t * self.direction
+        self.origin + t * self.direction
     }
 
 }
