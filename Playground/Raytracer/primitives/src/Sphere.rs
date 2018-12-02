@@ -11,13 +11,12 @@ pub struct Sphere {
     center: Vertex4f,
 }
 
-
 impl Sphere {
-    fn new(color: Color, radius: f64, center: Vertex4f) -> Self {
+    pub fn new(color: Color, radius: f64, center: Vertex4f) -> Self {
         Sphere { color: color, radius: radius, center: center }
     }
 
-    fn getNormal(n: Vertex4f) -> Vector4f {
+    pub fn getNormal(n: Vertex4f) -> Vector4f {
         let norm = n.as_vector().norm();
         Vector4f::new(n.x / norm, n.y / norm, n.z / norm, n.w / norm)
     }
@@ -59,13 +58,11 @@ impl Shape for Sphere {
             false => vec![(-b + tmp.sqrt()) / 2.0, (-b - tmp.sqrt()) / 2.0]
         }
     }
-
 }
 
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]

@@ -3,13 +3,15 @@ extern crate sdl2;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::pixels::{PixelFormatEnum};
-use sdl2::render::{TextureAccess};
+use sdl2::pixels::PixelFormatEnum;
+use sdl2::render::TextureAccess;
 
+use primitives::Color::Color;
 use primitives::Ray::Ray;
+use primitives::Shape::Shape;
+use primitives::Sphere::Sphere;
 use primitives::Vector4f::Vector4f;
 use primitives::Vertex4f::Vertex4f;
-use primitives::Color::Color;
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!
@@ -20,8 +22,8 @@ fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
 
-    let width = 600;
-    let height = 480;
+    let width = 400;
+    let height = 200;
 
     // Create the window
     let window = video.window("Sven's Raytracer", width, height)
@@ -53,17 +55,26 @@ fn main() {
      * The camera is positioned at (0, 0, 0), the display screen at z=-1 with x in [-1, -1]
      * and y in [-1, -1].
      */
-    let upper_left_corner = Vertex4f::new(-1_f64, 1_f64, -1_f64, 0_f64);
-    let vertical = Vector4f::new(0.0, -1.0, 0.0, 0.0);
-    let horizontal = Vector4f::new(1.0, 0.0, 0.0, 0.0);
+    let upper_left_corner = Vertex4f::new(-2.0, 1.0, -1.0, 0.0);
+    let vertical = Vector4f::new(0.0, -2.0, 0.0, 0.0);
+    let horizontal = Vector4f::new(4.0, 0.0, 0.0, 0.0);
     let camera_origin = Vertex4f::new(0.0, 0.0, 0.0, 0.0);
+
+    // scene objects
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0));
+
     for x in 0..width {
         for y in 0..height {
             let u = x as f64 / width as f64;
             let v = y as f64 / height as f64;
             let ray_target = upper_left_corner + u * horizontal + v * vertical;
             let ray = Ray::new(camera_origin, ray_target.as_vector());
-            let color = color(&ray);
+
+            let color = if sphere.intersect(&ray).len() > 0 {
+                sphere.getColor()
+            } else {
+                color(&ray)
+            };
 
             let index = ((y * width + x) * 4) as usize;
             pixel_data[index] = 1;   // A

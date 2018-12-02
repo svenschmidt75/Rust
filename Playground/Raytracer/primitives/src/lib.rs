@@ -6,10 +6,10 @@ pub mod Vector4f;
 pub mod Ray;
 pub mod Triangle;
 pub mod Color;
+pub mod Sphere;
+pub mod Shape;
 
 mod operations;
 mod Matrix4f;
 mod transformations;
-mod Sphere;
-mod Shape;
 mod CompareWithTolerance;
