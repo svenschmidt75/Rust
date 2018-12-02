@@ -104,7 +104,7 @@ mod tests {
         let ray = Ray::new(Vertex4f::new(-2.0, 0.0, 0.0, 0.0), Vector4f::new(1.0, 0.0, 0.0, 0.0));
 
         // Act
-        let t = unit_sphere.intersect(&ray)[0];
+        let t = unit_sphere.intersect(&ray)[1];
 
         // Assert
         assert_eq!(2.0, t)
@@ -112,10 +112,16 @@ mod tests {
 
     #[test]
     fn test_unit_sphere_centered_at_x_eq_1_intersects_with_ray_on_x_axis_pointing_in_negative_x_axis() {
+        // Arrange
+
         // unit sphere centered at x = 1
         let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(1.0, 0.0, 0.0, 0.0));
         let ray = Ray::new(Vertex4f::new(2.0, 0.0, 0.0, 0.0), Vector4f::new(-1.0, 0.0, 0.0, 0.0));
-        let result = unit_sphere.intersect(&ray)[0];
-//        assert!(result.cmp(Vertex4f::new(2.0, 0.0, 0.0, 0.0), 1E-8));
+
+        // Act
+        let t = unit_sphere.intersect(&ray)[1];
+
+        // Assert
+        assert_eq!(0.0, t)
     }
 }
