@@ -1,15 +1,18 @@
+extern crate Primitives;
 extern crate sdl2;
 
 use std::thread;
 use std::time::Duration;
 
-use sdl2::render::{Texture, TextureAccess};
-use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::pixels::{PixelFormatEnum};
+use sdl2::render::{Texture, TextureAccess};
 
-use Vertex4f::{Vertex4f};
-
+use Primitives::Ray::Ray;
+use Primitives::Vector4f::Vector4f;
+use Primitives::Vertex4f::Vertex4f;
+use Primitives::Color::Color;
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!
@@ -43,8 +46,7 @@ fn main() {
     let mut event_pump = sdl_context.event_pump().unwrap();
 
     // pixel data for texture
-    let mut pixel_data = vec![0; (width * height * 4) as usize];
-
+    let mut pixel_data: Vec<u8> = vec![0; (width * height * 4) as usize];
 
 
     /* Raytrace a scene
@@ -54,20 +56,24 @@ fn main() {
      * The camera is positioned at (0, 0, 0), the display screen at z=-1 with x in [-1, -1]
      * and y in [-1, -1].
      */
-    let upper_left_corner = Vertex4f::new();
+    let upper_left_corner = Vertex4f::new(-1_f64, 1_f64, -1_f64, 0_f64);
+    let vertical = Vector4f::new(0.0, -1.0, 0.0, 0.0);
+    let horizontal = Vector4f::new(1.0, 0.0, 0.0, 0.0);
+    let camera_origin = Vertex4f::new(0.0, 0.0, 0.0, 0.0);
+    for x in 0..width {
+        for y in 0..height {
+            let u = x as f64 / width as f64;
+            let v = y as f64 / height as f64;
+            let ray_target = upper_left_corner + u * horizontal + v * vertical;
+            let ray = Ray::new(camera_origin, ray_target.as_vector());
+            let color = color(&ray);
 
-
-
-
-    // create scene objects
-
-    // render
-    for i in 0..(width * height) as usize {
-        let index = i * 4;
-        pixel_data[index] = 1;   // A
-        pixel_data[index + 1] = 77;  // B
-        pixel_data[index + 2] = 171; // G
-        pixel_data[index + 3] = 243; // R
+            let index = ((y * width + x) * 4) as usize;
+            pixel_data[index] = 1;   // A
+            pixel_data[index + 1] = (255.99 * color.b) as u8; // B
+            pixel_data[index + 2] = (255.99 * color.g) as u8; // G
+            pixel_data[index + 3] = (255.99 * color.r) as u8; // R
+        }
     }
 
     texture.update(None, &pixel_data, (width * 4) as usize);
@@ -84,4 +90,10 @@ fn main() {
             }
         }
     }
+}
+
+fn color(ray: &Ray) -> Color {
+    let t = 0.5 * (ray.direction.y + 1.0);
+    let color_vector = (1.0 - t) * Vector4f::new(1.0, 1.0, 1.0, 0.0) + t * Vector4f::new(0.5, 0.7, 1.0, 0.0);
+    Color::new(color_vector.x, color_vector.y, color_vector.z)
 }

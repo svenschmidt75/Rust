@@ -13,7 +13,8 @@ impl Ray {
     pub fn new(vertex: Vertex4f, direction: Vector4f) -> Self {
         Ray {
             reference_point: vertex,
-            direction: direction.normalize() }
+            direction: direction.normalize()
+        }
     }
 
     pub fn point_on_ray(&self, t: f64) -> Vertex4f {
