@@ -30,7 +30,7 @@ impl Sphere {
 
 }
 
-fn calculate_sqrt_of_discriminant(sphere: &Sphere, ray: &Ray) -> Vec<f64> {
+fn calculate_sqrt_of_discriminant(sphere: &Sphere, ray: &Ray) -> Option<(f64, f64)> {
     let r2 = sphere.radius * sphere.radius;
 
     // We make all calculations based on the sphere translated to the center.
@@ -40,8 +40,8 @@ fn calculate_sqrt_of_discriminant(sphere: &Sphere, ray: &Ray) -> Vec<f64> {
     let pd = operations::dot(ray_reference_point, ray.direction);
     let tmp = r2 - p2 + pd * pd;
     match tmp < 0.0 {
-        true  => vec![],
-        false => vec![tmp.sqrt(), - tmp.sqrt()] 
+        true  => None,
+        false => Some((tmp.sqrt(), - tmp.sqrt()))
     }
 }
 
@@ -62,8 +62,23 @@ impl Shape for Sphere {
 		self.color
 	}
     
-	fn intersect(&self, ray: &Ray) -> Option<Vertex4f> {
-        let vertices: Vec<_> = calculate_sqrt_of_discriminant(self, ray)
+	fn intersect(&self, ray: &Ray) -> Option<f64> {
+        let ts = calculate_sqrt_of_discriminant(self, ray);
+
+        // SS: the smaller t is the one we want
+        if let None = ts {
+            None
+        }
+            else {
+
+
+            }
+
+
+
+
+
+
                         .iter()
                         .map(|discriminant| calculate_intersection_points(self, ray, *discriminant))
                         .filter(|intersection_vertex| {
