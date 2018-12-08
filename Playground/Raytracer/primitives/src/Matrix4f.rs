@@ -9,6 +9,7 @@ pub struct Matrix4f {
 	data: [f64; 16],
 }
 
+#[allow(dead_code)]
 impl Matrix4f {
 	pub fn new() -> Self {
 		// returns identity matrix
@@ -49,10 +50,10 @@ impl Matrix4f {
 
 impl fmt::Display for Matrix4f {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "\n");
-        write!(f, "({}, {}, {}, {})\n", self[(0, 0)], self[(0, 1)], self[(0, 2)], self[(0, 3)]);
-        write!(f, "({}, {}, {}, {})\n", self[(1, 0)], self[(1, 1)], self[(1, 2)], self[(1, 3)]);
-        write!(f, "({}, {}, {}, {})\n", self[(2, 0)], self[(2, 1)], self[(2, 2)], self[(2, 3)]);
+        let _ = write!(f, "\n");
+        let _ = write!(f, "({}, {}, {}, {})\n", self[(0, 0)], self[(0, 1)], self[(0, 2)], self[(0, 3)]);
+        let _ = write!(f, "({}, {}, {}, {})\n", self[(1, 0)], self[(1, 1)], self[(1, 2)], self[(1, 3)]);
+        let _ = write!(f, "({}, {}, {}, {})\n", self[(2, 0)], self[(2, 1)], self[(2, 2)], self[(2, 3)]);
         write!(f, "({}, {}, {}, {})\n", self[(3, 0)], self[(3, 1)], self[(3, 2)], self[(3, 3)])
     }
 }

@@ -1,6 +1,8 @@
 extern crate primitives;
 extern crate sdl2;
 
+use std::f64;
+
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
@@ -69,12 +71,12 @@ fn main() {
             let v = y as f64 / height as f64;
             let ray_target = upper_left_corner + u * horizontal + v * vertical;
             let ray = Ray::new(camera_origin, ray_target.as_vector());
-            let intersection_points = sphere.intersect(&ray);
+            let intersection_points = sphere.intersect(&ray, 0.0, f64::MAX);
             let color = if intersection_points.len() > 0 {
                 let t = intersection_points[1];
                 let intersection = ray.point_on_ray(t);
                 let sphere_normal = sphere.getNormalAt(&intersection);
-                Color::new(0.5 * (sphere_normal.x + 1.), 0.5 *  (sphere_normal.y + 1.), 0.5 * (sphere_normal.z + 1.))
+                Color::new(0.5 * (sphere_normal.x + 1.), 0.5 * (sphere_normal.y + 1.), 0.5 * (sphere_normal.z + 1.))
             } else {
                 color(&ray)
             };
@@ -87,8 +89,8 @@ fn main() {
         }
     }
 
-    texture.update(None, &pixel_data, (width * 4) as usize);
-    renderer.copy(&texture, None, None);
+    texture.update(None, &pixel_data, (width * 4) as usize).unwrap();
+    renderer.copy(&texture, None, None).unwrap();
     renderer.present();
 
     'running: loop {

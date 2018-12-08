@@ -11,5 +11,4 @@ pub mod Shape;
 
 mod operations;
 mod Matrix4f;
-mod transformations;
 mod CompareWithTolerance;

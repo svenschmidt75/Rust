@@ -2,6 +2,7 @@ use operations;
 use Vector4f::Vector4f;
 use Vertex4f::Vertex4f;
 
+#[allow(dead_code)]
 pub struct Triangle {
     v1: Vertex4f,
     v2: Vertex4f,
