@@ -16,15 +16,17 @@ impl Sphere {
         Sphere { color: color, radius: radius, center: center }
     }
 
-    pub fn getNormal(n: Vertex4f) -> Vector4f {
-        let norm = n.as_vector().norm();
-        Vector4f::new(n.x / norm, n.y / norm, n.z / norm, n.w / norm)
+//    pub fn getNormal(n: Vertex4f) -> Vector4f {
+//        let norm = n.as_vector().norm();
+//        Vector4f::new(n.x / norm, n.y / norm, n.z / norm, n.w / norm)
+//    }
+
+    pub fn getNormalAt(&self, p: &Vertex4f) -> Vector4f {
+        // p is assumed to be a point on the sphere
+        let n = p.as_vector() - self.center.as_vector();
+        n.normalize()
     }
 
-    fn points_to_normal(&self, p: Vertex4f, ray: &Ray) -> bool {
-        let normal_at_point = Sphere::getNormal(p);
-        operations::pointing_at_camera(ray.direction, normal_at_point)
-    }
 }
 
 fn calculate_intersection_points(sphere: &Sphere, ray: &Ray, discriminant_sqrt: f64) -> Vertex4f {
