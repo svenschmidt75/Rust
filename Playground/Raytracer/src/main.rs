@@ -73,8 +73,8 @@ fn main() {
             let ray = Ray::new(camera_origin, ray_target.as_vector());
             let intersection_points = sphere.intersect(&ray, 0.0, f64::MAX);
             let color = if intersection_points.len() > 0 {
-                let t = intersection_points[1];
-                let intersection = ray.point_on_ray(t);
+                let hits = &intersection_points[1];
+                let intersection = ray.point_on_ray(hits.t);
                 let sphere_normal = sphere.getNormalAt(&intersection);
                 Color::new(0.5 * (sphere_normal.x + 1.), 0.5 * (sphere_normal.y + 1.), 0.5 * (sphere_normal.z + 1.))
             } else {

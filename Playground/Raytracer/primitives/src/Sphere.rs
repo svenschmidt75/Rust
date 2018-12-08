@@ -5,6 +5,7 @@ use Shape::Shape;
 use Vector4f::Vector4f;
 use Vertex4f::Vertex4f;
 use std::f64;
+use Hit::Hit;
 
 pub struct Sphere {
     color: Color,
@@ -29,8 +30,8 @@ impl Shape for Sphere {
         self.color
     }
 
-    fn intersect(&self, ray: &Ray, t_min: f64, t_max: f64) -> Vec<f64> {
-        let mut ts = vec![];
+    fn intersect(&self, ray: &Ray, t_min: f64, t_max: f64) -> Vec<Hit> {
+        let mut hits = vec![];
         let r2 = self.radius * self.radius;
 
         // We make all calculations based on the sphere translated to the center.
@@ -41,13 +42,15 @@ impl Shape for Sphere {
         let tmp = b * b - 4.0 * c;
         let t = (-b + tmp.sqrt()) / 2.0;
         if t >= t_min && t <= t_max {
-            ts.push(t);
+            let intersection_point = ray.point_on_ray(t);
+            hits.push(Hit { t, intersection_point, normal: self.getNormalAt(&intersection_point) });
         }
         let t = (-b - tmp.sqrt()) / 2.0;
         if t >= t_min && t <= t_max {
-            ts.push(t);
+            let intersection_point = ray.point_on_ray(t);
+            hits.push(Hit { t, intersection_point, normal: self.getNormalAt(&intersection_point) });
         }
-        ts
+        hits
     }
 }
 
@@ -63,10 +66,10 @@ mod tests {
         let ray = Ray::new(Vertex4f::new(-2.0, 0.0, 0.0, 0.0), Vector4f::new(1.0, 0.0, 0.0, 0.0));
 
         // Act
-        let t = unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
+        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
 
         // Assert
-        assert_eq!(1.0, t)
+        assert_eq!(1.0, hit.t)
     }
 
     #[test]
@@ -78,10 +81,10 @@ mod tests {
         let ray = Ray::new(Vertex4f::new(-2.0, 0.0, 0.0, 0.0), Vector4f::new(1.0, 0.0, 0.0, 0.0));
 
         // Act
-        let t = unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
+        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
 
         // Assert
-        assert_eq!(2.0, t)
+        assert_eq!(2.0, hit.t)
     }
 
     #[test]
@@ -93,10 +96,10 @@ mod tests {
         let ray = Ray::new(Vertex4f::new(2.0, 0.0, 0.0, 0.0), Vector4f::new(-1.0, 0.0, 0.0, 0.0));
 
         // Act
-        let t = unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
+        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
 
         // Assert
-        assert_eq!(0.0, t)
+        assert_eq!(0.0, hit.t)
     }
 
     #[test]

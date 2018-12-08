@@ -8,6 +8,8 @@ pub mod Triangle;
 pub mod Color;
 pub mod Sphere;
 pub mod Shape;
+pub mod ShapeList;
+pub mod Hit;
 
 mod operations;
 mod Matrix4f;
