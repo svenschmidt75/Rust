@@ -38,28 +38,31 @@ impl Shape for Sphere {
         // We make all calculations based on the sphere translated to the center.
         // Correct ray reference point for this.
         let oc = ray.origin - self.center;
+        let b = operations::dot(oc, ray.direction);
         let c = operations::dot(oc, oc) - r2;
-        let b = 2.0 * operations::dot(oc, ray.direction);
-        let tmp = b * b - 4.0 * c;
-        let t1 = (-b + tmp.sqrt()) / 2.0;
-        let t2 = (-b - tmp.sqrt()) / 2.0;
-        if t1 < t2 {
-            if t1 >= t_min && t1 <= t_max {
-                let intersection_point = ray.point_on_ray(t1);
-                hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
-            }
-            if t2 >= t_min && t2 <= t_max {
-                let intersection_point = ray.point_on_ray(t2);
-                hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
-            }
-        } else {
-            if t2 >= t_min && t2 <= t_max {
-                let intersection_point = ray.point_on_ray(t2);
-                hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
-            }
-            if t1 >= t_min && t1 <= t_max {
-                let intersection_point = ray.point_on_ray(t1);
-                hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
+        let discriminant = b * b - c;
+        if discriminant > 0.0 {
+            let t1 = -b + discriminant.sqrt();
+            let t2 = -b - discriminant.sqrt();
+            if t1 < t2 {
+                // insert the closer intersection first
+                if t1 >= t_min && t1 <= t_max {
+                    let intersection_point = ray.point_on_ray(t1);
+                    hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
+                }
+                if t2 >= t_min && t2 <= t_max {
+                    let intersection_point = ray.point_on_ray(t2);
+                    hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
+                }
+            } else {
+                if t2 >= t_min && t2 <= t_max {
+                    let intersection_point = ray.point_on_ray(t2);
+                    hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
+                }
+                if t1 >= t_min && t1 <= t_max {
+                    let intersection_point = ray.point_on_ray(t1);
+                    hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
+                }
             }
         }
         hits

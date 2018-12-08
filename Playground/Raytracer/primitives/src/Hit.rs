@@ -10,6 +10,6 @@ pub struct Hit {
 
 impl Hit {
     pub fn new() -> Hit {
-        Hit {t: 0.0, intersection_point: Vertex4f::new(0.0, 0.0, 0.0, 0.0), normal: Vector4f::new(0.0, 0.0, 0.0, 0.0)}
+        Hit { t: 0.0, intersection_point: Vertex4f::new(0.0, 0.0, 0.0, 0.0), normal: Vector4f::new(0.0, 0.0, 0.0, 0.0) }
     }
 }
