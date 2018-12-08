@@ -1,11 +1,12 @@
+use std::f64;
+
 use Color::Color;
+use Hit::Hit;
 use operations;
 use Ray::Ray;
 use Shape::Shape;
 use Vector4f::Vector4f;
 use Vertex4f::Vertex4f;
-use std::f64;
-use Hit::Hit;
 
 pub struct Sphere {
     color: Color,
@@ -40,15 +41,26 @@ impl Shape for Sphere {
         let c = operations::dot(oc, oc) - r2;
         let b = 2.0 * operations::dot(oc, ray.direction);
         let tmp = b * b - 4.0 * c;
-        let t = (-b + tmp.sqrt()) / 2.0;
-        if t >= t_min && t <= t_max {
-            let intersection_point = ray.point_on_ray(t);
-            hits.push(Hit { t, intersection_point, normal: self.getNormalAt(&intersection_point) });
-        }
-        let t = (-b - tmp.sqrt()) / 2.0;
-        if t >= t_min && t <= t_max {
-            let intersection_point = ray.point_on_ray(t);
-            hits.push(Hit { t, intersection_point, normal: self.getNormalAt(&intersection_point) });
+        let t1 = (-b + tmp.sqrt()) / 2.0;
+        let t2 = (-b - tmp.sqrt()) / 2.0;
+        if t1 < t2 {
+            if t1 >= t_min && t1 <= t_max {
+                let intersection_point = ray.point_on_ray(t1);
+                hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
+            }
+            if t2 >= t_min && t2 <= t_max {
+                let intersection_point = ray.point_on_ray(t2);
+                hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
+            }
+        } else {
+            if t2 >= t_min && t2 <= t_max {
+                let intersection_point = ray.point_on_ray(t2);
+                hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
+            }
+            if t1 >= t_min && t1 <= t_max {
+                let intersection_point = ray.point_on_ray(t1);
+                hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
+            }
         }
         hits
     }

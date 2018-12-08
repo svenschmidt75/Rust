@@ -11,6 +11,7 @@ use sdl2::render::TextureAccess;
 use primitives::Color::Color;
 use primitives::Ray::Ray;
 use primitives::Shape::Shape;
+use primitives::ShapeList::ShapeList;
 use primitives::Sphere::Sphere;
 use primitives::Vector4f::Vector4f;
 use primitives::Vertex4f::Vertex4f;
@@ -63,7 +64,12 @@ fn main() {
     let camera_origin = Vertex4f::new(0.0, 0.0, 0.0, 0.0);
 
     // scene objects
+    let mut shapes = Vec::<Box<Shape>>::new();
     let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0));
+    shapes.push(Box::new(sphere));
+    let shape_list = ShapeList::new(shapes);
 
     for x in 0..width {
         for y in 0..height {
@@ -71,12 +77,10 @@ fn main() {
             let v = y as f64 / height as f64;
             let ray_target = upper_left_corner + u * horizontal + v * vertical;
             let ray = Ray::new(camera_origin, ray_target.as_vector());
-            let intersection_points = sphere.intersect(&ray, 0.0, f64::MAX);
+            let intersection_points = shape_list.intersect(&ray, 0.0, f64::MAX);
             let color = if intersection_points.len() > 0 {
-                let hits = &intersection_points[1];
-                let intersection = ray.point_on_ray(hits.t);
-                let sphere_normal = sphere.getNormalAt(&intersection);
-                Color::new(0.5 * (sphere_normal.x + 1.), 0.5 * (sphere_normal.y + 1.), 0.5 * (sphere_normal.z + 1.))
+                let hit = intersection_points[0];
+                Color::new(0.5 * (hit.normal.x + 1.), 0.5 * (hit.normal.y + 1.), 0.5 * (hit.normal.z + 1.))
             } else {
                 color(&ray)
             };
