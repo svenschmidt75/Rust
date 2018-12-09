@@ -66,7 +66,7 @@ fn main() {
     let shape_list = ShapeList::new(shapes);
 
     // Antialiasing - shoot multiple rays through the same pixel and average the colors
-    let ns = 1;
+    let ns = 100;
     for x in 0..width {
         for y in 0..height {
             let mut color = Color::new(0.0, 0.0, 0.0);
@@ -121,10 +121,6 @@ fn find_color(ray: &Ray, shape_list: &ShapeList) -> Color {
 }
 
 fn random_point_on_unit_sphere() -> Vector4f {
-//    let Open01(x) = random::<Open01<f64>>();
-//    let Open01(y) = random::<Open01<f64>>();
-//    let Open01(z) = random::<Open01<f64>>();
-//    Vector4f::new(2.0 * x - 1.0, 2.0 * y - 1.0, 2.0 * z - 1.0, 0.0).normalize()
     let mut p;
     loop {
         let Open01(x) = random::<Open01<f64>>();
