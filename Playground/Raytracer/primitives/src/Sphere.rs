@@ -50,19 +50,19 @@ impl Shape for Sphere {
                     let intersection_point = ray.point_on_ray(t1);
                     hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
                 }
-                if t2 >= t_min && t2 <= t_max {
-                    let intersection_point = ray.point_on_ray(t2);
-                    hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
-                }
+//                if t2 >= t_min && t2 <= t_max {
+//                    let intersection_point = ray.point_on_ray(t2);
+//                    hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
+//                }
             } else {
                 if t2 >= t_min && t2 <= t_max {
                     let intersection_point = ray.point_on_ray(t2);
                     hits.push(Hit { t: t2, intersection_point, normal: self.getNormalAt(&intersection_point) });
                 }
-                if t1 >= t_min && t1 <= t_max {
-                    let intersection_point = ray.point_on_ray(t1);
-                    hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
-                }
+//                if t1 >= t_min && t1 <= t_max {
+//                    let intersection_point = ray.point_on_ray(t1);
+//                    hits.push(Hit { t: t1, intersection_point, normal: self.getNormalAt(&intersection_point) });
+//                }
             }
         }
         hits

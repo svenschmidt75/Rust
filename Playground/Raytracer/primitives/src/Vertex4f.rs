@@ -8,6 +8,7 @@ use CompareWithTolerance::CompareWithTolerance;
 use operations;
 use Vector4f::Vector4f;
 
+#[derive(Debug)]
 pub struct Vertex4f {
     pub x: f64,
     pub y: f64,

@@ -1,7 +1,8 @@
 use std::ops::AddAssign;
 use std::ops::DivAssign;
+use std::ops::Mul;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Color {
     pub r: f64,
     pub g: f64,
@@ -23,5 +24,13 @@ impl AddAssign for Color {
 impl DivAssign<f64> for Color {
     fn div_assign(&mut self, rhs: f64) {
         *self = Color { r: self.r / rhs, g: self.g / rhs, b: self.b / rhs }
+    }
+}
+
+impl Mul<Color> for f64 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color::new(self * rhs.r, self * rhs.g, self * rhs.b)
     }
 }

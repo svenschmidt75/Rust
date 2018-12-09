@@ -1,6 +1,7 @@
 use Vector4f::{Vector4f};
 use Vertex4f::{Vertex4f};
 
+#[derive(Debug)]
 pub struct Ray {
     // start of ray
     pub origin: Vertex4f,
