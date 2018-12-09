@@ -1,8 +1,10 @@
 extern crate primitives;
+extern crate rand;
 extern crate sdl2;
 
 use std::f64;
 
+use rand::{Open01, random};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
@@ -63,18 +65,21 @@ fn main() {
     shapes.push(Box::new(sphere));
     let shape_list = ShapeList::new(shapes);
 
+    // Antialiasing - shoot multiple rays through the same pixel and average the colors
+    let ns = 16;
     for x in 0..width {
         for y in 0..height {
-            let u = x as f64 / width as f64;
-            let v = y as f64 / height as f64;
-            let ray = camera.get_ray(u, v);
-            let intersection_points = shape_list.intersect(&ray, 0.0, f64::MAX);
-            let color = if intersection_points.len() > 0 {
-                let hit = intersection_points[0];
-                Color::new(0.5 * (hit.normal.x + 1.), 0.5 * (hit.normal.y + 1.), 0.5 * (hit.normal.z + 1.))
-            } else {
-                color(&ray)
-            };
+            let mut color = Color::new(0.0, 0.0, 0.0);
+            for _ in 0..ns {
+                let Open01(val) = random::<Open01<f64>>();
+                let u = (x as f64 + val) / width as f64;
+                let Open01(val) = random::<Open01<f64>>();
+                let v = (y as f64 + val) / height as f64;
+                let ray = camera.get_ray(u, v);
+                let c = find_color(&ray, &shape_list);
+                color += c;
+            }
+            color /= ns as f64;
 
             let index = ((y * width + x) * 4) as usize;
             pixel_data[index] = 0;   // A
@@ -100,8 +105,14 @@ fn main() {
     }
 }
 
-fn color(ray: &Ray) -> Color {
-    let t = 0.5 * (ray.direction.y + 1.0);
-    let color_vector = (1.0 - t) * Vector4f::new(1.0, 1.0, 1.0, 0.0) + t * Vector4f::new(0.5, 0.7, 1.0, 0.0);
-    Color::new(color_vector.x, color_vector.y, color_vector.z)
+fn find_color(ray: &Ray, shape_list: &ShapeList) -> Color {
+    let intersection_points = shape_list.intersect(&ray, 0.0, f64::MAX);
+    if intersection_points.len() > 0 {
+        let hit = intersection_points[0];
+        Color::new(0.5 * (hit.normal.x + 1.), 0.5 * (hit.normal.y + 1.), 0.5 * (hit.normal.z + 1.))
+    } else {
+        let t = 0.5 * (ray.direction.y + 1.0);
+        let color_vector = (1.0 - t) * Vector4f::new(1.0, 1.0, 1.0, 0.0) + t * Vector4f::new(0.5, 0.7, 1.0, 0.0);
+        Color::new(color_vector.x, color_vector.y, color_vector.z)
+    }
 }
