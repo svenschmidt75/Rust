@@ -106,6 +106,7 @@ fn main() {
 }
 
 fn find_color(ray: &Ray, shape_list: &ShapeList) -> Color {
+    // t_min > 0, otherwise the rays get "stuck" and we overflow
     let intersection_points = shape_list.intersect(&ray, 0.001, f64::MAX);
     if intersection_points.is_empty() == false  {
         let hit = intersection_points[0];
@@ -123,7 +124,7 @@ fn random_point_on_unit_sphere() -> Vector4f {
 //    let Open01(x) = random::<Open01<f64>>();
 //    let Open01(y) = random::<Open01<f64>>();
 //    let Open01(z) = random::<Open01<f64>>();
-//    Vector4f::new(x, y, z, 0.0).normalize()
+//    Vector4f::new(2.0 * x - 1.0, 2.0 * y - 1.0, 2.0 * z - 1.0, 0.0).normalize()
     let mut p;
     loop {
         let Open01(x) = random::<Open01<f64>>();
