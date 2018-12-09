@@ -10,6 +10,7 @@ pub mod Sphere;
 pub mod Shape;
 pub mod ShapeList;
 pub mod Hit;
+pub mod Camera;
 
 mod operations;
 mod Matrix4f;

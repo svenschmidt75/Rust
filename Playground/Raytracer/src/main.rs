@@ -8,6 +8,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
 use sdl2::render::TextureAccess;
 
+use primitives::Camera::Camera;
 use primitives::Color::Color;
 use primitives::Ray::Ray;
 use primitives::Shape::Shape;
@@ -51,17 +52,8 @@ fn main() {
     let mut pixel_data: Vec<u8> = vec![0; (width * height * 4) as usize];
 
 
-    /* Raytrace a scene
-     *
-     * The camera coordinate system is right-handed, with x pointing to the right, y pointing up and
-     * the negative z axis pointing into the screen.
-     * The camera is positioned at (0, 0, 0), the display screen at z=-1 with x in [-1, -1]
-     * and y in [-1, -1].
-     */
-    let upper_left_corner = Vertex4f::new(-2.0, 1.0, -1.0, 0.0);
-    let vertical = Vector4f::new(0.0, -2.0, 0.0, 0.0);
-    let horizontal = Vector4f::new(4.0, 0.0, 0.0, 0.0);
-    let camera_origin = Vertex4f::new(0.0, 0.0, 0.0, 0.0);
+    // Raytrace a scene
+    let camera = Camera::new();
 
     // scene objects
     let mut shapes = Vec::<Box<Shape>>::new();
@@ -75,8 +67,7 @@ fn main() {
         for y in 0..height {
             let u = x as f64 / width as f64;
             let v = y as f64 / height as f64;
-            let ray_target = upper_left_corner + u * horizontal + v * vertical;
-            let ray = Ray::new(camera_origin, ray_target.as_vector());
+            let ray = camera.get_ray(u, v);
             let intersection_points = shape_list.intersect(&ray, 0.0, f64::MAX);
             let color = if intersection_points.len() > 0 {
                 let hit = intersection_points[0];
@@ -86,7 +77,7 @@ fn main() {
             };
 
             let index = ((y * width + x) * 4) as usize;
-            pixel_data[index] = 1;   // A
+            pixel_data[index] = 0;   // A
             pixel_data[index + 1] = (255.99 * color.b) as u8; // B
             pixel_data[index + 2] = (255.99 * color.g) as u8; // G
             pixel_data[index + 3] = (255.99 * color.r) as u8; // R
