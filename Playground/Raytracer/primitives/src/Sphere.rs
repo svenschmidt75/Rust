@@ -80,7 +80,7 @@ mod tests {
     #[test]
     fn test_unit_sphere_at_center_intersects_with_ray_on_x_axis_pointing_in_positive_x_axis() {
         // Arrange
-        let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(0.0, 0.0, 0.0, 0.0), Box::new(Lambertian::new()));
+        let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(0.0, 0.0, 0.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.0, 0.0, 0.0, 0.0))));
         let ray = Ray::new(Vertex4f::new(-2.0, 0.0, 0.0, 0.0), Vector4f::new(1.0, 0.0, 0.0, 0.0));
 
         // Act
@@ -95,7 +95,7 @@ mod tests {
         // Arrange
 
         // unit sphere centered at x = 1
-        let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(1.0, 0.0, 0.0, 0.0), Box::new(Lambertian::new()));
+        let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(1.0, 0.0, 0.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.0, 0.0, 0.0, 0.0))));
         let ray = Ray::new(Vertex4f::new(-2.0, 0.0, 0.0, 0.0), Vector4f::new(1.0, 0.0, 0.0, 0.0));
 
         // Act
@@ -110,7 +110,7 @@ mod tests {
         // Arrange
 
         // unit sphere centered at x = 1
-        let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(1.0, 0.0, 0.0, 0.0), Box::new(Lambertian::new()));
+        let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(1.0, 0.0, 0.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.0, 0.0, 0.0, 0.0))));
         let ray = Ray::new(Vertex4f::new(2.0, 0.0, 0.0, 0.0), Vector4f::new(-1.0, 0.0, 0.0, 0.0));
 
         // Act
@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn test_getNormalAt() {
         // Arrange
-        let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(0.0, 0.0, 0.0, 0.0), Box::new(Lambertian::new()));
+        let unit_sphere = Sphere::new(Color::new(1.0, 1.0, 1.0), 1.0, Vertex4f::new(0.0, 0.0, 0.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.0, 0.0, 0.0, 0.0))));
 
         // Act
         // Assert

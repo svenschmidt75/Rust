@@ -60,9 +60,9 @@ fn main() {
 
     // scene objects
     let mut shapes = Vec::<Box<Shape>>::new();
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new()));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.5, 0.5, 0.5, 0.0))));
     shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new()));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.5, 0.5, 0.5, 0.0))));
     shapes.push(Box::new(sphere));
     let shape_list = ShapeList::new(shapes);
 
@@ -111,27 +111,11 @@ fn find_color(ray: &Ray, shape_list: &ShapeList) -> Color {
     let intersection_points = shape_list.intersect(&ray, 0.001, f64::MAX);
     if intersection_points.is_empty() == false {
         let hit = &intersection_points[0];
-        let target = hit.intersection_point.as_vector() + hit.normal + random_point_on_unit_sphere();
-        let scattered_ray = Ray::new(hit.intersection_point, target - hit.intersection_point.as_vector());
-        0.5 * find_color(&scattered_ray, shape_list)
+        let (scattered_ray, attenuation) = hit.material.scatter(&ray, hit.intersection_point, hit.normal);
+        attenuation * find_color(&scattered_ray, shape_list)
     } else {
         let t = 0.5 * (ray.direction.y + 1.0);
         let color_vector = (1.0 - t) * Vector4f::new(1.0, 1.0, 1.0, 0.0) + t * Vector4f::new(0.5, 0.7, 1.0, 0.0);
         Color::new(color_vector.x, color_vector.y, color_vector.z)
     }
-}
-
-fn random_point_on_unit_sphere() -> Vector4f {
-    let mut p;
-    loop {
-        let Open01(x) = random::<Open01<f64>>();
-        let Open01(y) = random::<Open01<f64>>();
-        let Open01(z) = random::<Open01<f64>>();
-        // ensure vector is in range of (-1,1)
-        p = 2.0 * Vector4f::new(x, y, z, 0.0) - Vector4f::new(1.0, 1.0, 1.0, 0.0);
-        if p.norm() <= 1.0 {
-            break;
-        }
-    }
-    p
 }

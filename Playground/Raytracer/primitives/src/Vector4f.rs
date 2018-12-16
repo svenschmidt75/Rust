@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 
 use std::fmt;
-use std::ops;
+use std::ops::{Add, Sub, Div, Mul};
+use Color::Color;
 
 #[derive(Debug)]
 pub struct Vector4f {
@@ -63,7 +64,7 @@ impl Copy for Vector4f {}
 
 // Operator overloading
 
-impl ops::Mul<Vector4f> for f64 {
+impl Mul<Vector4f> for f64 {
     type Output = Vector4f;
 
     fn mul(self, vector: Vector4f) -> Self::Output {
@@ -71,7 +72,15 @@ impl ops::Mul<Vector4f> for f64 {
     }
 }
 
-impl ops::Div<f64> for Vector4f {
+impl Mul<Color> for Vector4f {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color::new(self.x * rhs.r, self.y * rhs.g, self.z * rhs.b)
+    }
+}
+
+impl Div<f64> for Vector4f {
     type Output = Vector4f;
 
     fn div(self, rhs: f64) -> Self::Output {
@@ -79,7 +88,7 @@ impl ops::Div<f64> for Vector4f {
     }
 }
 
-impl ops::Add<Vector4f> for Vector4f {
+impl Add<Vector4f> for Vector4f {
     type Output = Vector4f;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -87,7 +96,7 @@ impl ops::Add<Vector4f> for Vector4f {
     }
 }
 
-impl ops::Sub<Vector4f> for Vector4f {
+impl Sub<Vector4f> for Vector4f {
     type Output = Vector4f;
 
     fn sub(self, rhs: Self) -> Self::Output {

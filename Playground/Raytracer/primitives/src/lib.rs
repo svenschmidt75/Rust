@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+extern crate rand;
+
 // export these modules from the library
 pub mod Vertex4f;
 pub mod Vector4f;
