@@ -12,6 +12,7 @@ use sdl2::render::TextureAccess;
 
 use primitives::Camera::Camera;
 use primitives::Color::Color;
+use primitives::Lambertian::Lambertian;
 use primitives::Ray::Ray;
 use primitives::Shape::Shape;
 use primitives::ShapeList::ShapeList;
@@ -59,14 +60,14 @@ fn main() {
 
     // scene objects
     let mut shapes = Vec::<Box<Shape>>::new();
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new()));
     shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new()));
     shapes.push(Box::new(sphere));
     let shape_list = ShapeList::new(shapes);
 
     // Antialiasing - shoot multiple rays through the same pixel and average the colors
-    let ns = 100;
+    let ns = 1;
     for x in 0..width {
         for y in 0..height {
             let mut color = Color::new(0.0, 0.0, 0.0);
@@ -108,8 +109,8 @@ fn main() {
 fn find_color(ray: &Ray, shape_list: &ShapeList) -> Color {
     // t_min > 0, otherwise the rays get "stuck" and we overflow
     let intersection_points = shape_list.intersect(&ray, 0.001, f64::MAX);
-    if intersection_points.is_empty() == false  {
-        let hit = intersection_points[0];
+    if intersection_points.is_empty() == false {
+        let hit = &intersection_points[0];
         let target = hit.intersection_point.as_vector() + hit.normal + random_point_on_unit_sphere();
         let scattered_ray = Ray::new(hit.intersection_point, target - hit.intersection_point.as_vector());
         0.5 * find_color(&scattered_ray, shape_list)

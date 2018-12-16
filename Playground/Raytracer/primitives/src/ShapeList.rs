@@ -3,10 +3,10 @@ use Hit::Hit;
 use Ray::Ray;
 use Shape::Shape;
 
-pub struct ShapeList(Vec<Box<Shape>>);
+pub struct ShapeList(Vec<Box<dyn Shape>>);
 
 impl ShapeList {
-    pub fn new(shapes: Vec<Box<Shape>>) -> ShapeList {
+    pub fn new(shapes: Vec<Box<dyn Shape>>) -> ShapeList {
         ShapeList(shapes)
     }
 }
@@ -18,18 +18,18 @@ impl Shape for ShapeList {
 
     fn intersect(&self, ray: &Ray, t_min: f64, t_max: f64) -> Vec<Hit> {
         let mut current_t_max = t_max;
-        let mut current_hit= Hit::new();
+        let mut current_hit  = None;
         let mut has_intersection = false;
         for shape in &self.0 {
-            let hits = shape.intersect(ray, t_min, current_t_max);
+            let mut hits = shape.intersect(ray, t_min, current_t_max);
             if hits.is_empty() == false {
-                current_hit = hits[0];
-                current_t_max = hits[0].t;
+                current_hit = Some(hits.remove(0));
+                current_t_max = current_hit.as_ref().unwrap().t;
                 has_intersection = true;
             }
         }
-        if has_intersection {
-            vec![current_hit]
+        if let Some(h) = current_hit {
+            vec![h]
         }
         else {
             vec![]
