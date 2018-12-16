@@ -92,7 +92,7 @@ impl Add<Vector4f> for Vector4f {
     type Output = Vector4f;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Vector4f::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.y, self.w + rhs.w)
+        Vector4f::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z, self.w + rhs.w)
     }
 }
 
@@ -100,7 +100,7 @@ impl Sub<Vector4f> for Vector4f {
     type Output = Vector4f;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Vector4f::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.y, self.w - rhs.w)
+        Vector4f::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z, self.w - rhs.w)
     }
 }
 
@@ -137,4 +137,21 @@ mod tests {
         assert!(operations::float_cmp(2_f64 * vec.z, scaled_vec.z, 1E-5));
         assert!(operations::float_cmp(2_f64 * vec.w, scaled_vec.w, 1E-5));
     }
+
+    #[test]
+    fn test_mul_vec() {
+        // Arrange
+        let vec1 = Vector4f::new(1.34, 2.53, -9.547, 1.12);
+        let vec2 = Vector4f::new(1.0, 2.576, -1.547, 1.12);
+
+        // Act
+        let result = vec1 - 2.21 * vec2;
+
+        // Assert
+        assert!(operations::float_cmp(vec1.x - 2.21 * vec2.x, result.x, 1E-5));
+        assert!(operations::float_cmp(vec1.y - 2.21 * vec2.y, result.y, 1E-5));
+        assert!(operations::float_cmp(vec1.z - 2.21 * vec2.z, result.z, 1E-5));
+        assert!(operations::float_cmp(vec1.w - 2.21 * vec2.w, result.w, 1E-5));
+    }
+
 }

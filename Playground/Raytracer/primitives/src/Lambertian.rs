@@ -7,7 +7,6 @@ use Ray::Ray;
 use Vector4f::Vector4f;
 use Vertex4f::Vertex4f;
 
-#[derive(Copy, Clone)]
 pub struct Lambertian {
     albedo: Vector4f
 }
