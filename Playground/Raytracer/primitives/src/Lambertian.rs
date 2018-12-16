@@ -9,20 +9,20 @@ use Vertex4f::Vertex4f;
 
 #[derive(Copy, Clone)]
 pub struct Lambertian {
-    attenuation: Vector4f
+    albedo: Vector4f
 }
 
 impl Lambertian {
-    pub fn new(attenuation: Vector4f) -> Lambertian {
-        Lambertian { attenuation }
+    pub fn new(albedo: Vector4f) -> Lambertian {
+        Lambertian { albedo }
     }
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> (Ray, Vector4f) {
+    fn scatter(&self, _ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> (bool, Ray, Vector4f) {
         let target = intersection_point.as_vector() + normal + random_point_on_unit_sphere();
         let scattered_ray = Ray::new(intersection_point, target - intersection_point.as_vector());
-        (scattered_ray, self.attenuation)
+        (true, scattered_ray, self.albedo)
     }
 }
 

@@ -1,7 +1,6 @@
 use Vector4f::Vector4f;
 use Vertex4f::Vertex4f;
 use Material::Material;
-use Lambertian::Lambertian;
 
 #[derive(Clone)]
 pub struct Hit<'a> {

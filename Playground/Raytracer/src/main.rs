@@ -19,6 +19,7 @@ use primitives::ShapeList::ShapeList;
 use primitives::Sphere::Sphere;
 use primitives::Vector4f::Vector4f;
 use primitives::Vertex4f::Vertex4f;
+use primitives::Metal::Metal;
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!
@@ -60,9 +61,13 @@ fn main() {
 
     // scene objects
     let mut shapes = Vec::<Box<Shape>>::new();
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.5, 0.5, 0.5, 0.0))));
+    let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.8, 0.3, 0.3, 0.0))));
     shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.5, 0.5, 0.5, 0.0))));
+    let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.8, 0.8, 0.0, 0.0))));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 0.5, Vertex4f::new(1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.6, 0.2, 0.0))));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 0.5, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.8, 0.8, 0.0))));
     shapes.push(Box::new(sphere));
     let shape_list = ShapeList::new(shapes);
 
@@ -77,7 +82,7 @@ fn main() {
                 let Open01(val) = random::<Open01<f64>>();
                 let v = (y as f64 + val) / height as f64;
                 let ray = camera.get_ray(u, v);
-                let c = find_color(&ray, &shape_list);
+                let c = find_color(&ray, &shape_list, 1);
                 color += c;
             }
             color /= ns as f64;
@@ -106,13 +111,18 @@ fn main() {
     }
 }
 
-fn find_color(ray: &Ray, shape_list: &ShapeList) -> Color {
+fn find_color(ray: &Ray, shape_list: &ShapeList, depth: u8) -> Color {
     // t_min > 0, otherwise the rays get "stuck" and we overflow
     let intersection_points = shape_list.intersect(&ray, 0.001, f64::MAX);
-    if intersection_points.is_empty() == false {
+    if depth < 50 && intersection_points.is_empty() == false {
         let hit = &intersection_points[0];
-        let (scattered_ray, attenuation) = hit.material.scatter(&ray, hit.intersection_point, hit.normal);
-        attenuation * find_color(&scattered_ray, shape_list)
+        let (is_visible, scattered_ray, attenuation) = hit.material.scatter(&ray, hit.intersection_point, hit.normal);
+        if is_visible {
+            attenuation * find_color(&scattered_ray, shape_list, depth + 1)
+        }
+        else {
+            Color::new(0.0, 0.0, 0.0)
+        }
     } else {
         let t = 0.5 * (ray.direction.y + 1.0);
         let color_vector = (1.0 - t) * Vector4f::new(1.0, 1.0, 1.0, 0.0) + t * Vector4f::new(0.5, 0.7, 1.0, 0.0);

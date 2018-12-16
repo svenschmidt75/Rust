@@ -15,6 +15,7 @@ pub mod Hit;
 pub mod Camera;
 pub mod Material;
 pub mod Lambertian;
+pub mod Metal;
 
 mod operations;
 mod Matrix4f;

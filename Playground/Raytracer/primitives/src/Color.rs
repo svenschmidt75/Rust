@@ -1,7 +1,6 @@
 use std::ops::AddAssign;
 use std::ops::DivAssign;
 use std::ops::Mul;
-use Vector4f::Vector4f;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Color {
