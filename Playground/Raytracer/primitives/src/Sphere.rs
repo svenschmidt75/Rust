@@ -84,7 +84,7 @@ mod tests {
         let ray = Ray::new(Vertex4f::new(-2.0, 0.0, 0.0, 0.0), Vector4f::new(1.0, 0.0, 0.0, 0.0));
 
         // Act
-        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
+        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[0];
 
         // Assert
         assert_eq!(1.0, hit.t)
@@ -99,7 +99,7 @@ mod tests {
         let ray = Ray::new(Vertex4f::new(-2.0, 0.0, 0.0, 0.0), Vector4f::new(1.0, 0.0, 0.0, 0.0));
 
         // Act
-        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
+        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[0];
 
         // Assert
         assert_eq!(2.0, hit.t)
@@ -114,7 +114,7 @@ mod tests {
         let ray = Ray::new(Vertex4f::new(2.0, 0.0, 0.0, 0.0), Vector4f::new(-1.0, 0.0, 0.0, 0.0));
 
         // Act
-        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[1];
+        let hit = &unit_sphere.intersect(&ray, 0.0, f64::MAX)[0];
 
         // Assert
         assert_eq!(0.0, hit.t)
