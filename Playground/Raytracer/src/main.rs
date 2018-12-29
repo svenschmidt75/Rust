@@ -20,6 +20,7 @@ use primitives::Sphere::Sphere;
 use primitives::Vector4f::Vector4f;
 use primitives::Vertex4f::Vertex4f;
 use primitives::Metal::Metal;
+use primitives::Dielectric::Dielectric;
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!
@@ -61,13 +62,15 @@ fn main() {
 
     // scene objects
     let mut shapes = Vec::<Box<Shape>>::new();
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.8, 0.3, 0.3, 0.0))));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.1, 0.2, 0.5, 0.0))));
     shapes.push(Box::new(sphere));
     let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.8, 0.8, 0.0, 0.0))));
     shapes.push(Box::new(sphere));
     let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.6, 0.2, 0.0), 0.3)));
     shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.8, 0.8, 0.0), 1.0)));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Dielectric::new(1.5)));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), -0.45, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Dielectric::new(1.5)));
     shapes.push(Box::new(sphere));
     let shape_list = ShapeList::new(shapes);
 
