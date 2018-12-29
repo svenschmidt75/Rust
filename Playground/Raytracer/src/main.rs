@@ -65,14 +65,14 @@ fn main() {
     shapes.push(Box::new(sphere));
     let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.8, 0.8, 0.0, 0.0))));
     shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.6, 0.2, 0.0))));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.6, 0.2, 0.0), 0.3)));
     shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.8, 0.8, 0.0))));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.8, 0.8, 0.0), 1.0)));
     shapes.push(Box::new(sphere));
     let shape_list = ShapeList::new(shapes);
 
     // Antialiasing - shoot multiple rays through the same pixel and average the colors
-    let ns = 1;
+    let ns = 100;
     for x in 0..width {
         for y in 0..height {
             let mut color = Color::new(0.0, 0.0, 0.0);

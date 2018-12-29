@@ -72,6 +72,15 @@ impl Mul<Vector4f> for f64 {
     }
 }
 
+impl Mul<Vector4f> for f32 {
+    type Output = Vector4f;
+
+    fn mul(self, vector: Vector4f) -> Self::Output {
+        let f = self as f64;
+        Vector4f::new(f * vector.x, f * vector.y, f * vector.z, f * vector.w)
+    }
+}
+
 impl Mul<Color> for Vector4f {
     type Output = Color;
 

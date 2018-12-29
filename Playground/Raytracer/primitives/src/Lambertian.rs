@@ -27,7 +27,7 @@ impl Material for Lambertian {
 
 
 fn random_point_on_unit_sphere() -> Vector4f {
-    let mut p;
+    let mut p: Vector4f;
     loop {
         let Open01(x) = random::<Open01<f64>>();
         let Open01(y) = random::<Open01<f64>>();
