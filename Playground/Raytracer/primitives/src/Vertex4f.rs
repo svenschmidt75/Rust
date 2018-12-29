@@ -4,9 +4,9 @@ use std::fmt;
 use std::ops::{Index, IndexMut};
 use std::ops;
 
-use CompareWithTolerance::CompareWithTolerance;
-use operations;
-use Vector4f::Vector4f;
+use crate::CompareWithTolerance::CompareWithTolerance;
+use crate::operations;
+use crate::Vector4f::Vector4f;
 
 #[derive(Debug)]
 pub struct Vertex4f {

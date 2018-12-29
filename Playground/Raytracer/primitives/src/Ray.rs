@@ -1,5 +1,5 @@
-use Vector4f::{Vector4f};
-use Vertex4f::{Vertex4f};
+use crate::Vector4f::{Vector4f};
+use crate::Vertex4f::{Vertex4f};
 
 #[derive(Debug)]
 pub struct Ray {
@@ -30,7 +30,7 @@ impl Ray {
 mod tests {
 
     use super::*;
-    use operations;
+    use crate::operations;
 
     #[test]
     fn test_ray_direction_is_normal() {

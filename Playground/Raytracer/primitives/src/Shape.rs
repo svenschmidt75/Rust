@@ -1,6 +1,6 @@
-use Color::Color;
-use Ray::Ray;
-use Hit::Hit;
+use crate::Color::Color;
+use crate::Ray::Ray;
+use crate::Hit::Hit;
 
 pub trait Shape {
     fn getColor(&self) -> Color;

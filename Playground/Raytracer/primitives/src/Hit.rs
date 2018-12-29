@@ -1,6 +1,6 @@
-use Vector4f::Vector4f;
-use Vertex4f::Vertex4f;
-use Material::Material;
+use crate::Vector4f::Vector4f;
+use crate::Vertex4f::Vertex4f;
+use crate::Material::Material;
 
 #[derive(Clone)]
 pub struct Hit<'a> {

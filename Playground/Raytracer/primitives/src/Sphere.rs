@@ -1,13 +1,13 @@
 use std::f64;
 
-use Color::Color;
-use Hit::Hit;
-use Material::Material;
-use operations;
-use Ray::Ray;
-use Shape::Shape;
-use Vector4f::Vector4f;
-use Vertex4f::Vertex4f;
+use crate::Color::Color;
+use crate::Hit::Hit;
+use crate::Material::Material;
+use crate::operations;
+use crate::Ray::Ray;
+use crate::Shape::Shape;
+use crate::Vector4f::Vector4f;
+use crate::Vertex4f::Vertex4f;
 
 pub struct Sphere {
     color: Color,
@@ -75,7 +75,7 @@ impl Shape for Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use Lambertian::Lambertian;
+    use crate::Lambertian::Lambertian;
 
     #[test]
     fn test_unit_sphere_at_center_intersects_with_ray_on_x_axis_pointing_in_positive_x_axis() {

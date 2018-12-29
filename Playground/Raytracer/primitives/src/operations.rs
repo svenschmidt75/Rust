@@ -1,4 +1,4 @@
-use Vector4f::Vector4f;
+use crate::Vector4f::Vector4f;
 
 
 pub fn cross(lhs: Vector4f, rhs: Vector4f) -> Vector4f {

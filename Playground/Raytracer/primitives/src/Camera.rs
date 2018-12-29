@@ -1,6 +1,6 @@
-use Ray::Ray;
-use Vector4f::Vector4f;
-use Vertex4f::Vertex4f;
+use crate::Ray::Ray;
+use crate::Vector4f::Vector4f;
+use crate::Vertex4f::Vertex4f;
 
 pub struct Camera {
     origin: Vertex4f,

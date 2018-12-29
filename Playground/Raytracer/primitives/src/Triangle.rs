@@ -1,6 +1,6 @@
-use operations;
-use Vector4f::Vector4f;
-use Vertex4f::Vertex4f;
+use crate::operations;
+use crate::Vector4f::Vector4f;
+use crate::Vertex4f::Vertex4f;
 
 #[allow(dead_code)]
 pub struct Triangle {

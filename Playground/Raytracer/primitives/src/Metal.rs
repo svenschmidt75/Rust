@@ -1,10 +1,10 @@
 use rand::{Open01, random};
 
-use Material::Material;
-use operations::dot;
-use Ray::Ray;
-use Vector4f::Vector4f;
-use Vertex4f::Vertex4f;
+use crate::Material::Material;
+use crate::operations::dot;
+use crate::Ray::Ray;
+use crate::Vector4f::Vector4f;
+use crate::Vertex4f::Vertex4f;
 
 pub struct Metal {
     albedo: Vector4f,

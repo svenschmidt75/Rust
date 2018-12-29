@@ -1,7 +1,7 @@
 use std::ops::{Index, IndexMut};
 use std::fmt;
 use std::ops;
-use Vertex4f;
+use crate::Vertex4f;
 
 
 #[derive(Copy, Clone)]
@@ -188,7 +188,7 @@ impl ops::Mul<Vertex4f::Vertex4f> for Matrix4f {
 mod tests {
 
 	use super::Matrix4f;
-	use Vertex4f;
+	use crate::Vertex4f;
 	use std;
 
 	fn float_cmp(expected: f64, b: f64, tolerance: f64) -> bool {

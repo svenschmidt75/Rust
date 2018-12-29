@@ -2,7 +2,7 @@
 
 use std::fmt;
 use std::ops::{Add, Sub, Div, Mul, Neg};
-use Color::Color;
+use crate::Color::Color;
 
 #[derive(Debug)]
 pub struct Vector4f {
@@ -113,17 +113,17 @@ impl Sub<Vector4f> for Vector4f {
     }
 }
 
-impl Neg for Vector4f {
-    type Output = Vector4f;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Vector4f::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z, self.w - rhs.w)
-    }
-}
+//impl Neg for Vector4f {
+//    type Output = Vector4f;
+//
+//    fn sub(self, rhs: Self) -> Self::Output {
+//        Vector4f::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z, self.w - rhs.w)
+//    }
+//}
 
 #[cfg(test)]
 mod tests {
-    use operations;
+    use crate::operations;
 
     use super::*;
 

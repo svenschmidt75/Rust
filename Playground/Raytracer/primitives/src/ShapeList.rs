@@ -1,7 +1,7 @@
-use Color::Color;
-use Hit::Hit;
-use Ray::Ray;
-use Shape::Shape;
+use crate::Color::Color;
+use crate::Hit::Hit;
+use crate::Ray::Ray;
+use crate::Shape::Shape;
 
 pub struct ShapeList(Vec<Box<dyn Shape>>);
 
