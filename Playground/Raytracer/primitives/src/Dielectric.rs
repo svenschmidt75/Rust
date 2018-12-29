@@ -1,4 +1,4 @@
-use rand::{Open01, random};
+use rand::random;
 
 use crate::Material::Material;
 use crate::operations::dot;
@@ -24,28 +24,28 @@ impl Dielectric {
 //
 impl Material for Dielectric {
     fn scatter(&self, incoming_ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> (bool, Ray, Vector4f) {
+        let attenuation = Vector4f::new(1.0, 1.0, 1.0, 1.0);
         let outward_normal: Vector4f;
         let ni_over_nt: f64;
         let cosine: f64;
         if dot(incoming_ray.direction, normal) > 0.0 {
             outward_normal = -normal;
             ni_over_nt = self.refraction_index;
-            cosine = self.refraction_index * dot(incoming_ray.direction, normal) / incoming_ray.direction.norm();
+            cosine = self.refraction_index * dot(incoming_ray.direction, normal);
         } else {
             outward_normal = normal;
             // SS: air = 1.0
             ni_over_nt = 1.0 / self.refraction_index;
-            cosine = -dot(incoming_ray.direction, normal) / incoming_ray.direction.norm();
+            cosine = -dot(incoming_ray.direction, normal);
         }
-        let attenuation = Vector4f::new(1.0, 1.0, 1.0, 1.0);
-        let (has_refraction_ray, refraction_ray) = refract(incoming_ray.direction, outward_normal, ni_over_nt);
         let reflect_prop: f64;
+        let (has_refraction_ray, refraction_ray) = refract(incoming_ray.direction, outward_normal, ni_over_nt);
         if has_refraction_ray {
             reflect_prop = schlick(cosine, self.refraction_index);
         } else {
             reflect_prop = 1.0;
         }
-        let Open01(x) = random::<Open01<f64>>();
+        let x = random::<f64>();
         if x < reflect_prop {
             let reflection_ray = reflect(incoming_ray.direction, normal);
             let scattered = Ray::new(incoming_ray.origin, reflection_ray);

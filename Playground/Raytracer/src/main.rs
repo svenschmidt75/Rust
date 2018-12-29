@@ -4,7 +4,7 @@ extern crate sdl2;
 
 use std::f64;
 
-use rand::{Open01, random};
+use rand::random;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::PixelFormatEnum;
@@ -12,15 +12,15 @@ use sdl2::render::TextureAccess;
 
 use primitives::Camera::Camera;
 use primitives::Color::Color;
+use primitives::Dielectric::Dielectric;
 use primitives::Lambertian::Lambertian;
+use primitives::Metal::Metal;
 use primitives::Ray::Ray;
 use primitives::Shape::Shape;
 use primitives::ShapeList::ShapeList;
 use primitives::Sphere::Sphere;
 use primitives::Vector4f::Vector4f;
 use primitives::Vertex4f::Vertex4f;
-use primitives::Metal::Metal;
-use primitives::Dielectric::Dielectric;
 
 // How to setup SDL2: https://github.com/AngryLawyer/rust-sdl2#sdl20--development-libraries
 // Note: Use the VC ones, NOT the mingw ones!
@@ -80,9 +80,9 @@ fn main() {
         for y in 0..height {
             let mut color = Color::new(0.0, 0.0, 0.0);
             for _ in 0..ns {
-                let Open01(val) = random::<Open01<f64>>();
+                let val = random::<f64>();
                 let u = (x as f64 + val) / width as f64;
-                let Open01(val) = random::<Open01<f64>>();
+                let val = random::<f64>();
                 let v = (y as f64 + val) / height as f64;
                 let ray = camera.get_ray(u, v);
                 let c = find_color(ray, &shape_list, 1);
@@ -122,8 +122,7 @@ fn find_color(ray: Ray, shape_list: &ShapeList, depth: u8) -> Color {
         let (is_visible, scattered_ray, attenuation) = hit.material.scatter(&ray, hit.intersection_point, hit.normal);
         if is_visible {
             attenuation * find_color(scattered_ray, shape_list, depth + 1)
-        }
-        else {
+        } else {
             Color::new(0.0, 0.0, 0.0)
         }
     } else {

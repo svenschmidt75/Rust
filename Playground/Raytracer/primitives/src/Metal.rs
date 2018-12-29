@@ -1,4 +1,4 @@
-use rand::{Open01, random};
+use rand::random;
 
 use crate::Material::Material;
 use crate::operations::dot;
@@ -38,9 +38,9 @@ fn reflect(ray_direction: Vector4f, normal: Vector4f) -> Vector4f {
 fn random_point_on_unit_sphere() -> Vector4f {
     let mut p: Vector4f;
     loop {
-        let Open01(x) = random::<Open01<f64>>();
-        let Open01(y) = random::<Open01<f64>>();
-        let Open01(z) = random::<Open01<f64>>();
+        let x = random::<f64>();
+        let y = random::<f64>();
+        let z = random::<f64>();
         // ensure vector is in range of (-1,1)
         p = 2.0 * Vector4f::new(x, y, z, 0.0) - Vector4f::new(1.0, 1.0, 1.0, 0.0);
         if p.norm() <= 1.0 {

@@ -170,4 +170,19 @@ mod tests {
         assert!(operations::float_cmp(vec1.w - 2.21 * vec2.w, result.w, 1E-5));
     }
 
+    #[test]
+    fn test_neg_vec() {
+        // Arrange
+        let vec = Vector4f::new(1.34, 2.53, -9.547, 1.12);
+
+        // Act
+        let result = - vec;
+
+        // Assert
+        assert!(operations::float_cmp(- vec.x, result.x, 1E-5));
+        assert!(operations::float_cmp(- vec.y, result.y, 1E-5));
+        assert!(operations::float_cmp(- vec.z, result.z, 1E-5));
+        assert!(operations::float_cmp(- vec.w, result.w, 1E-5));
+    }
+
 }
