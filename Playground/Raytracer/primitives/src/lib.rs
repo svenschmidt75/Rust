@@ -16,6 +16,7 @@ pub mod Camera;
 pub mod Material;
 pub mod Lambertian;
 pub mod Metal;
+pub mod Dielectric;
 
 mod operations;
 mod Matrix4f;

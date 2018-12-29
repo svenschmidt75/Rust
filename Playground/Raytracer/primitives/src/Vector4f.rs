@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use std::fmt;
-use std::ops::{Add, Sub, Div, Mul};
+use std::ops::{Add, Sub, Div, Mul, Neg};
 use Color::Color;
 
 #[derive(Debug)]
@@ -113,6 +113,13 @@ impl Sub<Vector4f> for Vector4f {
     }
 }
 
+impl Neg for Vector4f {
+    type Output = Vector4f;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Vector4f::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z, self.w - rhs.w)
+    }
+}
 
 #[cfg(test)]
 mod tests {
