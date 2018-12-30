@@ -38,19 +38,17 @@ impl Material for Dielectric {
             ni_over_nt = 1.0 / self.refraction_index;
             cosine = -dot(incoming_ray.direction, normal);
         }
-        match refract(incoming_ray.direction, outward_normal, ni_over_nt) {
-            Some(refraction_ray) => {
-                let reflect_prop = schlick(cosine, self.refraction_index);
-                if random::<f64>() < reflect_prop {
-                    let scattered = Ray::new(incoming_ray.origin, refraction_ray);
-                    return Some((scattered, attenuation))
-                }
-            },
-            None => {}
+        if let Some(refraction_ray) = refract(incoming_ray.direction, outward_normal, ni_over_nt) {
+            let reflect_prop = schlick(cosine, self.refraction_index);
+            if random::<f64>() > reflect_prop {
+//                    println!("refraction");
+                let scattered = Ray::new(incoming_ray.origin, refraction_ray);
+                return Some((scattered, attenuation));
+            }
         }
         let reflection_ray = reflect(incoming_ray.direction, normal);
         let scattered = Ray::new(incoming_ray.origin, reflection_ray);
-        return Some((scattered, attenuation))
+        Some((scattered, attenuation))
     }
 }
 

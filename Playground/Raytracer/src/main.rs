@@ -58,7 +58,7 @@ fn main() {
 
 
     // Raytrace a scene
-    let camera = Camera::new();
+    let camera = Camera::new(Vertex4f::new(-2.0, 2.0, 1.0, 0.0), Vertex4f::new(0.0, 0.0, -1.0, 0.0), Vector4f::new(0.0, 1.0, 0.0, 0.0), 90f32, width as f32 / height as f32);
 
     // scene objects
     let mut shapes = Vec::<Box<Shape>>::new();
@@ -83,7 +83,7 @@ fn main() {
                 let val = random::<f64>();
                 let u = (x as f64 + val) / width as f64;
                 let val = random::<f64>();
-                let v = (y as f64 + val) / height as f64;
+                let v = (height as f64 - (y as f64 + val)) / height as f64;
                 let ray = camera.get_ray(u, v);
                 let c = find_color(ray, &shape_list, 1);
                 color += c;
