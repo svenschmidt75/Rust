@@ -22,11 +22,16 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(&self, ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> (bool, Ray, Vector4f) {
+    fn scatter(&self, ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> Option<(Ray, Vector4f)> {
         let reflected = reflect(ray.direction, normal);
         let scattered_ray = Ray::new(intersection_point, reflected + self.fuzz * random_point_on_unit_sphere());
         let visible = dot(scattered_ray.direction, normal) > 0.0;
-        (visible, scattered_ray, self.albedo)
+        if visible {
+            Some((scattered_ray, self.albedo))
+        }
+        else {
+            None
+        }
     }
 }
 

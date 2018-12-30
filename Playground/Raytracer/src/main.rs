@@ -75,7 +75,7 @@ fn main() {
     let shape_list = ShapeList::new(shapes);
 
     // Antialiasing - shoot multiple rays through the same pixel and average the colors
-    let ns = 100;
+    let ns = 1;
     for x in 0..width {
         for y in 0..height {
             let mut color = Color::new(0.0, 0.0, 0.0);
@@ -119,11 +119,11 @@ fn find_color(ray: Ray, shape_list: &ShapeList, depth: u8) -> Color {
     let intersection_points = shape_list.intersect(&ray, 0.001, f64::MAX);
     if depth < 50 && intersection_points.is_empty() == false {
         let hit = &intersection_points[0];
-        let (is_visible, scattered_ray, attenuation) = hit.material.scatter(&ray, hit.intersection_point, hit.normal);
-        if is_visible {
-            attenuation * find_color(scattered_ray, shape_list, depth + 1)
-        } else {
-            Color::new(0.0, 0.0, 0.0)
+        match hit.material.scatter(&ray, hit.intersection_point, hit.normal) {
+            Some((scattered_ray, attenuation)) => {
+                attenuation * find_color(scattered_ray, shape_list, depth + 1)
+            },
+            None => Color::new(0.0, 0.0, 0.0)
         }
     } else {
         let t = 0.5 * (ray.direction.y + 1.0);

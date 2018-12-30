@@ -23,7 +23,7 @@ impl Dielectric {
 // diamond: n=2.4
 //
 impl Material for Dielectric {
-    fn scatter(&self, incoming_ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> (bool, Ray, Vector4f) {
+    fn scatter(&self, incoming_ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> Option<(Ray, Vector4f)> {
         let attenuation = Vector4f::new(1.0, 1.0, 1.0, 1.0);
         let outward_normal: Vector4f;
         let ni_over_nt: f64;
@@ -38,22 +38,19 @@ impl Material for Dielectric {
             ni_over_nt = 1.0 / self.refraction_index;
             cosine = -dot(incoming_ray.direction, normal);
         }
-        let reflect_prop: f64;
-        let (has_refraction_ray, refraction_ray) = refract(incoming_ray.direction, outward_normal, ni_over_nt);
-        if has_refraction_ray {
-            reflect_prop = schlick(cosine, self.refraction_index);
-        } else {
-            reflect_prop = 1.0;
+        match refract(incoming_ray.direction, outward_normal, ni_over_nt) {
+            Some(refraction_ray) => {
+                let reflect_prop = schlick(cosine, self.refraction_index);
+                if random::<f64>() < reflect_prop {
+                    let scattered = Ray::new(incoming_ray.origin, refraction_ray);
+                    return Some((scattered, attenuation))
+                }
+            },
+            None => {}
         }
-        let x = random::<f64>();
-        if x < reflect_prop {
-            let reflection_ray = reflect(incoming_ray.direction, normal);
-            let scattered = Ray::new(incoming_ray.origin, reflection_ray);
-            (true, scattered, attenuation)
-        } else {
-            let scattered = Ray::new(incoming_ray.origin, refraction_ray);
-            (true, scattered, attenuation)
-        }
+        let reflection_ray = reflect(incoming_ray.direction, normal);
+        let scattered = Ray::new(incoming_ray.origin, reflection_ray);
+        return Some((scattered, attenuation))
     }
 }
 
@@ -63,20 +60,20 @@ fn reflect(ray_direction: Vector4f, normal: Vector4f) -> Vector4f {
 }
 
 // SS: use cos^{2}(x) = 1 - sin^{2}(x)
-fn refract(incoming_ray: Vector4f, normal: Vector4f, ni_over_nt: f64) -> (bool, Vector4f) {
+fn refract(incoming_ray: Vector4f, normal: Vector4f, ni_over_nt: f64) -> Option<Vector4f> {
     let uv = incoming_ray.normalize();
     let dt = dot(uv, normal);
     let discriminant = 1.0 - ni_over_nt * ni_over_nt * (1.0 - dt * dt);
     if discriminant > 0.0 {
         let refracted = ni_over_nt * (uv - dt * normal) - discriminant.sqrt() * normal;
-        (true, refracted)
+        Some(refracted)
     } else {
-        (false, Vector4f::new(0.0, 0.0, 0.0, 0.0))
+        None
     }
 }
 
 fn schlick(cosine: f64, refraction_index: f64) -> f64 {
     let r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
     let r0 = r0 * r0;
-    r0 + (1.0 - r0) * (1.0 - cosine).powf(5f64)
+    r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }

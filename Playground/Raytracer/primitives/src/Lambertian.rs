@@ -18,10 +18,10 @@ impl Lambertian {
 }
 
 impl Material for Lambertian {
-    fn scatter(&self, _ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> (bool, Ray, Vector4f) {
+    fn scatter(&self, _ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> Option<(Ray, Vector4f)> {
         let target = intersection_point.as_vector() + normal + random_point_on_unit_sphere();
         let scattered_ray = Ray::new(intersection_point, target - intersection_point.as_vector());
-        (true, scattered_ray, self.albedo)
+        Some((scattered_ray, self.albedo))
     }
 }
 
