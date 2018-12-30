@@ -25,10 +25,11 @@ impl Camera {
         let w = (lookfrom - lookat).normalize();
         let u = (operations::cross(vup, w)).normalize();
         let v = operations::cross(w, u);
+        // SS: projection plane is at w=1, hence -w because the lower left is at the camera position at w=0
         let lower_left_corner = camera_origin.as_vector() - half_width * u - half_height * v - w;
         let vertical = 2f32 * half_height * v;
         let horizontal = 2f32 * half_width * u;
-        Camera { origin: camera_origin, lower_left: Vertex4f::new(lower_left_corner.x, lower_left_corner.y, lower_left_corner.z, lower_left_corner.w), vertical: vertical, horizontal: horizontal }
+        Camera { origin: camera_origin, lower_left: Vertex4f::new(lower_left_corner.x, lower_left_corner.y, lower_left_corner.z, lower_left_corner.w), vertical, horizontal }
     }
 
     pub fn get_ray(&self, u: f64, v: f64) -> Ray {

@@ -58,7 +58,7 @@ fn main() {
 
 
     // Raytrace a scene
-    let camera = Camera::new(Vertex4f::new(-2.0, 2.0, 1.0, 0.0), Vertex4f::new(0.0, 0.0, -1.0, 0.0), Vector4f::new(0.0, 1.0, 0.0, 0.0), 90f32, width as f32 / height as f32);
+    let camera = Camera::new(Vertex4f::new(-2.0, 2.0, 1.0, 0.0), Vertex4f::new(0.0, 0.0, -1.0, 0.0), Vector4f::new(0.0, 1.0, 0.0, 0.0), 40f32, width as f32 / height as f32);
 
     // scene objects
     let mut shapes = Vec::<Box<Shape>>::new();
