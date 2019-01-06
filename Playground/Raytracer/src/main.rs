@@ -58,20 +58,12 @@ fn main() {
 
 
     // Raytrace a scene
-    let camera = Camera::new(Vertex4f::new(-2.0, 2.0, 1.0, 0.0), Vertex4f::new(0.0, 0.0, -1.0, 0.0), Vector4f::new(0.0, 1.0, 0.0, 0.0), 40f32, width as f32 / height as f32);
+    let lookat = Vertex4f::new(0.0, 0.0, -1.0, 0.0);
+    let lookfrom = Vertex4f::new(-2.0, 2.0, 1.0, 0.0);
+    let camera = Camera::new(lookfrom, lookat, Vector4f::new(0.0, 1.0, 0.0, 0.0), 40f32, width as f32 / height as f32, 2f32, (lookfrom - lookat).norm() as f32);
 
     // scene objects
-    let mut shapes = Vec::<Box<Shape>>::new();
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.1, 0.2, 0.5, 0.0))));
-    shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.8, 0.8, 0.0, 0.0))));
-    shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.6, 0.2, 0.0), 0.3)));
-    shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Dielectric::new(1.5)));
-    shapes.push(Box::new(sphere));
-    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), -0.45, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Dielectric::new(1.5)));
-    shapes.push(Box::new(sphere));
+    let shapes = create_scene1();
     let shape_list = ShapeList::new(shapes);
 
     // Antialiasing - shoot multiple rays through the same pixel and average the colors
@@ -112,6 +104,21 @@ fn main() {
             }
         }
     }
+}
+
+fn create_scene1() -> Vec<Box<Shape>> {
+    let mut shapes = Vec::<Box<Shape>>::new();
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.1, 0.2, 0.5, 0.0))));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 100.0, Vertex4f::new(0.0, -100.5, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.8, 0.8, 0.0, 0.0))));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(1.0, 0.0, -1.0, 0.0), Box::new(Metal::new(Vector4f::new(0.8, 0.6, 0.2, 0.0), 0.3)));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Dielectric::new(1.5)));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), -0.45, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Dielectric::new(1.5)));
+    shapes.push(Box::new(sphere));
+    return shapes;
 }
 
 fn find_color(ray: Ray, shape_list: &ShapeList, depth: u8) -> Color {

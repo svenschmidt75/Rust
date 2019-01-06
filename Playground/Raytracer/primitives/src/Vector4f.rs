@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 
 use std::fmt;
-use std::ops::{Add, Sub, Div, Mul, Neg};
+use std::ops::{Add, Div, Mul, Neg, Sub};
+
 use crate::Color::Color;
 
 #[derive(Debug)]
@@ -117,7 +118,7 @@ impl Neg for Vector4f {
     type Output = Vector4f;
 
     fn neg(self) -> Self::Output {
-        Vector4f::new(- self.x, - self.y, - self.z, - self.w)
+        Vector4f::new(-self.x, -self.y, -self.z, -self.w)
     }
 }
 
@@ -176,13 +177,33 @@ mod tests {
         let vec = Vector4f::new(1.34, 2.53, -9.547, 1.12);
 
         // Act
-        let result = - vec;
+        let result = -vec;
 
         // Assert
-        assert!(operations::float_cmp(- vec.x, result.x, 1E-5));
-        assert!(operations::float_cmp(- vec.y, result.y, 1E-5));
-        assert!(operations::float_cmp(- vec.z, result.z, 1E-5));
-        assert!(operations::float_cmp(- vec.w, result.w, 1E-5));
+        assert!(operations::float_cmp(-vec.x, result.x, 1E-5));
+        assert!(operations::float_cmp(-vec.y, result.y, 1E-5));
+        assert!(operations::float_cmp(-vec.z, result.z, 1E-5));
+        assert!(operations::float_cmp(-vec.w, result.w, 1E-5));
     }
 
+    #[test]
+    fn test_complex_operators() {
+        // Arrange
+        let a = 1.435;
+        let b = 47.364;
+        let c = -7.364;
+        let uv = Vector4f::new(1.34, 2.53, -9.547, 1.12);
+        let normal = Vector4f::new(0.34, 2.531, -2.547, 1.82);
+
+        let expected = Vector4f::new(a * (uv.x - c * normal.x) - b * normal.x, a * (uv.y - c * normal.y) - b * normal.y, a * (uv.z - c * normal.z) - b * normal.z, a * (uv.w - c * normal.w) - b * normal.w);
+
+        // Act
+        let refracted = a * (uv - c * normal) - b * normal;
+
+        // Assert
+        assert!(operations::float_cmp(expected.x, refracted.x, 1E-5));
+        assert!(operations::float_cmp(expected.y, refracted.y, 1E-5));
+        assert!(operations::float_cmp(expected.z, refracted.z, 1E-5));
+        assert!(operations::float_cmp(expected.w, refracted.w, 1E-5));
+    }
 }

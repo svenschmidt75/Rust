@@ -23,7 +23,7 @@ impl Dielectric {
 // diamond: n=2.4
 //
 impl Material for Dielectric {
-    fn scatter(&self, incoming_ray: &Ray, intersection_point: Vertex4f, normal: Vector4f) -> Option<(Ray, Vector4f)> {
+    fn scatter(&self, incoming_ray: &Ray, _intersection_point: Vertex4f, normal: Vector4f) -> Option<(Ray, Vector4f)> {
         let attenuation = Vector4f::new(1.0, 1.0, 1.0, 1.0);
         let outward_normal: Vector4f;
         let ni_over_nt: f64;
@@ -41,7 +41,7 @@ impl Material for Dielectric {
         if let Some(refraction_ray) = refract(incoming_ray.direction, outward_normal, ni_over_nt) {
             let reflect_prop = schlick(cosine, self.refraction_index);
             if random::<f64>() > reflect_prop {
-//                    println!("refraction");
+                //println!("refraction");
                 let scattered = Ray::new(incoming_ray.origin, refraction_ray);
                 return Some((scattered, attenuation));
             }

@@ -1,7 +1,6 @@
-use rand::random;
-
 use crate::Material::Material;
 use crate::operations::dot;
+use crate::operations::random_point_on_unit_sphere;
 use crate::Ray::Ray;
 use crate::Vector4f::Vector4f;
 use crate::Vertex4f::Vertex4f;
@@ -28,8 +27,7 @@ impl Material for Metal {
         let visible = dot(scattered_ray.direction, normal) > 0.0;
         if visible {
             Some((scattered_ray, self.albedo))
-        }
-        else {
+        } else {
             None
         }
     }
@@ -38,19 +36,4 @@ impl Material for Metal {
 fn reflect(ray_direction: Vector4f, normal: Vector4f) -> Vector4f {
     let length = dot(ray_direction, normal);
     ray_direction - 2.0 * length * normal
-}
-
-fn random_point_on_unit_sphere() -> Vector4f {
-    let mut p: Vector4f;
-    loop {
-        let x = random::<f64>();
-        let y = random::<f64>();
-        let z = random::<f64>();
-        // ensure vector is in range of (-1,1)
-        p = 2.0 * Vector4f::new(x, y, z, 0.0) - Vector4f::new(1.0, 1.0, 1.0, 0.0);
-        if p.norm() <= 1.0 {
-            break;
-        }
-    }
-    p
 }
