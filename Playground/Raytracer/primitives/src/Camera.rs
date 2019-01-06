@@ -32,9 +32,9 @@ impl Camera {
         let u = (operations::cross(vup, w)).normalize();
         let v = operations::cross(w, u);
         // SS: projection plane is at w=1, hence -w because the lower left is at the camera position at w=0
-        let lower_left_corner = camera_origin.as_vector() - half_width * u - half_height * v - focus_dist * w;
-        let vertical = 2f32 * half_height * v;
-        let horizontal = 2f32 * half_width * u;
+        let lower_left_corner = camera_origin.as_vector() - half_width * focus_dist * u - half_height * focus_dist * v - focus_dist * w;
+        let horizontal = 2f32 * half_width * focus_dist * u;
+        let vertical = 2f32 * half_height * focus_dist * v;
         Camera { origin: camera_origin, lower_left: Vertex4f::new(lower_left_corner.x, lower_left_corner.y, lower_left_corner.z, lower_left_corner.w), vertical, horizontal, u, v, w, lens_radius: aperture / 2f32 }
     }
 
