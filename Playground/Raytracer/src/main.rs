@@ -31,8 +31,8 @@ fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
 
-    let width = 400;
-    let height = 200;
+    let width = 640;
+    let height = 400;
 
     // Create the window
     let window = video.window("Sven's Raytracer", width, height)
@@ -58,15 +58,17 @@ fn main() {
 
 
     // Raytrace a scene
-//    let camera = create_camera1(width, height);
+    let camera = create_camera1(width, height);
     let camera = create_camera2(width, height);
+    let camera = create_camera3(width, height);
 
     // scene objects
-    let shapes = create_scene1();
+//    let shapes = create_scene1();
+    let shapes = create_scene2();
     let shape_list = ShapeList::new(shapes);
 
     // Antialiasing - shoot multiple rays through the same pixel and average the colors
-    let ns = 1;
+    let ns = 100;
     for x in 0..width {
         for y in 0..height {
             let mut color = Color::new(0.0, 0.0, 0.0);
@@ -119,6 +121,13 @@ fn create_camera2(width: u32, height: u32) -> Camera {
     camera
 }
 
+fn create_camera3(width: u32, height: u32) -> Camera {
+    let lookfrom = Vertex4f::new(13.0, 2.0, 3.0, 0.0);
+    let lookat = Vertex4f::new(0.0, 0.0, 0.0, 0.0);
+    let camera = Camera::new(lookfrom, lookat, Vector4f::new(0.0, 1.0, 0.0, 0.0), 30f32, width as f32 / height as f32, 0.1, 10.0);
+    camera
+}
+
 fn create_scene1() -> Vec<Box<Shape>> {
     let mut shapes = Vec::<Box<Shape>>::new();
     let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(0.0, 0.0, -1.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.1, 0.2, 0.5, 0.0))));
@@ -130,6 +139,46 @@ fn create_scene1() -> Vec<Box<Shape>> {
     let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.5, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Dielectric::new(1.5)));
     shapes.push(Box::new(sphere));
     let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), -0.45, Vertex4f::new(-1.0, 0.0, -1.0, 0.0), Box::new(Dielectric::new(1.5)));
+    shapes.push(Box::new(sphere));
+    return shapes;
+}
+
+fn create_scene2() -> Vec<Box<Shape>> {
+    let mut shapes = Vec::<Box<Shape>>::new();
+
+    // master sphere
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 1000.0, Vertex4f::new(0.0, -1000.0, 0.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.5, 0.5, 0.5, 0.0))));
+    shapes.push(Box::new(sphere));
+
+    let scene_center = Vector4f::new(4.0, 0.0, 2.0, 0.0);
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = random::<f64>();
+            let center = Vertex4f::new(a as f64 + 0.9 * random::<f64>(), 0.2, b as f64 + 0.9 * random::<f64>(), 0.0);
+            if (center.as_vector() - scene_center).norm() > 0.9 {
+                if choose_mat < 0.8 {
+                    // diffuse
+                    let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 0.2, center, Box::new(Lambertian::new(Vector4f::new(random::<f64>() * random::<f64>(), random::<f64>() * random::<f64>(), random::<f64>() * random::<f64>(), 0.0))));
+                    shapes.push(Box::new(sphere));
+                } else if choose_mat < 0.95 {
+                    // metal
+                    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.2, center, Box::new(Metal::new(Vector4f::new(0.5 * (1f64 + random::<f64>()), 0.5 * (1f64 + random::<f64>()), 0.5 * (1f64 + random::<f64>()), 0.0), 0.5 * random::<f64>() as f32)));
+                    shapes.push(Box::new(sphere));
+                }
+            }
+            else {
+                // glass
+                let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 0.2, center, Box::new(Dielectric::new(1.5)));
+                shapes.push(Box::new(sphere));
+            }
+        }
+    }
+    let sphere = Sphere::new(Color::new(0.0, 0.0, 0.0), 1.0, Vertex4f::new(-4.0, 1.0, 0.0, 0.0), Box::new(Lambertian::new(Vector4f::new(0.4, 0.2, 0.1, 0.0))));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 1.0, Vertex4f::new(4.0, 1.0, 0.0, 0.0), Box::new(Metal::new(Vector4f::new(0.7, 0.6, 0.5, 0.0), 0.3)));
+    shapes.push(Box::new(sphere));
+    let sphere = Sphere::new(Color::new(1.0, 0.0, 0.0), 1.0, Vertex4f::new(0.0, 1.0, 0.0, 0.0), Box::new(Dielectric::new(1.5)));
     shapes.push(Box::new(sphere));
     return shapes;
 }
