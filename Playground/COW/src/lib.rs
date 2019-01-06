@@ -3,7 +3,7 @@ use std::ops::Deref;
 #[allow(dead_code)]
 enum COW<'a, T: ?Sized> {
     Borrowed(&'a T),
-    Owned(T)
+    Owned(&'a T)
 }
 
 #[allow(dead_code)]
@@ -14,7 +14,7 @@ impl<'a, T: ?Sized> COW<'a, T> {
             COW::Borrowed(borrowed) => {
                 *self = COW::Owned(borrowed.clone());
                 match *self {
-                    COW::Owned(owned) => {
+                    COW::Owned(ref mut owned) => {
                         let a: u8 = owned;
                         owned
                     },
