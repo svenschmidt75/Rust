@@ -58,9 +58,8 @@ fn main() {
 
 
     // Raytrace a scene
-    let lookat = Vertex4f::new(0.0, 0.0, -1.0, 0.0);
-    let lookfrom = Vertex4f::new(-2.0, 2.0, 1.0, 0.0);
-    let camera = Camera::new(lookfrom, lookat, Vector4f::new(0.0, 1.0, 0.0, 0.0), 40f32, width as f32 / height as f32, 2f32, (lookfrom - lookat).norm() as f32);
+//    let camera = create_camera1(width, height);
+    let camera = create_camera2(width, height);
 
     // scene objects
     let shapes = create_scene1();
@@ -104,6 +103,20 @@ fn main() {
             }
         }
     }
+}
+
+fn create_camera1(width: u32, height: u32) -> Camera {
+    let lookat = Vertex4f::new(0.0, 0.0, -1.0, 0.0);
+    let lookfrom = Vertex4f::new(-2.0, 2.0, 1.0, 0.0);
+    let camera = Camera::new(lookfrom, lookat, Vector4f::new(0.0, 1.0, 0.0, 0.0), 40f32, width as f32 / height as f32, 2f32, (lookfrom - lookat).norm() as f32);
+    camera
+}
+
+fn create_camera2(width: u32, height: u32) -> Camera {
+    let lookat = Vertex4f::new(0.0, 0.0, -1.0, 0.0);
+    let lookfrom = Vertex4f::new(3.0, 3.0, 2.0, 0.0);
+    let camera = Camera::new(lookfrom, lookat, Vector4f::new(0.0, 1.0, 0.0, 0.0), 20f32, width as f32 / height as f32, 2f32, (lookfrom - lookat).norm() as f32);
+    camera
 }
 
 fn create_scene1() -> Vec<Box<Shape>> {
