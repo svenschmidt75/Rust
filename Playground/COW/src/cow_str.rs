@@ -87,7 +87,7 @@ mod cow_str {
             // Arrange
 
             // Act
-            let cow = COW::Borrowed(&"test");
+            let _ = COW::Borrowed(&"test");
 
             // Assert
         }
@@ -115,7 +115,7 @@ mod cow_str {
             // Arrange
             let value = 1;
             let mut cow: Cow<i32> = Cow::Borrowed(&value);
-            let mut owned_cow: &mut i32 = cow.to_mut();
+            let owned_cow: &mut i32 = cow.to_mut();
 
             // Act
             *owned_cow = 2;
