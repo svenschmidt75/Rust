@@ -1,8 +1,8 @@
 use std::fmt::Debug;
+use std::fmt::Display;
 use std::fmt::Error;
 use std::fmt::Formatter;
 use std::ops::Deref;
-use std::fmt::Display;
 
 #[allow(dead_code)]
 trait MyToOwned {
@@ -28,7 +28,7 @@ trait MyToBorrow {
 #[allow(dead_code)]
 enum MyCow<'a, T: ?Sized + MyToOwned> {
     Borrowed(&'a T),
-    Owned(T::Owned)
+    Owned(<T as MyToOwned>::Owned)
 }
 
 impl<'a, T: ?Sized + MyToOwned> MyCow<'a, T> {
