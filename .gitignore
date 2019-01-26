@@ -58,3 +58,9 @@ Playground/ConwayGameOfLife/target/
 Playground/COW/\.idea/
 
 Playground/COW/target/
+
+NeuralNetwork/\.idea/
+
+NeuralNetwork/target/debug/
+
+NeuralNetwork/target/
