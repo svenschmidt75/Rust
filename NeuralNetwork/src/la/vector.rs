@@ -1,6 +1,7 @@
 use std::ops::Index;
 use std::ops::IndexMut;
 
+#[derive(Clone, Debug)]
 pub struct Vector {
     data: Vec<f64>
 }

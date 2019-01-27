@@ -13,9 +13,12 @@ impl Model {
     // size of minibatch
     // no regularization for now
     pub fn train(&self) {
+        // call initialize on each layer
+
         // for each epoch
         // shuffle training data indices
         // for each minibatch
+        //   call on_new_epoch on all layers
         //   feed forward
         //   calculate error in output layer
         //   backprop
@@ -31,6 +34,10 @@ impl Model {
 
 
 
+    }
+
+    pub fn summary(&self) {
+        // print out number of layers, number of parameters, etc.
     }
 
 }

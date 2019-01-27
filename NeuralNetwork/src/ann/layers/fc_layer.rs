@@ -18,7 +18,7 @@ impl FCLayer {
 
 impl Layer for FCLayer {
 
-    fn set_activations(&self, a: &Vector) {
+    fn set_activations(&mut self, a: &Vector) {
         unimplemented!()
     }
 }
