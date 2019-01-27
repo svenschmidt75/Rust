@@ -64,3 +64,5 @@ NeuralNetwork/\.idea/
 NeuralNetwork/target/debug/
 
 NeuralNetwork/target/
+
+NeuralNetwork/Cargo\.lock

@@ -5,17 +5,26 @@ pub struct Matrix {
 }
 
 impl Matrix {
-
     pub fn new(nrows: usize, ncols: usize) -> Matrix {
-        Matrix { data: vec![0.0; ncols * nrows], nrows, ncols }
+        Matrix {
+            data: vec![0.0; ncols * nrows],
+            nrows,
+            ncols,
+        }
+    }
+
+    pub fn new_from_data(nrows: usize, ncols: usize, data: Vec<f64>) -> Self {
+        assert_eq!(nrows * ncols, data.len(), "Not enough data provided for matrix initialization");
+        Matrix { data, nrows, ncols }
     }
 
     fn linear_index(&self, row: usize, col: usize) -> usize {
         // row-major memory layout
         let linear_index = row * self.ncols + col;
-        if linear_index >= self.data.len() {
-            panic!("Matrix.linear_index: Index too large")
-        }
+        assert!(
+            linear_index < self.data.len(),
+            "Matrix.linear_index: Index too large"
+        );
         linear_index
     }
 
@@ -29,11 +38,42 @@ impl Matrix {
         &mut self.data[linear_index]
     }
 
+    pub fn ncols(&self) -> usize {
+        self.ncols
+    }
+
+    pub fn nrows(&self) -> usize {
+        self.nrows
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_nrows() {
+        // Arrange
+        let mut m = Matrix::new(2, 3);
+
+        // Act
+        let nrows = m.nrows();
+
+        // Assert
+        assert_eq!(2, nrows)
+    }
+
+    #[test]
+    fn test_ncols() {
+        // Arrange
+        let mut m = Matrix::new(2, 3);
+
+        // Act
+        let ncols = m.ncols();
+
+        // Assert
+        assert_eq!(3, ncols)
+    }
 
     #[test]
     fn test_index() {
