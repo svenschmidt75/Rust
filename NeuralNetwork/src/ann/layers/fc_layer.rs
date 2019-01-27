@@ -1,5 +1,6 @@
 use crate::ann::layers::layer::Layer;
 use crate::la::matrix::Matrix;
+use crate::la::vector::Vector;
 
 struct FCLayer {
     weights: Matrix
@@ -15,7 +16,12 @@ impl FCLayer {
 
 }
 
-impl Layer for FCLayer {}
+impl Layer for FCLayer {
+
+    fn set_activations(&self, a: &Vector) {
+        unimplemented!()
+    }
+}
 
 #[cfg(test)]
 mod tests {

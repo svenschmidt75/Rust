@@ -1,5 +1,6 @@
 use crate::la::vector::Vector;
 
-struct Minibatch {
-     a: Vec<Vector>
+pub struct Minibatch {
+     a: Vec<Vector>,
+     error: Vec<Vector>,
 }
