@@ -40,6 +40,8 @@ impl Model {
         for i in 0..(self.layers.len()) {
             let layer = &self.layers[i];
             let output = layer.feedforward(mb.activation(i));
+
+
             mb.add_activation(output);
         }
     }
@@ -58,17 +60,19 @@ mod tests {
     use crate::la::vector::Vector;
 
     #[test]
-    fn test_index() {
+    fn test_feedforward() {
         // Arrange
         let mut model = Model::new();
-        let weights = Matrix::new_from_data(3, 2, vec![0.1, 0.2, 0.3, 0.4, 0.5, 0.6]);
-        let hidden_layer = FCLayer::new(weights);
+        let weights1 = Matrix::new_from_data(3, 2, vec![0.0, 0.01, 0.02, 0.10, 0.11, 0.12]);
+        let biases1: Vector = vec![0.1, 0.2, 0.3].into();
+        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone());
         model.add(Box::new(hidden_layer));
 
         // todo SS: add activation function
 
-        let weights = Matrix::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
-        let output_layer = FCLayer::new(weights);
+        let weights2= Matrix::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
+        let biases2: Vector = vec![0.1, 0.2, 0.3].into();
+        let output_layer = FCLayer::new(weights2.clone(), biases2.clone());
         model.add(Box::new(output_layer));
 
         let mut mb = Minibatch::new();
@@ -77,5 +81,18 @@ mod tests {
         // Act
         model.feedforward(&mut mb);
 
+        // Assert
+
+        // a^{1}_{0}
+        assert_eq!(weights1.get(0, 0) * mb.activation(0)[0] + weights1.get(0, 1) * mb.activation(0)[1] + biases1[0], mb.activation(1)[0]);
+
+        // a^{1}_{1}
+        assert_eq!(weights1.get(1, 0) * mb.activation(0)[0] + weights1.get(1, 1) * mb.activation(0)[1] + biases1[1], mb.activation(1)[1]);
+
+        // a^{1}_{2}
+        assert_eq!(weights1.get(2, 0) * mb.activation(0)[0] + weights1.get(2, 1) * mb.activation(0)[1] + biases1[2], mb.activation(1)[2]);
+
+        // a^{2}_{0}
+        assert_eq!(weights2.get(0, 0) * mb.activation(1)[0] + weights2.get(0, 1) * mb.activation(1)[1] + weights2.get(0, 2) * mb.activation(1)[2] + biases2[0], mb.activation(2)[0]);
     }
 }

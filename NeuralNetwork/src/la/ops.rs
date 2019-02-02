@@ -2,7 +2,7 @@ use crate::la::matrix::Matrix;
 use crate::la::vector::Vector;
 use rand;
 
-fn ax(m: &Matrix, x: &Vector) -> Vector {
+pub fn ax(m: &Matrix, x: &Vector) -> Vector {
     assert_eq!(m.ncols(), x.dim(), "ops.ax: Matrix incompatible with vector");
     let mut ax = Vector::new(m.nrows());
     for ri in 0..(m.nrows()) {

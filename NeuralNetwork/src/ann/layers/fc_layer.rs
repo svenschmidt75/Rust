@@ -1,15 +1,17 @@
 use crate::ann::layers::layer::Layer;
 use crate::la::matrix::Matrix;
 use crate::la::vector::Vector;
+use crate::la::ops;
 
 pub struct FCLayer {
-    weights: Matrix
+    weights: Matrix,
+    biases: Vector
 }
 
 impl FCLayer {
 
-    pub fn new(weights: Matrix) -> FCLayer {
-        FCLayer { weights }
+    pub fn new(weights: Matrix, biases: Vector) -> FCLayer {
+        FCLayer { weights, biases }
     }
 
     fn get_weight(&self, i: usize, j: usize) -> f64 {
@@ -23,7 +25,10 @@ impl FCLayer {
 impl Layer for FCLayer {
 
     fn feedforward(&self, input: &Vector) -> Vector {
-        unimplemented!()
+        // SS: number of activations in this layer: self.weights.nrows()
+        let mut output = ops::ax(&self.weights, input);
+        output = &output + &self.biases;
+        output
     }
 
 }

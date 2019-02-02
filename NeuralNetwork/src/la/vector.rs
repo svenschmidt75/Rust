@@ -48,6 +48,15 @@ impl IndexMut<usize> for Vector {
 
 }
 
+impl std::ops::Add for &Vector {
+    type Output = Vector;
+
+    fn add(self, rhs: &Vector) -> Self::Output {
+        let output: Vec<_> = self.data.iter().zip(rhs.data.iter()).map(|(&x1, &x2)| x1 + x2).collect();
+        output.into()
+    }
+
+}
 
 #[cfg(test)]
 mod tests {

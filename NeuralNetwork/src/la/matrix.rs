@@ -1,3 +1,4 @@
+#[derive(Clone, Debug)]
 pub struct Matrix {
     data: Vec<f64>,
     nrows: usize,
