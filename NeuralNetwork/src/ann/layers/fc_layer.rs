@@ -2,11 +2,15 @@ use crate::ann::layers::layer::Layer;
 use crate::la::matrix::Matrix;
 use crate::la::vector::Vector;
 
-struct FCLayer {
+pub struct FCLayer {
     weights: Matrix
 }
 
 impl FCLayer {
+
+    pub fn new(weights: Matrix) -> FCLayer {
+        FCLayer { weights }
+    }
 
     fn get_weight(&self, i: usize, j: usize) -> f64 {
         // i: index of activation in layer l
@@ -18,9 +22,10 @@ impl FCLayer {
 
 impl Layer for FCLayer {
 
-    fn set_activations(&mut self, a: &Vector) {
+    fn feedforward(&self, input: &Vector) -> Vector {
         unimplemented!()
     }
+
 }
 
 #[cfg(test)]
