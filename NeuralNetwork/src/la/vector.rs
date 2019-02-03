@@ -16,7 +16,31 @@ impl Vector {
         self.data.len()
     }
 
+    pub fn iter(&self) -> Iter {
+        Iter { v: self, pos: 0 }
+    }
 }
+
+pub struct Iter<'a> {
+    v: &'a Vector,
+    pos: usize
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = f64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.pos <= self.v.dim() - 1 {
+            true => {
+                let value = self.v[self.pos];
+                self.pos = self.pos + 1;
+                Some(value)
+            },
+            _ => None
+        }
+    }
+}
+
 
 impl Index<usize> for Vector {
     type Output = f64;
@@ -100,6 +124,18 @@ mod tests {
 
         // Assert
         assert_eq!(10, dim)
+    }
+
+    #[test]
+    fn test_iterator() {
+        // Arrange
+        let vec: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+
+        // Act
+        let result: Vec<_> = vec.iter().map(|x| x*x).collect();
+
+        // Assert
+        assert_eq!(vec![1.0, 4.0, 9.0, 16.0], result)
     }
 
 }
