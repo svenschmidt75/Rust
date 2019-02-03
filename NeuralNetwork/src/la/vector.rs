@@ -19,6 +19,12 @@ impl Vector {
     pub fn iter(&self) -> Iter {
         Iter { v: self, pos: 0 }
     }
+
+    pub fn norm(&self) -> f64 {
+        let output: f64 = self.data.iter().map(|&x| x * x).sum();
+        output.sqrt()
+    }
+
 }
 
 pub struct Iter<'a> {
@@ -27,12 +33,12 @@ pub struct Iter<'a> {
 }
 
 impl<'a> Iterator for Iter<'a> {
-    type Item = f64;
+    type Item = &'a f64;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.pos <= self.v.dim() - 1 {
             true => {
-                let value = self.v[self.pos];
+                let value = &self.v[self.pos];
                 self.pos = self.pos + 1;
                 Some(value)
             },
@@ -77,6 +83,16 @@ impl std::ops::Add for &Vector {
 
     fn add(self, rhs: &Vector) -> Self::Output {
         let output: Vec<_> = self.data.iter().zip(rhs.data.iter()).map(|(&x1, &x2)| x1 + x2).collect();
+        output.into()
+    }
+
+}
+
+impl std::ops::Sub for &Vector {
+    type Output = Vector;
+
+    fn sub(self, rhs: &Vector) -> Self::Output {
+        let output: Vec<_> = self.data.iter().zip(rhs.data.iter()).map(|(&x1, &x2)| x1 - x2).collect();
         output.into()
     }
 
@@ -136,6 +152,52 @@ mod tests {
 
         // Assert
         assert_eq!(vec![1.0, 4.0, 9.0, 16.0], result)
+    }
+
+    #[test]
+    fn test_vector_add() {
+        // Arrange
+        let vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+        let vec2: Vector = vec![1.1, 2.2, 3.3, 4.4].into();
+
+        // Act
+        let result = &vec1 + &vec2;
+
+        // Assert
+        assert_eq!(4, result.dim());
+        assert_eq!(1.0 + 1.1, result[0]);
+        assert_eq!(2.0 + 2.2, result[1]);
+        assert_eq!(3.0 + 3.3, result[2]);
+        assert_eq!(4.0 + 4.4, result[3]);
+    }
+
+    #[test]
+    fn test_vector_sub() {
+        // Arrange
+        let vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+        let vec2: Vector = vec![1.1, 2.2, 3.3, 4.4].into();
+
+        // Act
+        let result = &vec1 - &vec2;
+
+        // Assert
+        assert_eq!(4, result.dim());
+        assert_eq!(1.0 - 1.1, result[0]);
+        assert_eq!(2.0 - 2.2, result[1]);
+        assert_eq!(3.0 - 3.3, result[2]);
+        assert_eq!(4.0 - 4.4, result[3]);
+    }
+
+    #[test]
+    fn test_vector_norm() {
+        // Arrange
+        let vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+
+        // Act
+        let result = vec1.norm();
+
+        // Assert
+        assert_eq!(30f64.sqrt(), result)
     }
 
 }

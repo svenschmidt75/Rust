@@ -1,13 +1,14 @@
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
+use crate::ann::cost_function::CostFunction;
 
-struct Model {
+pub struct Model {
     layers: Vec<Box<dyn Layer>>
 }
 
 impl Model {
-    fn new() -> Model {
+    pub fn new() -> Model {
         Model { layers: vec![] }
     }
 
@@ -19,7 +20,7 @@ impl Model {
     // number of epochs
     // size of minibatch
     // no regularization for now
-    pub fn train(&self) {
+    pub fn train(&self, training_data: &Vec<TrainingData>, validation_data: &Vec<TrainingData>, epochs: usize, minibatch_size: usize, cost_function: Box<dyn CostFunction> ) {
         // call initialize on each layer
 
         // for each epoch
@@ -70,7 +71,7 @@ mod tests {
         model.add(Box::new(hidden_layer));
 
         let weights2= Matrix::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
-        let biases2: Vector = vec![0.1, 0.2, 0.3].into();
+        let biases2: Vector = vec![0.1].into();
         let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(ReLU{}));
         model.add(Box::new(output_layer));
 

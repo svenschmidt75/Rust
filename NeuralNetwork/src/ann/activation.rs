@@ -47,13 +47,13 @@ impl Activation for LeakyReLU {
 
 }
 
-pub struct tanh {}
+pub struct Tanh {}
 
 pub fn tanh(z: f64) -> f64 {
     2.0 / (1.0 + (-2.0 * z).exp()) - 1.0
 }
 
-impl Activation for tanh {
+impl Activation for Tanh {
 
     fn f(&self, v: Vector) -> Vector {
         ops::f(v, tanh)
@@ -73,6 +73,16 @@ impl Activation for SoftMax {
 
 }
 
+pub struct Id {}
+
+impl Activation for Id {
+
+    fn f(&self, v: Vector) -> Vector {
+        v
+    }
+
+}
+
 // SS: test data from https://keisan.casio.com/menu/system/000000001350
 
 #[cfg(test)]
@@ -80,7 +90,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_Sigmoid() {
+    fn test_sigmoid() {
         // Arrange
         // Act
         let result = sigmoid(2.03);
