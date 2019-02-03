@@ -7,7 +7,10 @@ pub struct Minibatch {
 
 impl Minibatch {
     pub fn new() -> Minibatch {
-        Minibatch { a: vec![], error: vec![] }
+        Minibatch {
+            a: vec![],
+            error: vec![],
+        }
     }
 
     pub fn activation(&self, layer_index: usize) -> &Vector {
@@ -21,8 +24,7 @@ impl Minibatch {
     pub fn set_input_activation(&mut self, a: Vector) {
         if self.a.len() < 1 {
             self.a.push(a);
-        }
-        else {
+        } else {
             self.a[0] = a;
         }
     }

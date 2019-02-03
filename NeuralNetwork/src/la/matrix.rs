@@ -15,7 +15,11 @@ impl Matrix {
     }
 
     pub fn new_from_data(nrows: usize, ncols: usize, data: Vec<f64>) -> Self {
-        assert_eq!(nrows * ncols, data.len(), "Not enough data provided for matrix initialization");
+        assert_eq!(
+            nrows * ncols,
+            data.len(),
+            "Not enough data provided for matrix initialization"
+        );
         Matrix { data, nrows, ncols }
     }
 

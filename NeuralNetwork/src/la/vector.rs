@@ -3,13 +3,14 @@ use std::ops::IndexMut;
 
 #[derive(Clone, Debug)]
 pub struct Vector {
-    data: Vec<f64>
+    data: Vec<f64>,
 }
 
 impl Vector {
-
     pub fn new(size: usize) -> Vector {
-        Vector { data: vec![0.0; size] }
+        Vector {
+            data: vec![0.0; size],
+        }
     }
 
     pub fn dim(&self) -> usize {
@@ -24,12 +25,11 @@ impl Vector {
         let output: f64 = self.data.iter().map(|&x| x * x).sum();
         output.sqrt()
     }
-
 }
 
 pub struct Iter<'a> {
     v: &'a Vector,
-    pos: usize
+    pos: usize,
 }
 
 impl<'a> Iterator for Iter<'a> {
@@ -41,12 +41,11 @@ impl<'a> Iterator for Iter<'a> {
                 let value = &self.v[self.pos];
                 self.pos = self.pos + 1;
                 Some(value)
-            },
-            _ => None
+            }
+            _ => None,
         }
     }
 }
-
 
 impl Index<usize> for Vector {
     type Output = f64;
@@ -57,45 +56,49 @@ impl Index<usize> for Vector {
         }
         &self.data[index]
     }
-
 }
 
 impl From<Vec<f64>> for Vector {
-
     fn from(data: Vec<f64>) -> Self {
         Vector { data }
     }
 }
 
 impl IndexMut<usize> for Vector {
-
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         if index >= self.data.len() {
             panic!("Index {} too large", index)
         }
         &mut self.data[index]
     }
-
 }
 
 impl std::ops::Add for &Vector {
     type Output = Vector;
 
     fn add(self, rhs: &Vector) -> Self::Output {
-        let output: Vec<_> = self.data.iter().zip(rhs.data.iter()).map(|(&x1, &x2)| x1 + x2).collect();
+        let output: Vec<_> = self
+            .data
+            .iter()
+            .zip(rhs.data.iter())
+            .map(|(&x1, &x2)| x1 + x2)
+            .collect();
         output.into()
     }
-
 }
 
 impl std::ops::Sub for &Vector {
     type Output = Vector;
 
     fn sub(self, rhs: &Vector) -> Self::Output {
-        let output: Vec<_> = self.data.iter().zip(rhs.data.iter()).map(|(&x1, &x2)| x1 - x2).collect();
+        let output: Vec<_> = self
+            .data
+            .iter()
+            .zip(rhs.data.iter())
+            .map(|(&x1, &x2)| x1 - x2)
+            .collect();
         output.into()
     }
-
 }
 
 #[cfg(test)]
@@ -148,7 +151,7 @@ mod tests {
         let vec: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
 
         // Act
-        let result: Vec<_> = vec.iter().map(|x| x*x).collect();
+        let result: Vec<_> = vec.iter().map(|x| x * x).collect();
 
         // Assert
         assert_eq!(vec![1.0, 4.0, 9.0, 16.0], result)

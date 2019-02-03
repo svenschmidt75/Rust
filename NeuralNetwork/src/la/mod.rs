@@ -1,3 +1,3 @@
 pub mod matrix;
-pub mod vector;
 pub mod ops;
+pub mod vector;

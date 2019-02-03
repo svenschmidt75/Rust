@@ -1,20 +1,23 @@
+use crate::ann::activation::Activation;
 use crate::ann::layers::layer::Layer;
 use crate::la::matrix::Matrix;
-use crate::la::vector::Vector;
 use crate::la::ops;
-use crate::ann::activation::Activation;
+use crate::la::vector::Vector;
 
 pub struct FCLayer {
     weights: Matrix,
     biases: Vector,
-    activation: Box<dyn Activation>
+    activation: Box<dyn Activation>,
 }
 
 impl FCLayer {
-
     pub fn new(weights: Matrix, biases: Vector, activation: Box<dyn Activation>) -> FCLayer {
         assert_eq!(weights.nrows(), biases.dim());
-        FCLayer { weights, biases, activation }
+        FCLayer {
+            weights,
+            biases,
+            activation,
+        }
     }
 
     fn get_weight(&self, i: usize, j: usize) -> f64 {
@@ -22,11 +25,9 @@ impl FCLayer {
         // j: index of activation in layer l-1
         self.weights.get(i, j)
     }
-
 }
 
 impl Layer for FCLayer {
-
     fn feedforward(&self, input: &Vector) -> Vector {
         // SS: number of activations in this layer: self.weights.nrows()
         let mut output = ops::ax(&self.weights, input);
@@ -37,7 +38,6 @@ impl Layer for FCLayer {
         output = self.activation.f(output);
         output
     }
-
 }
 
 #[cfg(test)]

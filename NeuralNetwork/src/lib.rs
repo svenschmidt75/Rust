@@ -1,5 +1,5 @@
-mod la;
 mod ann;
+mod la;
 
 #[cfg(test)]
 mod tests {

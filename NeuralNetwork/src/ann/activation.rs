@@ -1,5 +1,5 @@
-use crate::la::vector::Vector;
 use crate::la::ops;
+use crate::la::vector::Vector;
 
 pub trait Activation {
     fn f(&self, v: Vector) -> Vector;
@@ -12,11 +12,9 @@ pub fn sigmoid(z: f64) -> f64 {
 }
 
 impl Activation for Sigmoid {
-
     fn f(&self, v: Vector) -> Vector {
         ops::f(v, sigmoid)
     }
-
 }
 
 pub struct ReLU {}
@@ -26,11 +24,9 @@ pub fn relu(z: f64) -> f64 {
 }
 
 impl Activation for ReLU {
-
     fn f(&self, v: Vector) -> Vector {
         ops::f(v, relu)
     }
-
 }
 
 pub struct LeakyReLU {}
@@ -40,11 +36,9 @@ pub fn leaky_relu(z: f64) -> f64 {
 }
 
 impl Activation for LeakyReLU {
-
     fn f(&self, v: Vector) -> Vector {
         ops::f(v, leaky_relu)
     }
-
 }
 
 pub struct Tanh {}
@@ -54,33 +48,31 @@ pub fn tanh(z: f64) -> f64 {
 }
 
 impl Activation for Tanh {
-
     fn f(&self, v: Vector) -> Vector {
         ops::f(v, tanh)
     }
-
 }
 
 pub struct SoftMax {}
 
 impl Activation for SoftMax {
-
     fn f(&self, v: Vector) -> Vector {
         let denominator: f64 = v.iter().map(|x| x.exp()).sum();
-        let result: Vector = v.iter().map(|x| x.exp() / denominator).collect::<Vec<_>>().into();
+        let result: Vector = v
+            .iter()
+            .map(|x| x.exp() / denominator)
+            .collect::<Vec<_>>()
+            .into();
         result
     }
-
 }
 
 pub struct Id {}
 
 impl Activation for Id {
-
     fn f(&self, v: Vector) -> Vector {
         v
     }
-
 }
 
 // SS: test data from https://keisan.casio.com/menu/system/000000001350
@@ -155,7 +147,7 @@ mod tests {
         let values = vec![3.0, 4.0, 1.0];
 
         // Act
-        let result = SoftMax{}.f(values.into());
+        let result = SoftMax {}.f(values.into());
 
         // Assert
         assert_eq!(0.259496460342419118, result[0]);

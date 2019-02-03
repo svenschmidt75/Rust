@@ -1,10 +1,10 @@
+use crate::ann::cost_function::CostFunction;
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
-use crate::ann::cost_function::CostFunction;
 
 pub struct Model {
-    layers: Vec<Box<dyn Layer>>
+    layers: Vec<Box<dyn Layer>>,
 }
 
 impl Model {
@@ -20,7 +20,14 @@ impl Model {
     // number of epochs
     // size of minibatch
     // no regularization for now
-    pub fn train(&self, training_data: &Vec<TrainingData>, validation_data: &Vec<TrainingData>, epochs: usize, minibatch_size: usize, cost_function: Box<dyn CostFunction> ) {
+    pub fn train(
+        &self,
+        training_data: &Vec<TrainingData>,
+        validation_data: &Vec<TrainingData>,
+        epochs: usize,
+        minibatch_size: usize,
+        cost_function: Box<dyn CostFunction>,
+    ) {
         // call initialize on each layer
 
         // for each epoch
@@ -56,10 +63,10 @@ mod tests {
     use crate::la::matrix::Matrix;
 
     use super::*;
-    use crate::la::vector::Vector;
-    use crate::ann::activation::Sigmoid;
     use crate::ann::activation;
     use crate::ann::activation::ReLU;
+    use crate::ann::activation::Sigmoid;
+    use crate::la::vector::Vector;
 
     #[test]
     fn test_feedforward() {
@@ -67,12 +74,12 @@ mod tests {
         let mut model = Model::new();
         let weights1 = Matrix::new_from_data(3, 2, vec![0.0, 0.01, 0.02, 0.10, 0.11, 0.12]);
         let biases1: Vector = vec![0.1, 0.2, 0.3].into();
-        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid{}));
+        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let weights2= Matrix::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
+        let weights2 = Matrix::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
         let biases2: Vector = vec![0.1].into();
-        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(ReLU{}));
+        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(ReLU {}));
         model.add(Box::new(output_layer));
 
         let mut mb = Minibatch::new();
@@ -84,19 +91,36 @@ mod tests {
         // Assert
 
         // a^{1}_{0}
-        let a10 = activation::sigmoid(weights1.get(0, 0) * mb.activation(0)[0] + weights1.get(0, 1) * mb.activation(0)[1] + biases1[0]);
+        let a10 = activation::sigmoid(
+            weights1.get(0, 0) * mb.activation(0)[0]
+                + weights1.get(0, 1) * mb.activation(0)[1]
+                + biases1[0],
+        );
         assert_eq!(a10, mb.activation(1)[0]);
 
         // a^{1}_{1}
-        let a11 = activation::sigmoid(weights1.get(1, 0) * mb.activation(0)[0] + weights1.get(1, 1) * mb.activation(0)[1] + biases1[1]);
+        let a11 = activation::sigmoid(
+            weights1.get(1, 0) * mb.activation(0)[0]
+                + weights1.get(1, 1) * mb.activation(0)[1]
+                + biases1[1],
+        );
         assert_eq!(a11, mb.activation(1)[1]);
 
         // a^{1}_{2}
-        let a12 = activation::sigmoid(weights1.get(2, 0) * mb.activation(0)[0] + weights1.get(2, 1) * mb.activation(0)[1] + biases1[2]);
+        let a12 = activation::sigmoid(
+            weights1.get(2, 0) * mb.activation(0)[0]
+                + weights1.get(2, 1) * mb.activation(0)[1]
+                + biases1[2],
+        );
         assert_eq!(a12, mb.activation(1)[2]);
 
         // a^{2}_{0}
-        let a20 = activation::relu(weights2.get(0, 0) * mb.activation(1)[0] + weights2.get(0, 1) * mb.activation(1)[1] + weights2.get(0, 2) * mb.activation(1)[2] + biases2[0]);
+        let a20 = activation::relu(
+            weights2.get(0, 0) * mb.activation(1)[0]
+                + weights2.get(0, 1) * mb.activation(1)[1]
+                + weights2.get(0, 2) * mb.activation(1)[2]
+                + biases2[0],
+        );
         assert_eq!(a20, mb.activation(2)[0]);
     }
 }
