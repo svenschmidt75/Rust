@@ -30,6 +30,10 @@ impl Minibatch {
         self.a[0] = a;
     }
 
+    pub fn output_activations(&self) -> &Vector {
+        &self.a[self.a.len() - 1]
+    }
+
     pub fn store(&mut self, layer_index: usize, a: Vector, z: Vector) {
         self.a[layer_index] = a;
         self.z[layer_index] = z;

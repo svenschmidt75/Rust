@@ -31,7 +31,7 @@ impl CostFunction for QuadraticCost {
             let mut mb = model.create_minibatch();
             mb.set_input_a(x.input_activations.clone());
             model.feedforward(&mut mb);
-            let c = cost(&x.output_activations, &x.output_activations);
+            let c = cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
         }
         total_cost / 2.0 / y.len() as f64
