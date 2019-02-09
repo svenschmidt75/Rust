@@ -55,7 +55,19 @@ impl Activation for ReLU {
 pub struct LeakyReLU {}
 
 pub fn leaky_relu(z: f64) -> f64 {
-    z.max(0.01 * z)
+    if z <= 0.0 {
+        0.01 * z
+    } else {
+        z
+    }
+}
+
+pub fn leaky_relu_prime(z: f64) -> f64 {
+    if z <= 0.0 {
+        0.01
+    } else {
+        1.0
+    }
 }
 
 impl Activation for LeakyReLU {
@@ -63,9 +75,8 @@ impl Activation for LeakyReLU {
         ops::f(v, &leaky_relu)
     }
 
-    // todo SS: verify this
     fn df(&self, v: &Vector) -> Vector {
-        ops::f(v, &leaky_relu)
+        ops::f(v, &leaky_relu_prime)
     }
 }
 
@@ -75,14 +86,18 @@ pub fn tanh(z: f64) -> f64 {
     2.0 / (1.0 + (-2.0 * z).exp()) - 1.0
 }
 
+pub fn tanh_prime(z: f64) -> f64 {
+    let tanh = tanh(z);
+    1.0 - tanh * tanh
+}
+
 impl Activation for Tanh {
     fn f(&self, v: &Vector) -> Vector {
         ops::f(v, &tanh)
     }
 
-    // todo SS: verify this
     fn df(&self, v: &Vector) -> Vector {
-        ops::f(v, &tanh)
+        ops::f(v, &tanh_prime)
     }
 }
 
@@ -99,9 +114,14 @@ impl Activation for SoftMax {
         result
     }
 
-    // todo SS: verify this
     fn df(&self, v: &Vector) -> Vector {
-        ops::f(v, &tanh)
+        let f1 = <Self as Activation>::f(self, v);
+        let result: Vector = f1
+            .iter()
+            .map(|x| 1.0 - x)
+            .collect::<Vec<_>>()
+            .into();
+        ops::hadamard(&f1, &result)
     }
 }
 
@@ -122,6 +142,7 @@ impl Activation for Id {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::la::vector::Vector;
 
     #[test]
     fn test_sigmoid() {
@@ -173,12 +194,12 @@ mod tests {
         let h = 0.001;
 
         // Act
-        let f1 = relu(2.03 + h);
-        let f2 = relu(2.03);
+        let f1 = relu(-2.03 + h);
+        let f2 = relu(-2.03);
         let df = (f1 - f2) / h;
 
         // Assert
-        assert_approx_eq!(relu_prime(2.03), df, h)
+        assert_approx_eq!(relu_prime(-2.03), df, h)
     }
 
     #[test]
@@ -187,12 +208,12 @@ mod tests {
         let h = 0.001;
 
         // Act
-        let f1 = relu(-2.03 + h);
-        let f2 = relu(-2.03);
+        let f1 = relu(2.03 + h);
+        let f2 = relu(2.03);
         let df = (f1 - f2) / h;
 
         // Assert
-        assert_approx_eq!(relu_prime(-2.03), df, h)
+        assert_approx_eq!(relu_prime(2.03), df, h)
     }
 
     #[test]
@@ -216,6 +237,34 @@ mod tests {
     }
 
     #[test]
+    fn test_leaky_relu_prime_negative() {
+        // Arrange
+        let h = 0.001;
+
+        // Act
+        let f1 = leaky_relu(-2.03 + h);
+        let f2 = leaky_relu(-2.03);
+        let df = (f1 - f2) / h;
+
+        // Assert
+        assert_approx_eq!(leaky_relu_prime(-2.03), df, h)
+    }
+
+    #[test]
+    fn test_leaky_relu_prime_positive() {
+        // Arrange
+        let h = 0.001;
+
+        // Act
+        let f1 = leaky_relu(2.03 + h);
+        let f2 = leaky_relu(2.03);
+        let df = (f1 - f2) / h;
+
+        // Assert
+        assert_approx_eq!(leaky_relu_prime(2.03), df, h)
+    }
+
+    #[test]
     fn test_tanh() {
         // Arrange
         // Act
@@ -223,6 +272,20 @@ mod tests {
 
         // Assert
         assert_eq!(0.9660869289795986, result)
+    }
+
+    #[test]
+    fn test_tanh_prime() {
+        // Arrange
+        let h = 0.001;
+
+        // Act
+        let f1 = tanh(2.03 + h);
+        let f2 = tanh(2.03);
+        let df = (f1 - f2) / h;
+
+        // Assert
+        assert_approx_eq!(tanh_prime(2.03), df, h)
     }
 
     #[test]
@@ -237,5 +300,25 @@ mod tests {
         assert_eq!(0.259496460342419118, result[0]);
         assert_eq!(0.7053845126982411, result[1]);
         assert_eq!(0.0351190269593397242, result[2])
+    }
+
+    #[test]
+    fn test_softmax_prime() {
+        // Arrange
+        let values = vec![2.0, 1.0, 0.1];
+        let h = 0.1;
+
+        // Act
+        let z1 = Vector::from(values.iter().map(|&x| x + h).collect::<Vec<_>>());
+        let f1 = SoftMax{}.f(&z1);
+        let z2 = Vector::from(values);
+        let f2 = SoftMax{}.f(&z2);
+        let df = &(&f1 - &f2) / h;
+
+        // Assert
+        let df_num = SoftMax{}.df(&z2);
+        assert_approx_eq!(df_num[0], df[0], 1e-3f64);
+        assert_approx_eq!(df_num[1], df[1], 1e-3f64);
+        assert_approx_eq!(df_num[2], df[2], 1e-3f64);
     }
 }

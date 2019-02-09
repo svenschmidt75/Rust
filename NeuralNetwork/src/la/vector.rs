@@ -1,6 +1,8 @@
 use std::ops::Index;
 use std::ops::IndexMut;
 
+use assert_approx_eq::assert_approx_eq;
+
 #[derive(Clone, Debug)]
 pub struct Vector {
     data: Vec<f64>,
@@ -101,6 +103,19 @@ impl std::ops::Sub for &Vector {
     }
 }
 
+impl std::ops::Div<f64> for &Vector {
+    type Output = Vector;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        let output: Vec<_> = self
+            .data
+            .iter()
+            .map(|&x| x / rhs)
+            .collect();
+        output.into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -192,6 +207,22 @@ mod tests {
     }
 
     #[test]
+    fn test_vector_div() {
+        // Arrange
+        let v: Vector = vec![1.1, 2.2, 3.3, 4.4].into();
+
+        // Act
+        let result = &v / 0.01;
+
+        // Assert
+        assert_eq!(4, result.dim());
+        assert_approx_eq!(1.1 / 0.01, result[0], 1e-3f64);
+        assert_approx_eq!(2.2 / 0.01, result[1], 1e-3f64);
+        assert_approx_eq!(3.3 / 0.01, result[2], 1e-3f64);
+        assert_approx_eq!(4.4 / 0.01, result[3], 1e-3f64);
+    }
+
+    #[test]
     fn test_vector_norm() {
         // Arrange
         let vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
@@ -202,5 +233,4 @@ mod tests {
         // Assert
         assert_eq!(30f64.sqrt(), result)
     }
-
 }
