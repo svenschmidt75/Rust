@@ -33,10 +33,11 @@ pub fn relu(z: f64) -> f64 {
     z.max(0.0)
 }
 
-pub fn drelu(z: f64) -> f64 {
-    match z < 0.0 {
-        false => 1.0,
-        _ => 0.0
+pub fn relu_prime(z: f64) -> f64 {
+    if z < 0.0 {
+        0.0
+    } else {
+        1.0
     }
 }
 
@@ -47,7 +48,7 @@ impl Activation for ReLU {
 
     // todo SS: verify this
     fn df(&self, v: &Vector) -> Vector {
-        ops::f(v, &drelu)
+        ops::f(v, &relu_prime)
     }
 }
 
@@ -164,6 +165,34 @@ mod tests {
 
         // Assert
         assert_eq!(2.03, result)
+    }
+
+    #[test]
+    fn test_relu_prime_negative() {
+        // Arrange
+        let h = 0.001;
+
+        // Act
+        let f1 = relu(2.03 + h);
+        let f2 = relu(2.03);
+        let df = (f1 - f2) / h;
+
+        // Assert
+        assert_approx_eq!(relu_prime(2.03), df, h)
+    }
+
+    #[test]
+    fn test_relu_prime_positive() {
+        // Arrange
+        let h = 0.001;
+
+        // Act
+        let f1 = relu(-2.03 + h);
+        let f2 = relu(-2.03);
+        let df = (f1 - f2) / h;
+
+        // Assert
+        assert_approx_eq!(relu_prime(-2.03), df, h)
     }
 
     #[test]
