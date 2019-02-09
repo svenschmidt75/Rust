@@ -1,3 +1,5 @@
+use assert_approx_eq::assert_approx_eq;
+
 use crate::la::ops;
 use crate::la::vector::Vector;
 
@@ -13,16 +15,16 @@ pub fn sigmoid(z: f64) -> f64 {
     1.0 / (1.0 + (-z).exp())
 }
 
+pub fn sigmoid_prime(z: f64) -> f64 {
+    sigmoid(z) * (1.0 - sigmoid(z))
+}
+
 impl Activation for Sigmoid {
     fn f(&self, v: &Vector) -> Vector {
         ops::f(v, &sigmoid)
     }
 
-    fn df(&self, v: &Vector) -> Vector {
-        let s = ops::f(v, &sigmoid);
-//        s * (1.0 - s)
-        s
-    }
+    fn df(&self, v: &Vector) -> Vector { ops::f(v, &sigmoid_prime) }
 }
 
 pub struct ReLU {}
@@ -34,7 +36,7 @@ pub fn relu(z: f64) -> f64 {
 pub fn drelu(z: f64) -> f64 {
     match z < 0.0 {
         false => 1.0,
-        _     => 0.0
+        _ => 0.0
     }
 }
 
@@ -131,6 +133,20 @@ mod tests {
     }
 
     #[test]
+    fn test_sigmoid_prime() {
+        // Arrange
+        let h = 0.001;
+
+        // Act
+        let f1 = sigmoid(2.03 + h);
+        let f2 = sigmoid(2.03);
+        let df = (f1 - f2) / h;
+
+        // Assert
+        assert_approx_eq!(sigmoid_prime(2.03), df, h)
+    }
+
+    #[test]
     fn test_relu_negative() {
         // Arrange
         // Act
@@ -193,5 +209,4 @@ mod tests {
         assert_eq!(0.7053845126982411, result[1]);
         assert_eq!(0.0351190269593397242, result[2])
     }
-
 }

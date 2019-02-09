@@ -1,3 +1,5 @@
+use assert_approx_eq::assert_approx_eq;
+
 use crate::ann::activation::Activation;
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
@@ -9,7 +11,7 @@ use crate::la::vector::Vector;
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &Vec<TrainingData>) -> f64;
 
-    fn output_error(&self, output_layer_index: usize, m: &Minibatch, f: &Activation) -> Vector;
+    fn output_error(&self, output_layer_index: usize, m: &Minibatch, x: &TrainingData, f: &Activation) -> Vector;
 }
 
 struct QuadraticCost;
@@ -29,16 +31,16 @@ impl CostFunction for QuadraticCost {
             let mut mb = model.create_minibatch();
             mb.set_input_a(x.input_activations.clone());
             model.feedforward(&mut mb);
-            let c = cost(&x.output_activations, mb.y());
+            let c = cost(&x.output_activations, &x.output_activations);
             total_cost += c;
         }
         total_cost / 2.0 / y.len() as f64
     }
 
-    fn output_error(&self, output_layer_index: usize, m: &Minibatch, f: &Activation) -> Vector {
+    fn output_error(&self, output_layer_index: usize, m: &Minibatch, x: &TrainingData, f: &Activation) -> Vector {
         let a = m.a(output_layer_index);
         let z = m.z(output_layer_index);
-        let y = m.y();
+        let y = &x.output_activations;
         ops::hadamard(&(a - y), &f.df(z))
     }
 }
@@ -112,17 +114,16 @@ mod tests {
     #[test]
     fn test_quadratic_cost_output_layer() {
         // Arrange
-//        fn output_error(&self, output_layer_index: usize, m: &Minibatch, f: &Activation) -> Vector {
-
         let cost = QuadraticCost;
-        let m = Minibatch::new(vec![1]);
-
-
-
-
+        let mut mb = Minibatch::new(vec![2, 1]);
+        mb.store(0, Vector::from(vec![1.0, 2.0]), Vector::from(vec![1.0, 2.0]));
+        mb.store(1, Vector::from(vec![3.0]), Vector::from(vec![3.0]));
+        let x = TrainingData{ input_activations: Vector::from(vec![1.0, 2.0]), output_activations: Vector::from(vec![3.0]) };
 
         // Act
+        let error = cost.output_error(0, &mb, &x,&Id{});
 
         // Assert
+        assert_approx_eq!(error[0], 1.0, 1e-3f64);
     }
 }

@@ -26,10 +26,6 @@ impl Minibatch {
         &self.z[layer_index]
     }
 
-    pub fn y(&self) -> &Vector {
-        self.a(self.a.len() - 1)
-    }
-
     pub fn set_input_a(&mut self, a: Vector) {
         self.a[0] = a;
     }
