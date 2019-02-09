@@ -45,9 +45,9 @@ impl Model {
         // print statistics
     }
 
-    pub fn create_minibatch(&self, input_nas: usize) -> Minibatch {
+    pub fn create_minibatch(&self) -> Minibatch {
         let mut nas: Vec<_> = self.layers.iter().map(|layer| layer.na()).collect();
-        nas.insert(0, input_nas);
+        nas.insert(0, self.layers[0].na());
         Minibatch::new(nas)
     }
 
@@ -92,7 +92,7 @@ mod tests {
         let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(ReLU {}));
         model.add(Box::new(output_layer));
 
-        let mut mb = model.create_minibatch(2);
+        let mut mb = model.create_minibatch();
         mb.store(0, Vector::from(vec![0.0, 1.0]), Vector::from(vec![0.0, 1.0]));
 
         // Act
