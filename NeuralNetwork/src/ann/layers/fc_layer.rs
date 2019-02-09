@@ -28,16 +28,21 @@ impl FCLayer {
 }
 
 impl Layer for FCLayer {
-    fn feedforward(&self, input: &Vector) -> Vector {
+    fn feedforward(&self, input: &Vector) -> (Vector, Vector) {
         // SS: number of activations in this layer: self.weights.nrows()
-        let mut output = ops::ax(&self.weights, input);
+        let output = ops::ax(&self.weights, input);
 
         // SS: alternatively, add another column to weights with the biases.
         // Add another row with all 0s, except for the bias column where we put 1.
-        output = &output + &self.biases;
-        output = self.activation.f(output);
-        output
+        let z = &output + &self.biases;
+        let a = self.activation.f(&z);
+        (a, z)
     }
+
+    fn na(&self) -> usize {
+        self.biases.dim()
+    }
+
 }
 
 #[cfg(test)]

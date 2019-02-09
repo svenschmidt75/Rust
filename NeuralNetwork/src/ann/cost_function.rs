@@ -1,3 +1,5 @@
+use crate::ann::activation::Activation;
+use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
 use crate::ann::model::Model;
@@ -6,9 +8,11 @@ use crate::la::vector::Vector;
 
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &Vec<TrainingData>) -> f64;
+
+    fn output_error(&self, output_layer_index: usize, m: &Minibatch, f: &Activation) -> Vector;
 }
 
-struct QuadraticCost {}
+struct QuadraticCost;
 
 fn cost(a: &Vector, y: &Vector) -> f64 {
     let diff = y - a;
@@ -22,13 +26,20 @@ impl CostFunction for QuadraticCost {
 
         // SS: can use map and sum here...
         for x in y {
-            let mut mb = Minibatch::new();
-            mb.set_input_activation(x.input_activations.clone());
+            let mut mb = model.create_minibatch(x.input_activations.dim());
+            mb.set_input_a(x.input_activations.clone());
             model.feedforward(&mut mb);
-            let c = cost(&x.output_activations, mb.output_activation());
+            let c = cost(&x.output_activations, mb.y());
             total_cost += c;
         }
         total_cost / 2.0 / y.len() as f64
+    }
+
+    fn output_error(&self, output_layer_index: usize, m: &Minibatch, f: &Activation) -> Vector {
+        let a = m.a(output_layer_index);
+        let z = m.z(output_layer_index);
+        let y = m.y();
+        ops::hadamard(&(a - y), &f.df(z))
     }
 }
 
@@ -96,5 +107,22 @@ mod tests {
 
         // Assert
         assert_eq!(8.0, c)
+    }
+
+    #[test]
+    fn test_quadratic_cost_output_layer() {
+        // Arrange
+//        fn output_error(&self, output_layer_index: usize, m: &Minibatch, f: &Activation) -> Vector {
+
+        let cost = QuadraticCost;
+        let m = Minibatch::new(vec![1]);
+
+
+
+
+
+        // Act
+
+        // Assert
     }
 }

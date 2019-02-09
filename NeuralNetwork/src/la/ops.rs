@@ -18,7 +18,7 @@ pub fn ax(m: &Matrix, x: &Vector) -> Vector {
     ax
 }
 
-pub fn f<F: Fn(f64) -> f64>(v: Vector, f: F) -> Vector {
+pub fn f<F: Fn(f64) -> f64>(v: &Vector, f: &F) -> Vector {
     let result: Vector = v.iter().map(|&x| f(x)).collect::<Vec<_>>().into();
     result
 }
