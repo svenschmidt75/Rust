@@ -79,6 +79,7 @@ impl std::ops::Add for &Vector {
     type Output = Vector;
 
     fn add(self, rhs: &Vector) -> Self::Output {
+        assert_eq!(self.dim(), rhs.dim(), "Vectors must have same dimension");
         let output: Vec<_> = self
             .data
             .iter()
@@ -93,6 +94,7 @@ impl std::ops::Sub for &Vector {
     type Output = Vector;
 
     fn sub(self, rhs: &Vector) -> Self::Output {
+        assert_eq!(self.dim(), rhs.dim(), "Vectors must have same dimension");
         let output: Vec<_> = self
             .data
             .iter()

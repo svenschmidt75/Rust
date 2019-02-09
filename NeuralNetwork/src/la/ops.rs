@@ -24,6 +24,7 @@ pub fn f<F: Fn(f64) -> f64>(v: &Vector, f: &F) -> Vector {
 }
 
 pub fn hadamard(v1: &Vector, v2: &Vector) -> Vector {
+    assert_eq!(v1.dim(), v2.dim(), "Vectors must have same dimension");
     let output: Vec<_> = v1.iter().zip(v2.iter()).map(|(&x1, &x2)| x1 * x2).collect();
     output.into()
 }

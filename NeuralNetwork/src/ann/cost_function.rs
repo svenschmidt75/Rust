@@ -40,7 +40,9 @@ impl CostFunction for QuadraticCost {
     fn output_error(&self, output_layer_index: usize, m: &Minibatch, x: &TrainingData, f: &Activation) -> Vector {
         let a = m.a(output_layer_index);
         let z = m.z(output_layer_index);
+        assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");
         let y = &x.output_activations;
+        assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
         ops::hadamard(&(a - y), &f.df(z))
     }
 }
@@ -115,15 +117,23 @@ mod tests {
     fn test_quadratic_cost_output_layer() {
         // Arrange
         let cost = QuadraticCost;
+        let activation = &Sigmoid{};
         let mut mb = Minibatch::new(vec![2, 1]);
-        mb.store(0, Vector::from(vec![1.0, 2.0]), Vector::from(vec![1.0, 2.0]));
-        mb.store(1, Vector::from(vec![3.0]), Vector::from(vec![3.0]));
-        let x = TrainingData{ input_activations: Vector::from(vec![1.0, 2.0]), output_activations: Vector::from(vec![3.0]) };
+
+        let z1 = Vector::from(vec![1.0, 2.0]);
+        mb.store(0, activation.f(&z1), z1);
+
+        let z2 = Vector::from(vec![3.0]);
+        mb.store(1, activation.f(&z2), z2.clone());
+
+        let x = TrainingData{ input_activations: Vector::from(vec![1.0, 2.0]), output_activations: Vector::from(vec![1.0]) };
 
         // Act
-        let error = cost.output_error(0, &mb, &x,&Id{});
+        let error = cost.output_error(1, &mb, &x,&Sigmoid{});
 
         // Assert
-//        assert_approx_eq!(error[0], 1.0, 1e-3f64);
+        let d: Vector = mb.a(1) - &x.output_activations;
+        let df = &Sigmoid{}.df(&z2);
+        assert_approx_eq!(d[0] * df[0], error[0], 1e-3f64);
     }
 }
