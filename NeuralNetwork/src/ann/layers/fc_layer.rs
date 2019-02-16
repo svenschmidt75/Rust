@@ -3,15 +3,17 @@ use crate::ann::layers::layer::Layer;
 use crate::la::matrix::Matrix;
 use crate::la::ops;
 use crate::la::vector::Vector;
+use crate::ann::minibatch::Minibatch;
+use crate::la::matrix::Matrix2D;
 
 pub struct FCLayer {
-    weights: Matrix,
+    weights: Matrix2D,
     biases: Vector,
     activation: Box<dyn Activation>,
 }
 
 impl FCLayer {
-    pub fn new(weights: Matrix, biases: Vector, activation: Box<dyn Activation>) -> FCLayer {
+    pub fn new(weights: Matrix2D, biases: Vector, activation: Box<dyn Activation>) -> FCLayer {
         assert_eq!(weights.nrows(), biases.dim());
         FCLayer {
             weights,
@@ -25,6 +27,13 @@ impl FCLayer {
         // j: index of activation in layer l-1
         self.weights.get(i, j)
     }
+
+    fn backpropagate(&self, error: &Vector) -> Vector {
+        // error: delta l+1
+//        self.weights.transpose().ax(error)
+        ops::ax(&(*self.weights.transpose()), error)
+    }
+
 }
 
 impl Layer for FCLayer {
@@ -39,7 +48,7 @@ impl Layer for FCLayer {
         (a, z)
     }
 
-    fn na(&self) -> usize {
+    fn nactivations(&self) -> usize {
         self.biases.dim()
     }
 

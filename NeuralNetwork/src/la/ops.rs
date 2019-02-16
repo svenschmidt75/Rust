@@ -32,11 +32,12 @@ pub fn hadamard(v1: &Vector, v2: &Vector) -> Vector {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::la::matrix::Matrix2D;
 
     #[test]
     fn test_ax() {
         // Arrange
-        let mut m = Matrix::new_from_data(
+        let mut m = Matrix2D::new_from_data(
             2,
             4,
             vec![

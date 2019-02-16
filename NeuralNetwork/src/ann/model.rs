@@ -46,8 +46,8 @@ impl Model {
     }
 
     pub fn create_minibatch(&self) -> Minibatch {
-        let mut nas: Vec<_> = self.layers.iter().map(|layer| layer.na()).collect();
-        nas.insert(0, self.layers[0].na());
+        let mut nas: Vec<_> = self.layers.iter().map(|layer| layer.nactivations()).collect();
+        nas.insert(0, self.layers[0].nactivations());
         Minibatch::new(nas)
     }
 
@@ -81,17 +81,18 @@ mod tests {
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
     use crate::la::vector::Vector;
+    use crate::la::matrix::Matrix2D;
 
     #[test]
     fn test_feedforward() {
         // Arrange
         let mut model = Model::new();
-        let weights1 = Matrix::new_from_data(3, 2, vec![0.0, 0.01, 0.02, 0.10, 0.11, 0.12]);
+        let weights1 = Matrix2D::new_from_data(3, 2, vec![0.0, 0.01, 0.02, 0.10, 0.11, 0.12]);
         let biases1: Vector = vec![0.1, 0.2, 0.3].into();
         let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let weights2 = Matrix::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
+        let weights2 = Matrix2D::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
         let biases2: Vector = vec![0.1].into();
         let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(ReLU {}));
         model.add(Box::new(output_layer));

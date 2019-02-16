@@ -5,5 +5,5 @@ pub trait Layer {
     //    fn on_start_new_epoch();
     fn feedforward(&self, a: &Vector) -> (Vector, Vector);
 
-    fn na(&self) -> usize;
+    fn nactivations(&self) -> usize;
 }
