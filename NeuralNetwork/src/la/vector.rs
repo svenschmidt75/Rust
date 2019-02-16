@@ -3,6 +3,8 @@ use std::ops::IndexMut;
 
 use assert_approx_eq::assert_approx_eq;
 
+use crate::la::ops;
+
 #[derive(Clone, Debug)]
 pub struct Vector {
     data: Vec<f64>,
@@ -26,6 +28,10 @@ impl Vector {
     pub fn norm(&self) -> f64 {
         let output: f64 = self.data.iter().map(|&x| x * x).sum();
         output.sqrt()
+    }
+
+    pub fn hadamard(&self, v: &Vector) -> Vector {
+        ops::hadamard(self, v)
     }
 }
 
@@ -235,4 +241,22 @@ mod tests {
         // Assert
         assert_eq!(30f64.sqrt(), result)
     }
+
+    #[test]
+    fn test_hadamard() {
+        // Arrange
+        let vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+        let vec2: Vector = vec![1.1, 2.2, 3.3, 4.4].into();
+
+        // Act
+        let result = vec1.hadamard(&vec2);
+
+        // Assert
+        assert_eq!(4, result.dim());
+        assert_eq!(1.0 * 1.1, result[0]);
+        assert_eq!(2.0 * 2.2, result[1]);
+        assert_eq!(3.0 * 3.3, result[2]);
+        assert_eq!(4.0 * 4.4, result[3]);
+    }
+
 }

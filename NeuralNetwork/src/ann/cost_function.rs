@@ -43,7 +43,12 @@ impl CostFunction for QuadraticCost {
         assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");
         let y = &x.output_activations;
         assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
-        ops::hadamard(&(a - y), &f.df(z))
+
+        // delta_L = grad_a C x sigma_prime of z_L, x = Hadamard
+        // Formula BP1a, http://neuralnetworksanddeeplearning.com/chap2.html
+        // grad_a C = a_L - y
+        // sigma_prime of z_L = f.df(z)
+        (a - y).hadamard(&f.df(z))
     }
 }
 

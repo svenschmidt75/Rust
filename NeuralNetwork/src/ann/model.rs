@@ -62,6 +62,10 @@ impl Model {
         }
     }
 
+    pub fn backprop(&mut self, mb: &mut Minibatch) {
+
+    }
+
     pub fn summary(&self) {
         // print out number of layers, number of parameters, etc.
     }
