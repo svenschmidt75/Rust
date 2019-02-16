@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn test_ax() {
         // Arrange
-        let mut m = Matrix2D::new_from_data(
+        let m = Matrix2D::new_from_data(
             2,
             4,
             vec![

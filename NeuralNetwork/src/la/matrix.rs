@@ -8,12 +8,12 @@ pub trait Matrix {
 }
 
 pub struct Transpose<'a> {
-    matrix: &'a Matrix2D
+    matrix: &'a Matrix
 }
 
 impl<'a> Transpose<'a> {
 
-    pub fn new(matrix: &Matrix2D) -> Transpose {
+    pub fn new(matrix: &Matrix) -> Transpose {
         Transpose { matrix }
     }
 
@@ -22,15 +22,15 @@ impl<'a> Transpose<'a> {
 impl<'a> Matrix for Transpose<'a> {
 
     fn transpose<'b>(&'b self) -> Box<dyn Matrix + 'b> {
-        Box::new(Transpose::new(self.matrix))
+        Box::new(Transpose::new(self))
     }
 
     fn ncols(&self) -> usize {
-        self.matrix.nrows
+        self.matrix.nrows()
     }
 
     fn nrows(&self) -> usize {
-        self.matrix.ncols
+        self.matrix.ncols()
     }
 
     fn get(&self, row: usize, col: usize) -> f64 {
@@ -146,6 +146,36 @@ mod tests {
         assert_approx_eq!(5.0, tr.get(1, 1), 1e-3f64);
         assert_approx_eq!(3.0, tr.get(2, 0), 1e-3f64);
         assert_approx_eq!(6.0, tr.get(2, 1), 1e-3f64);
+    }
+
+    #[test]
+    fn test_two_transpose() {
+        // Arrange
+        let mut m = Matrix2D::new(2, 3);
+
+        // Act
+        // 1.0 | 2.0 | 3.0
+        // 4.0 | 5.0 | 6.0
+        *m.set(0, 0) = 1.0;
+        *m.set(0, 1) = 2.0;
+        *m.set(0, 2) = 3.0;
+        *m.set(1, 0) = 4.0;
+        *m.set(1, 1) = 5.0;
+        *m.set(1, 2) = 6.0;
+
+        // Act
+        let tr = m.transpose();
+        let tr2 = tr.transpose();
+
+        // Assert
+        assert_eq!(2, tr2.nrows());
+        assert_eq!(3, tr2.ncols());
+        assert_approx_eq!(1.0, tr2.get(0, 0), 1e-3f64);
+        assert_approx_eq!(2.0, tr2.get(0, 1), 1e-3f64);
+        assert_approx_eq!(3.0, tr2.get(0, 2), 1e-3f64);
+        assert_approx_eq!(4.0, tr2.get(1, 0), 1e-3f64);
+        assert_approx_eq!(5.0, tr2.get(1, 1), 1e-3f64);
+        assert_approx_eq!(6.0, tr2.get(1, 2), 1e-3f64);
     }
 
     #[test]
