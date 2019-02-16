@@ -1,9 +1,10 @@
+use assert_approx_eq::assert_approx_eq;
+
 pub trait Matrix {
     fn transpose<'a>(&'a self) -> Box<dyn Matrix + 'a>;
     fn ncols(&self) -> usize;
     fn nrows(&self) -> usize;
     fn get(&self, row: usize, col: usize) -> f64;
-    fn set(&mut self, row: usize, col: usize) -> &mut f64;
 }
 
 pub struct Transpose<'a> {
@@ -25,20 +26,17 @@ impl<'a> Matrix for Transpose<'a> {
     }
 
     fn ncols(&self) -> usize {
-        unimplemented!()
+        self.matrix.nrows
     }
 
     fn nrows(&self) -> usize {
-        unimplemented!()
+        self.matrix.ncols
     }
 
     fn get(&self, row: usize, col: usize) -> f64 {
-        unimplemented!()
+        self.matrix.get(col, row)
     }
 
-    fn set(&mut self, row: usize, col: usize) -> &mut f64 {
-        unimplemented!()
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -76,14 +74,6 @@ impl Matrix2D {
         linear_index
     }
 
-}
-
-impl<'a> Matrix for Matrix2D {
-
-    fn transpose(&self) -> Box<dyn Matrix> {
-        unimplemented!()
-    }
-
     fn ncols(&self) -> usize {
         self.ncols
     }
@@ -104,10 +94,59 @@ impl<'a> Matrix for Matrix2D {
 
 }
 
+impl<'a> Matrix for Matrix2D {
+
+    fn transpose<'b>(&'b self) -> Box<dyn Matrix + 'b> {
+        Box::new(Transpose::new(self))
+    }
+
+    fn ncols(&self) -> usize {
+        self.ncols
+    }
+
+    fn nrows(&self) -> usize {
+        self.nrows
+    }
+
+    fn get(&self, row: usize, col: usize) -> f64 {
+        (self as &Matrix2D).get(row, col)
+    }
+
+}
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_transpose() {
+        // Arrange
+        let mut m = Matrix2D::new(2, 3);
+
+        // Act
+        // 1.0 | 2.0 | 3.0
+        // 4.0 | 5.0 | 6.0
+        *m.set(0, 0) = 1.0;
+        *m.set(0, 1) = 2.0;
+        *m.set(0, 2) = 3.0;
+        *m.set(1, 0) = 4.0;
+        *m.set(1, 1) = 5.0;
+        *m.set(1, 2) = 6.0;
+
+        // Act
+        let tr = m.transpose();
+
+        // Assert
+        assert_eq!(3, tr.nrows());
+        assert_eq!(2, tr.ncols());
+        assert_approx_eq!(1.0, tr.get(0, 0), 1e-3f64);
+        assert_approx_eq!(4.0, tr.get(0, 1), 1e-3f64);
+        assert_approx_eq!(2.0, tr.get(1, 0), 1e-3f64);
+        assert_approx_eq!(5.0, tr.get(1, 1), 1e-3f64);
+        assert_approx_eq!(3.0, tr.get(2, 0), 1e-3f64);
+        assert_approx_eq!(6.0, tr.get(2, 1), 1e-3f64);
+    }
 
     #[test]
     fn test_nrows() {

@@ -258,5 +258,4 @@ mod tests {
         assert_eq!(3.0 * 3.3, result[2]);
         assert_eq!(4.0 * 4.4, result[3]);
     }
-
 }
