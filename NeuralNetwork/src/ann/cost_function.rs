@@ -11,7 +11,7 @@ use crate::la::vector::Vector;
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &Vec<TrainingData>) -> f64;
 
-    fn output_error(&self, output_layer_index: usize, m: &Minibatch, x: &TrainingData, f: &Activation) -> Vector;
+    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector;
 }
 
 struct QuadraticCost;
@@ -37,11 +37,10 @@ impl CostFunction for QuadraticCost {
         total_cost / 2.0 / y.len() as f64
     }
 
-    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, x: &TrainingData, f: &Activation) -> Vector {
+    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector {
         let a = &mb.a[output_layer_index];
         let z = &mb.z[output_layer_index];
         assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");
-        let y = &x.output_activations;
         assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
 
         // delta_L = grad_a C x sigma_prime of z_L, x = Hadamard
@@ -137,7 +136,7 @@ mod tests {
         let x = TrainingData{ input_activations: Vector::from(vec![1.0, 2.0]), output_activations: Vector::from(vec![1.0]) };
 
         // Act
-        let error = cost.output_error(1, &mb, &x,&Sigmoid{});
+        let error = cost.output_error(1, &mb, &x.output_activations,&Sigmoid{});
 
         // Assert
         let d: Vector = &mb.a[1] - &x.output_activations;

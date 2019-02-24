@@ -3,6 +3,8 @@ use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
 use crate::la::ops;
+use crate::la::vector::Vector;
+use crate::ann::activation::Activation;
 
 pub struct Model {
     layers: Vec<Box<dyn Layer>>,
@@ -31,7 +33,7 @@ impl Model {
         validation_data: &Vec<TrainingData>,
         epochs: usize,
         minibatch_size: usize,
-        cost_function: Box<dyn CostFunction>,
+        cost_function: &CostFunction,
     ) {
         // call initialize on each layer
 
@@ -64,9 +66,11 @@ impl Model {
         }
     }
 
-    pub fn backprop(&mut self, mb: &mut Minibatch) {
-
-
+    pub fn backprop(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector, sigma: &Activation) {
+        // SS: put this separate
+        let output_layer_index = self.layers.len();
+        let output_error = cost_function.output_error(output_layer_index, mb, y, sigma);
+        mb.error[output_layer_index] = output_error;
 
         for layer_index in (self.layers.len() - 2)..1 {
             let layer = &self.layers[layer_index];
