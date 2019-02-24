@@ -37,6 +37,7 @@ impl FCLayer {
 }
 
 impl Layer for FCLayer {
+
     fn feedforward(&self, input: &Vector) -> (Vector, Vector) {
         // SS: number of activations in this layer: self.weights.nrows()
         let output = ops::ax(&self.weights, input);
@@ -50,6 +51,14 @@ impl Layer for FCLayer {
 
     fn nactivations(&self) -> usize {
         self.biases.dim()
+    }
+
+    fn get_weights(&self) -> &Matrix {
+        &self.weights
+    }
+
+    fn get_activation(&self) -> &Activation {
+        &*self.activation
     }
 
 }

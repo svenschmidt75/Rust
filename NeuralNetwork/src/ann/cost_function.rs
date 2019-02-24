@@ -29,7 +29,7 @@ impl CostFunction for QuadraticCost {
         // SS: can use map and sum here...
         for x in y {
             let mut mb = model.create_minibatch();
-            mb.set_input_a(x.input_activations.clone());
+            mb.a[0] = x.input_activations.clone();
             model.feedforward(&mut mb);
             let c = cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
@@ -37,9 +37,9 @@ impl CostFunction for QuadraticCost {
         total_cost / 2.0 / y.len() as f64
     }
 
-    fn output_error(&self, output_layer_index: usize, m: &Minibatch, x: &TrainingData, f: &Activation) -> Vector {
-        let a = m.a(output_layer_index);
-        let z = m.z(output_layer_index);
+    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, x: &TrainingData, f: &Activation) -> Vector {
+        let a = &mb.a[output_layer_index];
+        let z = &mb.z[output_layer_index];
         assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");
         let y = &x.output_activations;
         assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
@@ -127,10 +127,12 @@ mod tests {
         let mut mb = Minibatch::new(vec![2, 1]);
 
         let z1 = Vector::from(vec![1.0, 2.0]);
-        mb.store(0, activation.f(&z1), z1);
+        mb.a[0] = activation.f(&z1);
+        mb.z[0] = z1;
 
         let z2 = Vector::from(vec![3.0]);
-        mb.store(1, activation.f(&z2), z2.clone());
+        mb.a[1] = activation.f(&z2);
+        mb.z[1] = z2.clone();
 
         let x = TrainingData{ input_activations: Vector::from(vec![1.0, 2.0]), output_activations: Vector::from(vec![1.0]) };
 
@@ -138,7 +140,7 @@ mod tests {
         let error = cost.output_error(1, &mb, &x,&Sigmoid{});
 
         // Assert
-        let d: Vector = mb.a(1) - &x.output_activations;
+        let d: Vector = &mb.a[1] - &x.output_activations;
         let df = &Sigmoid{}.df(&z2);
         assert_approx_eq!(d[0] * df[0], error[0], 1e-3f64);
     }
