@@ -1,8 +1,10 @@
-use crate::ann::activation::Activation;
+use crate::ann::activation::{Activation, Id};
 use crate::ann::cost_function::CostFunction;
+use crate::ann::layers::fc_layer::FCLayer;
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
+use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
 
@@ -12,7 +14,7 @@ pub struct Model {
 
 impl Model {
     pub fn new() -> Model {
-        Model { layers: vec![] }
+        Model { layers: vec![Box::new(FCLayer::new(Matrix2D::new(0, 0), Vector::new(0), Box::new(Id {})))] }
     }
 
     pub fn add(&mut self, layer: Box<dyn Layer>) {
@@ -62,8 +64,9 @@ impl Model {
         // SS: feed forward one instance of a training data sample
         // and record all calculated activations for all layers
         // for backprop.
-        for layer_index in 0..(self.layers.len()) {
-            let layer = &self.layers[layer_index];
+        let output_layer_index = self.output_layer_index();
+        for layer_index in 0..output_layer_index {
+            let layer = &self.layers[layer_index + 1];
             let (a, z) = layer.feedforward(&mb.a[layer_index]);
             mb.a[layer_index + 1] = a;
             mb.z[layer_index + 1] = z;
@@ -81,13 +84,14 @@ impl Model {
         mb.error[output_layer_index] = output_error;
 
         // SS: backprop delta_{L}
-        for layer_index in (self.layers.len() - 2)..1 {
+        for i in 0..output_layer_index - 1 {
+            let layer_index = output_layer_index - i - 1;
             let delta_next = &mb.error[layer_index + 1];
             let z = &mb.z[layer_index];
-            let layer = &self.layers[layer_index];
-            let sigma = layer.get_activation();
+            let layer_next = &self.layers[layer_index + 1];
+            let sigma = layer_next.get_activation();
             let dsigma_z = sigma.df(z);
-            let w = layer.backpropagate(&delta_next);
+            let w = layer_next.backpropagate(&delta_next);
             let delta = w.hadamard(&dsigma_z);
             mb.error[layer_index] = delta;
         }
@@ -103,11 +107,11 @@ mod tests {
     use crate::ann::activation;
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
+    use crate::ann::cost_function::QuadraticCost;
     use crate::ann::layers::fc_layer::FCLayer;
     use crate::la::matrix::Matrix;
     use crate::la::matrix::Matrix2D;
     use crate::la::vector::Vector;
-    use crate::ann::cost_function::QuadraticCost;
 
     use super::*;
 
@@ -197,40 +201,39 @@ mod tests {
 
         // Assert
 
-/*
-        // a^{1}_{0}
-        let a10 = activation::sigmoid(
-            weights1.get(0, 0) * mb.a[0][0]
-                + weights1.get(0, 1) * mb.a[0][1]
-                + biases1[0],
-        );
-        assert_eq!(a10, mb.a[1][0]);
+        /*
+                // a^{1}_{0}
+                let a10 = activation::sigmoid(
+                    weights1.get(0, 0) * mb.a[0][0]
+                        + weights1.get(0, 1) * mb.a[0][1]
+                        + biases1[0],
+                );
+                assert_eq!(a10, mb.a[1][0]);
 
-        // a^{1}_{1}
-        let a11 = activation::sigmoid(
-            weights1.get(1, 0) * mb.a[0][0]
-                + weights1.get(1, 1) * mb.a[0][1]
-                + biases1[1],
-        );
-        assert_eq!(a11, mb.a[1][1]);
+                // a^{1}_{1}
+                let a11 = activation::sigmoid(
+                    weights1.get(1, 0) * mb.a[0][0]
+                        + weights1.get(1, 1) * mb.a[0][1]
+                        + biases1[1],
+                );
+                assert_eq!(a11, mb.a[1][1]);
 
-        // a^{1}_{2}
-        let a12 = activation::sigmoid(
-            weights1.get(2, 0) * mb.a[0][0]
-                + weights1.get(2, 1) * mb.a[0][1]
-                + biases1[2],
-        );
-        assert_eq!(a12, mb.a[1][2]);
+                // a^{1}_{2}
+                let a12 = activation::sigmoid(
+                    weights1.get(2, 0) * mb.a[0][0]
+                        + weights1.get(2, 1) * mb.a[0][1]
+                        + biases1[2],
+                );
+                assert_eq!(a12, mb.a[1][2]);
 
-        // a^{2}_{0}
-        let a20 = activation::relu(
-            weights2.get(0, 0) * mb.a[1][0]
-                + weights2.get(0, 1) * mb.a[1][1]
-                + weights2.get(0, 2) * mb.a[1][2]
-                + biases2[0],
-        );
-        assert_eq!(a20, mb.a[2][0]);
-*/
-
+                // a^{2}_{0}
+                let a20 = activation::relu(
+                    weights2.get(0, 0) * mb.a[1][0]
+                        + weights2.get(0, 1) * mb.a[1][1]
+                        + weights2.get(0, 2) * mb.a[1][2]
+                        + biases2[0],
+                );
+                assert_eq!(a20, mb.a[2][0]);
+        */
     }
 }
