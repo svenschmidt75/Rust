@@ -1,10 +1,14 @@
 use assert_approx_eq::assert_approx_eq;
 
+use crate::la::ops;
+use crate::la::vector::Vector;
+
 pub trait Matrix {
     fn transpose<'a>(&'a self) -> Box<dyn Matrix + 'a>;
     fn ncols(&self) -> usize;
     fn nrows(&self) -> usize;
     fn get(&self, row: usize, col: usize) -> f64;
+    fn ax(&self, x: &Vector) -> Vector;
 }
 
 pub struct Transpose<'a> {
@@ -12,15 +16,12 @@ pub struct Transpose<'a> {
 }
 
 impl<'a> Transpose<'a> {
-
     pub fn new(matrix: &Matrix) -> Transpose {
         Transpose { matrix }
     }
-
 }
 
 impl<'a> Matrix for Transpose<'a> {
-
     fn transpose<'b>(&'b self) -> Box<dyn Matrix + 'b> {
         Box::new(Transpose::new(self))
     }
@@ -37,6 +38,9 @@ impl<'a> Matrix for Transpose<'a> {
         self.matrix.get(col, row)
     }
 
+    fn ax(&self, x: &Vector) -> Vector {
+        ops::ax(self, x)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -91,11 +95,9 @@ impl Matrix2D {
         let linear_index = self.linear_index(row, col);
         &mut self.data[linear_index]
     }
-
 }
 
 impl<'a> Matrix for Matrix2D {
-
     fn transpose<'b>(&'b self) -> Box<dyn Matrix + 'b> {
         Box::new(Transpose::new(self))
     }
@@ -112,6 +114,9 @@ impl<'a> Matrix for Matrix2D {
         (self as &Matrix2D).get(row, col)
     }
 
+    fn ax(&self, x: &Vector) -> Vector {
+        ops::ax(self, x)
+    }
 }
 
 
@@ -221,5 +226,4 @@ mod tests {
         assert_eq!(3.0, m.get(0, 2));
         assert_eq!(5.0, m.get(1, 1))
     }
-
 }

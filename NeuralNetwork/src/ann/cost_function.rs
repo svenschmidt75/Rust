@@ -14,7 +14,7 @@ pub trait CostFunction {
     fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector;
 }
 
-struct QuadraticCost;
+pub struct QuadraticCost;
 
 fn cost(a: &Vector, y: &Vector) -> f64 {
     let diff = y - a;

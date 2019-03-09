@@ -1,10 +1,9 @@
 use crate::ann::activation::Activation;
 use crate::ann::layers::layer::Layer;
 use crate::la::matrix::Matrix;
+use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
-use crate::ann::minibatch::Minibatch;
-use crate::la::matrix::Matrix2D;
 
 pub struct FCLayer {
     weights: Matrix2D,
@@ -27,17 +26,9 @@ impl FCLayer {
         // j: index of activation in layer l-1
         self.weights.get(i, j)
     }
-
-    fn backpropagate(&self, error: &Vector) -> Vector {
-        // error: delta l+1
-//        self.weights.transpose().ax(error)
-        ops::ax(&(*self.weights.transpose()), error)
-    }
-
 }
 
 impl Layer for FCLayer {
-
     fn feedforward(&self, input: &Vector) -> (Vector, Vector) {
         // SS: number of activations in this layer: self.weights.nrows()
         let output = ops::ax(&self.weights, input);
@@ -47,6 +38,13 @@ impl Layer for FCLayer {
         let z = &output + &self.biases;
         let a = self.activation.f(&z);
         (a, z)
+    }
+
+    fn backpropagate(&self, error: &Vector) -> Vector {
+        // error: delta_{l+1}
+        // http://neuralnetworksanddeeplearning.com/chap2.html, (BP2)
+        // SS: calculate delta_{l}, but without the sigma^{'} part
+        self.weights.transpose().ax(error)
     }
 
     fn nactivations(&self) -> usize {
@@ -60,7 +58,6 @@ impl Layer for FCLayer {
     fn get_activation(&self) -> &Activation {
         &*self.activation
     }
-
 }
 
 #[cfg(test)]

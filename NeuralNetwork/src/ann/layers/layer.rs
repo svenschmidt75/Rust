@@ -7,6 +7,8 @@ pub trait Layer {
     //    fn on_start_new_epoch();
     fn feedforward(&self, a: &Vector) -> (Vector, Vector);
 
+    fn backpropagate(&self, error: &Vector) -> Vector;
+
     fn nactivations(&self) -> usize;
 
     fn get_weights(&self) -> &Matrix;
