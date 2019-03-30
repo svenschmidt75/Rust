@@ -40,13 +40,6 @@ impl Layer for FCLayer {
         (a, z)
     }
 
-    fn backpropagate(&self, error: &Vector) -> Vector {
-        // error: delta_{l+1}
-        // http://neuralnetworksanddeeplearning.com/chap2.html, (BP2)
-        // SS: calculate delta_{l}, but without the sigma^{'} part
-        self.weights.transpose().ax(error)
-    }
-
     fn nactivations(&self) -> usize {
         self.biases.dim()
     }

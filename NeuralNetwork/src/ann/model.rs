@@ -73,27 +73,31 @@ impl Model {
         }
     }
 
-    pub fn backprop(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector, sigma: &Activation) {
-
-        // TODO SS: do not pass in activation, model knows it
-
-
+    pub fn calculate_outputlayer_error(&self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
         // SS: calculate delta_{L}, the error in the output layer
         let output_layer_index = self.output_layer_index();
+        let layer = &self.layers[output_layer_index];
+        let sigma = layer.get_activation();
         let output_error = cost_function.output_error(output_layer_index, mb, y, sigma);
         mb.error[output_layer_index] = output_error;
+    }
 
+    pub fn backprop(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
         // SS: backprop delta_{L}
+        // start at index l=L-1
+        self.calculate_outputlayer_error(mb, cost_function, &y);
+        let output_layer_index = self.output_layer_index();
         for i in 0..output_layer_index - 1 {
             let layer_index = output_layer_index - i - 1;
-            let delta_next = &mb.error[layer_index + 1];
-            let z = &mb.z[layer_index];
+            let layer = &self.layers[layer_index];
             let layer_next = &self.layers[layer_index + 1];
-            let sigma = layer_next.get_activation();
-            let dsigma_z = sigma.df(z);
-            let w = layer_next.backpropagate(&delta_next);
-            let delta = w.hadamard(&dsigma_z);
-            mb.error[layer_index] = delta;
+
+            let delta_next = &mb.error[layer_index + 1];
+            let w_next = layer_next.get_weights().transpose();
+            let z = &mb.z[layer_index];
+            let sigma_prime = layer.get_activation().df(z);
+            let delta_l = w_next.ax(delta_next).hadamard(&sigma_prime);
+            mb.error[layer_index] = delta_l;
         }
     }
 
@@ -195,9 +199,7 @@ mod tests {
 
         // expected output
         let y = Vector::from(vec![0.0]);
-
-//        pub fn backprop(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector, sigma: &Activation) {
-        model.backprop(&mut mb, &QuadraticCost {}, &y, &Sigmoid {});
+        model.backprop(&mut mb, &QuadraticCost {}, &y);
 
         // Assert
 
