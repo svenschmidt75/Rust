@@ -1,4 +1,6 @@
-use crate::la::matrix::Matrix;
+use assert_approx_eq::assert_approx_eq;
+
+use crate::la::matrix::{Matrix, Matrix2D};
 use crate::la::vector::Vector;
 
 pub fn ax(m: &Matrix, x: &Vector) -> Vector {
@@ -29,10 +31,25 @@ pub fn hadamard(v1: &Vector, v2: &Vector) -> Vector {
     output.into()
 }
 
+pub fn outer_product(v1: &Vector, v2: &Vector) -> Matrix2D {
+    assert_eq!(v1.dim(), v2.dim(), "Vectors must have same dimension");
+    let mut m = Matrix2D::new(v1.dim(), v2.dim());
+    for row in 0..v1.dim() {
+        let r = v1[row];
+        for column in 0..v2.dim() {
+            let c = v2[column];
+            let tmp = r * c;
+            *m.set(row, column) = tmp;
+        }
+    }
+    m
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::la::matrix::Matrix2D;
+
+    use super::*;
 
     #[test]
     fn test_ax() {
@@ -85,4 +102,20 @@ mod tests {
         assert_eq!(4.0 * 5.0, result[3]);
     }
 
+    #[test]
+    fn test_outer_product() {
+        // Arrange
+        let v1: Vector = vec![6.0, -1.0, 3.0, -3.0, -3.0].into();
+        let v2: Vector = vec![7.0, 3.0, -4.0, 5.0, 3.0].into();
+
+        // Act
+        let result = outer_product(&v1, &v2);
+
+        // Assert
+        assert_eq!(v1.dim(), result.nrows());
+        assert_eq!(v2.dim(), result.ncols());
+        assert_approx_eq!(42.0, result.get(0, 0), 1E-5f64);
+        assert_approx_eq!(-5.0, result.get(1, 3), 1E-5f64);
+        assert_approx_eq!(-9.0, result.get(4, 4), 1E-5f64);
+    }
 }

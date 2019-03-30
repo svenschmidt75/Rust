@@ -84,12 +84,7 @@ impl Model {
         }
     }
 
-    pub fn calculate_outputlayer_error(
-        &self,
-        mb: &mut Minibatch,
-        cost_function: &CostFunction,
-        y: &Vector,
-    ) {
+    pub fn calculate_outputlayer_error(&self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
         // SS: calculate delta_{L}, the error in the output layer
         let output_layer_index = self.output_layer_index();
         let layer = &self.layers[output_layer_index];
@@ -115,6 +110,50 @@ impl Model {
             let delta_l = w_next.ax(delta_next).hadamard(&sigma_prime);
             mb.error[layer_index] = delta_l;
         }
+    }
+
+    pub fn calculate_derivatives(&self, mbs: &[&Minibatch]) {
+        // TODO SS: Can the calculation of the derivatives be done in parallel,
+        // followed by a reduction step to sum them up?
+
+        let output_layer_index = self.output_layer_index();
+        for i in 0..output_layer_index - 1 {
+            let layer_index = output_layer_index - i - 1;
+
+            let nactivations = self.layers[layer_index].nactivations();
+            let nactivations_prev = self.layers[layer_index - 1].nactivations();
+
+            let dCdw = Matrix2D::new(nactivations, nactivations_prev);
+            let dCdb = Vector::new(nactivations);
+
+            for mb_index in 0..mbs.len() {
+                let mb = mbs[mb_index];
+                let delta_i = &mb.error[layer_index];
+                let a_j = &mb.a[layer_index - 1];
+
+                let dw_ij = ops::outer_product(delta_i, a_j);
+                let db_i = delta_i;
+
+
+                // TODO SS: implement matrix: std::ops::AddAssign
+                dCdw += dw_ij;
+                dCdb += db_i;
+            }
+
+            // scale
+
+            // assign to big arrays
+
+        }
+
+
+
+
+
+
+
+
+
     }
 
     pub fn summary(&self) {

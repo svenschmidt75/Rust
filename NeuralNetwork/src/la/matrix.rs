@@ -78,20 +78,20 @@ impl Matrix2D {
         linear_index
     }
 
-    fn ncols(&self) -> usize {
+    pub fn ncols(&self) -> usize {
         self.ncols
     }
 
-    fn nrows(&self) -> usize {
+    pub fn nrows(&self) -> usize {
         self.nrows
     }
 
-    fn get(&self, row: usize, col: usize) -> f64 {
+    pub fn get(&self, row: usize, col: usize) -> f64 {
         let linear_index = self.linear_index(row, col);
         self.data[linear_index]
     }
 
-    fn set(&mut self, row: usize, col: usize) -> &mut f64 {
+    pub fn set(&mut self, row: usize, col: usize) -> &mut f64 {
         let linear_index = self.linear_index(row, col);
         &mut self.data[linear_index]
     }
