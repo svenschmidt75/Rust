@@ -1,3 +1,6 @@
+use rand::{Rng, thread_rng};
+use rand::seq::SliceRandom;
+
 use crate::ann::activation::{Activation, Id};
 use crate::ann::cost_function::CostFunction;
 use crate::ann::layers::fc_layer::FCLayer;
@@ -35,18 +38,20 @@ impl Model {
         self.layers.len() - 1
     }
 
+    fn number_of_minibatches(training_data_size: usize, minibatch_size: usize) -> usize {
+        let n_minibatches = training_data_size / minibatch_size;
+        if training_data_size % minibatch_size != 0 {
+            n_minibatches + 1
+        } else {
+            n_minibatches
+        }
+    }
+
     // pass in training and validation data
     // number of epochs
     // size of minibatch
     // no regularization for now
-    pub fn train(
-        &mut self,
-        training_data: &Vec<TrainingData>,
-        validation_data: &Vec<TrainingData>,
-        epochs: usize,
-        minibatch_size: usize,
-        cost_function: &CostFunction,
-    ) {
+    pub fn train(&mut self, data: &(&Vec<TrainingData>, &Vec<TrainingData>, &Vec<TrainingData>), epochs: usize, lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
         // call initialize on each layer
 
         // for each epoch
@@ -58,10 +63,44 @@ impl Model {
         //   backprop
         //   update parameters
         // print statistics
+
+
+        // print update step after each epoch
+
+        let training_data = data.0;
+        let mut trainingdata_indices: Vec<_> = (0..training_data.len()).collect();
+        let mut rng = thread_rng();
+
+        let mut mbs = (0..minibatch_size).map(|_| self.create_minibatch()).collect::<Vec<_>>();
+
+        let n_minibatches = Model::number_of_minibatches(trainingdata_indices.len(), minibatch_size);
+
+        for epoch in 0..epochs {
+            // random shuffle on training data
+            trainingdata_indices.shuffle(&mut rng);
+
+            // split the training data into as many chunks as we have minibatches
+            let chunks = trainingdata_indices.chunks_mut(n_minibatches);
+
+            for chunk in chunks {
+                for minibatch_index in 0..minibatch_size {
+                    let mb = &mut mbs[minibatch_index];
+                    let training_sample = &training_data[chunk[minibatch_index]];
+                    let known_classification= &training_sample.output_activations;
+                    mb.a[0] = training_sample.input_activations.clone();
+                    self.feedforward(mb);
+                    self.backprop(mb, cost_function, known_classification);
+                }
+                let (dws, dbs) = self.calculate_derivatives(&mbs[..]);
+                self.update_network(dws, dbs);
+            }
+
+            // SS: epoch completed, print statistics
+        }
     }
 
     pub fn create_minibatch(&self) -> Minibatch {
-        let mut nas: Vec<_> = self
+        let nas: Vec<_> = self
             .layers
             .iter()
             .map(|layer| layer.nactivations())
@@ -115,7 +154,7 @@ impl Model {
         }
     }
 
-    pub fn calculate_derivatives(&self, mbs: &[&Minibatch]) -> (Vec<Matrix2D>, Vec<Vector>) {
+    pub fn calculate_derivatives(&self, mbs: &[Minibatch]) -> (Vec<Matrix2D>, Vec<Vector>) {
         // TODO SS: Can the calculation of the derivatives be done in parallel,
         // followed by a reduction step to sum them up?
 
@@ -133,7 +172,7 @@ impl Model {
             let mut dCdb = Vector::new(nactivations);
 
             for mb_index in 0..mbs.len() {
-                let mb = mbs[mb_index];
+                let mb = &mbs[mb_index];
                 let delta_i = &mb.error[layer_index];
                 let a_j = &mb.a[layer_index - 1];
 
@@ -149,6 +188,10 @@ impl Model {
             dbs.push(dCdb);
         }
         (dws, dbs)
+    }
+
+    fn update_network(&mut self, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {
+
     }
 
     pub fn summary(&self) {
@@ -262,5 +305,4 @@ mod tests {
 
         // Assert
     }
-
 }
