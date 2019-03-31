@@ -144,7 +144,9 @@ impl Model {
                 dCdb += &db_i;
             }
             dCdw /= mbs.len();
+            dws.push(dCdw);
             dCdb /= mbs.len();
+            dbs.push(dCdb);
         }
         (dws, dbs)
     }
@@ -251,4 +253,14 @@ mod tests {
         assert_approx_eq!(0.3231058578630005, mb.z[1][0], 1e-5f64);
         assert_approx_eq!(0.3231058578630005, mb.z[1][1], 1e-5f64);
     }
+
+    #[test]
+    fn test_calculate_derivatives() {
+        // Arrange
+
+        // Act
+
+        // Assert
+    }
+
 }
