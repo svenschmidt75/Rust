@@ -1,5 +1,3 @@
-use std::ops::AddAssign;
-
 use crate::la::ops;
 use crate::la::vector::Vector;
 
@@ -112,7 +110,7 @@ impl<'a> Matrix for Matrix2D {
     }
 }
 
-impl AddAssign<&Matrix2D> for Matrix2D {
+impl std::ops::AddAssign<&Matrix2D> for Matrix2D {
     fn add_assign(&mut self, other: &Self) {
         assert_eq!(self.nrows(), other.nrows(), "Matrices must have same number of rows");
         assert_eq!(self.ncols(), other.ncols(), "Matrices must have same number of columns");
@@ -121,6 +119,13 @@ impl AddAssign<&Matrix2D> for Matrix2D {
             let v2 = other.data[idx];
             self.data[idx] = v1 + v2;
         }
+    }
+}
+
+impl std::ops::DivAssign<usize> for Matrix2D {
+    fn div_assign(&mut self, rhs: usize) {
+        // SS: collect to force evaluation as lazy...
+        self.data.iter_mut().for_each(|v| *v /= rhs as f64);
     }
 }
 
@@ -250,6 +255,21 @@ mod tests {
         assert_approx_eq!(7.0, m1.get(2, 2));
     }
 
+    #[test]
+    fn test_divassign() {
+        // Arrange
+        let mut m1 = Matrix2D::new_from_data(3, 3, vec![1.0, 5.0, -1.0, 11.0, 3.0, 4.0, 1.0, -1.0, 3.0]);
+        let scalar = 15.0;
 
+        // Act
+        m1 /= scalar as usize;
+
+        // Assert
+        assert_approx_eq!(1.0 / scalar, m1.get(0, 0));
+        assert_approx_eq!(4.0 / scalar, m1.get(1, 2));
+        assert_approx_eq!(1.0 / scalar, m1.get(2, 0));
+        assert_approx_eq!(-1.0 / scalar, m1.get(2, 1));
+        assert_approx_eq!(3.0 / scalar, m1.get(2, 2));
+    }
 
 }

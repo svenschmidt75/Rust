@@ -106,6 +106,14 @@ impl std::ops::Div<f64> for &Vector {
     }
 }
 
+
+impl std::ops::DivAssign<usize> for Vector {
+    fn div_assign(&mut self, rhs: usize) {
+        // SS: collect to force evaluation as lazy...
+        self.data.iter_mut().for_each(|v| *v /= rhs as f64);
+    }
+}
+
 impl std::ops::AddAssign<&Vector> for Vector {
     fn add_assign(&mut self, other: &Self) {
         assert_eq!(self.dim(), other.dim(), "Vectors must have same number of elements");
@@ -242,6 +250,22 @@ mod tests {
     }
 
     #[test]
+    fn test_vector_divassign() {
+        // Arrange
+        let mut vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+        let scalar = 15.0;
+
+        // Act
+        vec1 /= scalar as usize;
+
+        // Assert
+        assert_approx_eq!(1.0 / scalar, vec1[0]);
+        assert_approx_eq!(2.0 / scalar, vec1[1]);
+        assert_approx_eq!(3.0 / scalar, vec1[2]);
+        assert_approx_eq!(4.0 / scalar, vec1[3]);
+    }
+
+    #[test]
     fn test_vector_norm() {
         // Arrange
         let vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
@@ -269,4 +293,5 @@ mod tests {
         assert_eq!(3.0 * 3.3, result[2]);
         assert_eq!(4.0 * 4.4, result[3]);
     }
+
 }

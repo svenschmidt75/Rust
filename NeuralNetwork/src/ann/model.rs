@@ -115,9 +115,12 @@ impl Model {
         }
     }
 
-    pub fn calculate_derivatives(&self, mbs: &[&Minibatch]) {
+    pub fn calculate_derivatives(&self, mbs: &[&Minibatch]) -> (Vec<Matrix2D>, Vec<Vector>) {
         // TODO SS: Can the calculation of the derivatives be done in parallel,
         // followed by a reduction step to sum them up?
+
+        let mut dws = Vec::<Matrix2D>::with_capacity(mbs.len());
+        let mut dbs = Vec::<Vector>::with_capacity(mbs.len());
 
         let output_layer_index = self.output_layer_index();
         for i in 0..output_layer_index - 1 {
@@ -135,22 +138,15 @@ impl Model {
                 let a_j = &mb.a[layer_index - 1];
 
                 let dw_ij = ops::outer_product(delta_i, a_j);
-                let db_i = delta_i;
-
-                // TODO SS: implement matrix: std::ops::AddAssign
                 dCdw += &dw_ij;
 
-//                <Matrix2D as std::ops::AddAssign>::add_assign(&mut dCdw, &dw_ij);
-
-
-
+                let db_i = delta_i;
                 dCdb += &db_i;
             }
-
-            // scale
-
-            // assign to big arrays
+            dCdw /= mbs.len();
+            dCdb /= mbs.len();
         }
+        (dws, dbs)
     }
 
     pub fn summary(&self) {
