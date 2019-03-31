@@ -106,11 +106,7 @@ pub struct SoftMax {}
 impl Activation for SoftMax {
     fn f(&self, v: &Vector) -> Vector {
         let denominator: f64 = v.iter().map(|x| x.exp()).sum();
-        let result: Vector = v
-            .iter()
-            .map(|x| x.exp() / denominator)
-            .collect::<Vec<_>>()
-            .into();
+        let result: Vector = v.iter().map(|x| x.exp() / denominator).collect::<Vec<_>>().into();
         result
     }
 

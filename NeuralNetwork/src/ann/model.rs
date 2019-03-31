@@ -1,5 +1,5 @@
-use rand::{Rng, thread_rng};
 use rand::seq::SliceRandom;
+use rand::{thread_rng, Rng};
 
 use crate::ann::activation::{Activation, Id};
 use crate::ann::cost_function::CostFunction;
@@ -18,11 +18,7 @@ pub struct Model {
 impl Model {
     pub fn new() -> Model {
         Model {
-            layers: vec![Box::new(FCLayer::new(
-                Matrix2D::new(0, 0),
-                Vector::new(0),
-                Box::new(Id {}),
-            ))],
+            layers: vec![Box::new(FCLayer::new(Matrix2D::new(0, 0), Vector::new(0), Box::new(Id {})))],
         }
     }
 
@@ -64,7 +60,6 @@ impl Model {
         //   update parameters
         // print statistics
 
-
         // print update step after each epoch
 
         let training_data = data.0;
@@ -86,7 +81,7 @@ impl Model {
                 for minibatch_index in 0..minibatch_size {
                     let mb = &mut mbs[minibatch_index];
                     let training_sample = &training_data[chunk[minibatch_index]];
-                    let known_classification= &training_sample.output_activations;
+                    let known_classification = &training_sample.output_activations;
                     mb.a[0] = training_sample.input_activations.clone();
                     self.feedforward(mb);
                     self.backprop(mb, cost_function, known_classification);
@@ -100,11 +95,7 @@ impl Model {
     }
 
     pub fn create_minibatch(&self) -> Minibatch {
-        let nas: Vec<_> = self
-            .layers
-            .iter()
-            .map(|layer| layer.nactivations())
-            .collect();
+        let nas: Vec<_> = self.layers.iter().map(|layer| layer.nactivations()).collect();
         Minibatch::new(nas)
     }
 
@@ -121,12 +112,7 @@ impl Model {
         }
     }
 
-    pub fn calculate_outputlayer_error(
-        &self,
-        mb: &mut Minibatch,
-        cost_function: &CostFunction,
-        y: &Vector,
-    ) {
+    pub fn calculate_outputlayer_error(&self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
         // SS: calculate delta_{L}, the error in the output layer
         let output_layer_index = self.output_layer_index();
         let layer = &self.layers[output_layer_index];
@@ -190,9 +176,7 @@ impl Model {
         (dws, dbs)
     }
 
-    fn update_network(&mut self, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {
-
-    }
+    fn update_network(&mut self, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {}
 
     pub fn summary(&self) {
         // print out number of layers, number of parameters, etc.
@@ -238,30 +222,19 @@ mod tests {
         // Assert
 
         // a^{1}_{0}
-        let a10 = activation::sigmoid(
-            weights1.get(0, 0) * mb.a[0][0] + weights1.get(0, 1) * mb.a[0][1] + biases1[0],
-        );
+        let a10 = activation::sigmoid(weights1.get(0, 0) * mb.a[0][0] + weights1.get(0, 1) * mb.a[0][1] + biases1[0]);
         assert_eq!(a10, mb.a[1][0]);
 
         // a^{1}_{1}
-        let a11 = activation::sigmoid(
-            weights1.get(1, 0) * mb.a[0][0] + weights1.get(1, 1) * mb.a[0][1] + biases1[1],
-        );
+        let a11 = activation::sigmoid(weights1.get(1, 0) * mb.a[0][0] + weights1.get(1, 1) * mb.a[0][1] + biases1[1]);
         assert_eq!(a11, mb.a[1][1]);
 
         // a^{1}_{2}
-        let a12 = activation::sigmoid(
-            weights1.get(2, 0) * mb.a[0][0] + weights1.get(2, 1) * mb.a[0][1] + biases1[2],
-        );
+        let a12 = activation::sigmoid(weights1.get(2, 0) * mb.a[0][0] + weights1.get(2, 1) * mb.a[0][1] + biases1[2]);
         assert_eq!(a12, mb.a[1][2]);
 
         // a^{2}_{0}
-        let a20 = activation::relu(
-            weights2.get(0, 0) * mb.a[1][0]
-                + weights2.get(0, 1) * mb.a[1][1]
-                + weights2.get(0, 2) * mb.a[1][2]
-                + biases2[0],
-        );
+        let a20 = activation::relu(weights2.get(0, 0) * mb.a[1][0] + weights2.get(0, 1) * mb.a[1][1] + weights2.get(0, 2) * mb.a[1][2] + biases2[0]);
         assert_eq!(a20, mb.a[2][0]);
     }
 

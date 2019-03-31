@@ -11,11 +11,7 @@ impl Minibatch {
         let acts: Vec<Vector> = nas.iter().map(|&na| Vector::new(na)).collect();
         let zs: Vec<Vector> = nas.iter().map(|&na| Vector::new(na)).collect();
         let errors: Vec<Vector> = nas.iter().map(|&na| Vector::new(na)).collect();
-        Minibatch {
-            a: acts,
-            z: zs,
-            error: errors,
-        }
+        Minibatch { a: acts, z: zs, error: errors }
     }
     //
     //    pub fn a(&self, layer_index: usize) -> &Vector {

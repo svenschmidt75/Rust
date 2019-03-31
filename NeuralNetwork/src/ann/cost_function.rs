@@ -9,13 +9,7 @@ use crate::la::vector::Vector;
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &Vec<TrainingData>) -> f64;
 
-    fn output_error(
-        &self,
-        output_layer_index: usize,
-        mb: &Minibatch,
-        y: &Vector,
-        f: &Activation,
-    ) -> Vector;
+    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector;
 }
 
 pub struct QuadraticCost;
@@ -41,13 +35,7 @@ impl CostFunction for QuadraticCost {
         total_cost / 2.0 / y.len() as f64
     }
 
-    fn output_error(
-        &self,
-        output_layer_index: usize,
-        mb: &Minibatch,
-        y: &Vector,
-        f: &Activation,
-    ) -> Vector {
+    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector {
         let a = &mb.a[output_layer_index];
         let z = &mb.z[output_layer_index];
         assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");

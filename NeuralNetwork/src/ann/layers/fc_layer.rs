@@ -14,11 +14,7 @@ pub struct FCLayer {
 impl FCLayer {
     pub fn new(weights: Matrix2D, biases: Vector, activation: Box<dyn Activation>) -> FCLayer {
         assert_eq!(weights.nrows(), biases.dim());
-        FCLayer {
-            weights,
-            biases,
-            activation,
-        }
+        FCLayer { weights, biases, activation }
     }
 
     fn get_weight(&self, i: usize, j: usize) -> f64 {
