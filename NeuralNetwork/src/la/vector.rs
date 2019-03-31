@@ -1,8 +1,6 @@
 use std::ops::Index;
 use std::ops::IndexMut;
 
-use assert_approx_eq::assert_approx_eq;
-
 use crate::la::ops;
 
 #[derive(Clone, Debug)]
@@ -12,9 +10,7 @@ pub struct Vector {
 
 impl Vector {
     pub fn new(size: usize) -> Vector {
-        Vector {
-            data: vec![0.0; size],
-        }
+        Vector { data: vec![0.0; size] }
     }
 
     pub fn dim(&self) -> usize {
@@ -86,12 +82,7 @@ impl std::ops::Add for &Vector {
 
     fn add(self, rhs: &Vector) -> Self::Output {
         assert_eq!(self.dim(), rhs.dim(), "Vectors must have same dimension");
-        let output: Vec<_> = self
-            .data
-            .iter()
-            .zip(rhs.data.iter())
-            .map(|(&x1, &x2)| x1 + x2)
-            .collect();
+        let output: Vec<_> = self.data.iter().zip(rhs.data.iter()).map(|(&x1, &x2)| x1 + x2).collect();
         output.into()
     }
 }
@@ -101,12 +92,7 @@ impl std::ops::Sub for &Vector {
 
     fn sub(self, rhs: &Vector) -> Self::Output {
         assert_eq!(self.dim(), rhs.dim(), "Vectors must have same dimension");
-        let output: Vec<_> = self
-            .data
-            .iter()
-            .zip(rhs.data.iter())
-            .map(|(&x1, &x2)| x1 - x2)
-            .collect();
+        let output: Vec<_> = self.data.iter().zip(rhs.data.iter()).map(|(&x1, &x2)| x1 - x2).collect();
         output.into()
     }
 }
@@ -115,17 +101,26 @@ impl std::ops::Div<f64> for &Vector {
     type Output = Vector;
 
     fn div(self, rhs: f64) -> Self::Output {
-        let output: Vec<_> = self
-            .data
-            .iter()
-            .map(|&x| x / rhs)
-            .collect();
+        let output: Vec<_> = self.data.iter().map(|&x| x / rhs).collect();
         output.into()
+    }
+}
+
+impl std::ops::AddAssign<&Vector> for Vector {
+    fn add_assign(&mut self, other: &Self) {
+        assert_eq!(self.dim(), other.dim(), "Vectors must have same number of elements");
+        for idx in 0..self.data.len() {
+            let v1 = self.data[idx];
+            let v2 = other.data[idx];
+            self.data[idx] = v1 + v2;
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use assert_approx_eq::assert_approx_eq;
+
     use super::*;
 
     #[test]
@@ -195,6 +190,22 @@ mod tests {
         assert_eq!(2.0 + 2.2, result[1]);
         assert_eq!(3.0 + 3.3, result[2]);
         assert_eq!(4.0 + 4.4, result[3]);
+    }
+
+    #[test]
+    fn test_vector_addassign() {
+        // Arrange
+        let mut vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+        let vec2: Vector = vec![1.1, 2.2, 3.3, 4.4].into();
+
+        // Act
+        vec1 += &vec2;
+
+        // Assert
+        assert_approx_eq!(1.0 + 1.1, vec1[0]);
+        assert_approx_eq!(2.0 + 2.2, vec1[1]);
+        assert_approx_eq!(3.0 + 3.3, vec1[2]);
+        assert_approx_eq!(4.0 + 4.4, vec1[3]);
     }
 
     #[test]

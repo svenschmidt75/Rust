@@ -1,5 +1,3 @@
-use assert_approx_eq::assert_approx_eq;
-
 use crate::ann::activation::{Activation, Id};
 use crate::ann::cost_function::CostFunction;
 use crate::ann::layers::fc_layer::FCLayer;
@@ -84,7 +82,12 @@ impl Model {
         }
     }
 
-    pub fn calculate_outputlayer_error(&self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
+    pub fn calculate_outputlayer_error(
+        &self,
+        mb: &mut Minibatch,
+        cost_function: &CostFunction,
+        y: &Vector,
+    ) {
         // SS: calculate delta_{L}, the error in the output layer
         let output_layer_index = self.output_layer_index();
         let layer = &self.layers[output_layer_index];
@@ -123,8 +126,8 @@ impl Model {
             let nactivations = self.layers[layer_index].nactivations();
             let nactivations_prev = self.layers[layer_index - 1].nactivations();
 
-            let dCdw = Matrix2D::new(nactivations, nactivations_prev);
-            let dCdb = Vector::new(nactivations);
+            let mut dCdw = Matrix2D::new(nactivations, nactivations_prev);
+            let mut dCdb = Vector::new(nactivations);
 
             for mb_index in 0..mbs.len() {
                 let mb = mbs[mb_index];
@@ -134,26 +137,20 @@ impl Model {
                 let dw_ij = ops::outer_product(delta_i, a_j);
                 let db_i = delta_i;
 
-
                 // TODO SS: implement matrix: std::ops::AddAssign
-                dCdw += dw_ij;
-                dCdb += db_i;
+                dCdw += &dw_ij;
+
+//                <Matrix2D as std::ops::AddAssign>::add_assign(&mut dCdw, &dw_ij);
+
+
+
+                dCdb += &db_i;
             }
 
             // scale
 
             // assign to big arrays
-
         }
-
-
-
-
-
-
-
-
-
     }
 
     pub fn summary(&self) {
@@ -163,6 +160,8 @@ impl Model {
 
 #[cfg(test)]
 mod tests {
+    use assert_approx_eq::assert_approx_eq;
+
     use crate::ann::activation;
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;

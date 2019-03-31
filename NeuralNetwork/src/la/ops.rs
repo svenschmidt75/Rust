@@ -1,5 +1,3 @@
-use assert_approx_eq::assert_approx_eq;
-
 use crate::la::matrix::{Matrix, Matrix2D};
 use crate::la::vector::Vector;
 
@@ -47,6 +45,8 @@ pub fn outer_product(v1: &Vector, v2: &Vector) -> Matrix2D {
 
 #[cfg(test)]
 mod tests {
+    use assert_approx_eq::assert_approx_eq;
+
     use crate::la::matrix::Matrix2D;
 
     use super::*;

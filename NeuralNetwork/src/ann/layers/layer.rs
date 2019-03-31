@@ -1,6 +1,6 @@
-use crate::la::vector::Vector;
-use crate::la::matrix::Matrix;
 use crate::ann::activation::Activation;
+use crate::la::matrix::Matrix;
+use crate::la::vector::Vector;
 
 pub trait Layer {
     //    fn initialize(); -- allocate memory for parameters

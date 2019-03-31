@@ -1,5 +1,3 @@
-use assert_approx_eq::assert_approx_eq;
-
 use crate::ann::activation::Activation;
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
@@ -11,7 +9,13 @@ use crate::la::vector::Vector;
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &Vec<TrainingData>) -> f64;
 
-    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector;
+    fn output_error(
+        &self,
+        output_layer_index: usize,
+        mb: &Minibatch,
+        y: &Vector,
+        f: &Activation,
+    ) -> Vector;
 }
 
 pub struct QuadraticCost;
@@ -37,7 +41,13 @@ impl CostFunction for QuadraticCost {
         total_cost / 2.0 / y.len() as f64
     }
 
-    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector {
+    fn output_error(
+        &self,
+        output_layer_index: usize,
+        mb: &Minibatch,
+        y: &Vector,
+        f: &Activation,
+    ) -> Vector {
         let a = &mb.a[output_layer_index];
         let z = &mb.z[output_layer_index];
         assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");
@@ -53,17 +63,16 @@ impl CostFunction for QuadraticCost {
 
 #[cfg(test)]
 mod tests {
-    use crate::ann::activation;
+    use assert_approx_eq::assert_approx_eq;
+
     use crate::ann::activation::Id;
-    use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
     use crate::ann::layers::fc_layer::FCLayer;
     use crate::ann::layers::training_data::TrainingData;
-    use crate::la::matrix::Matrix;
+    use crate::la::matrix::Matrix2D;
     use crate::la::vector::Vector;
 
     use super::*;
-    use crate::la::matrix::Matrix2D;
 
     #[test]
     fn test_network_cost() {
@@ -122,7 +131,7 @@ mod tests {
     fn test_quadratic_cost_output_layer() {
         // Arrange
         let cost = QuadraticCost;
-        let activation = &Sigmoid{};
+        let activation = &Sigmoid {};
         let mut mb = Minibatch::new(vec![2, 1]);
 
         let z1 = Vector::from(vec![1.0, 2.0]);
@@ -133,14 +142,17 @@ mod tests {
         mb.a[1] = activation.f(&z2);
         mb.z[1] = z2.clone();
 
-        let x = TrainingData{ input_activations: Vector::from(vec![1.0, 2.0]), output_activations: Vector::from(vec![1.0]) };
+        let x = TrainingData {
+            input_activations: Vector::from(vec![1.0, 2.0]),
+            output_activations: Vector::from(vec![1.0]),
+        };
 
         // Act
-        let error = cost.output_error(1, &mb, &x.output_activations,&Sigmoid{});
+        let error = cost.output_error(1, &mb, &x.output_activations, &Sigmoid {});
 
         // Assert
         let d: Vector = &mb.a[1] - &x.output_activations;
-        let df = &Sigmoid{}.df(&z2);
+        let df = &Sigmoid {}.df(&z2);
         assert_approx_eq!(d[0] * df[0], error[0], 1e-3f64);
     }
 }

@@ -1,5 +1,3 @@
-use assert_approx_eq::assert_approx_eq;
-
 use crate::la::ops;
 use crate::la::vector::Vector;
 
@@ -24,7 +22,9 @@ impl Activation for Sigmoid {
         ops::f(v, &sigmoid)
     }
 
-    fn df(&self, v: &Vector) -> Vector { ops::f(v, &sigmoid_prime) }
+    fn df(&self, v: &Vector) -> Vector {
+        ops::f(v, &sigmoid_prime)
+    }
 }
 
 pub struct ReLU {}
@@ -116,11 +116,7 @@ impl Activation for SoftMax {
 
     fn df(&self, v: &Vector) -> Vector {
         let f1 = <Self as Activation>::f(self, v);
-        let result: Vector = f1
-            .iter()
-            .map(|x| 1.0 - x)
-            .collect::<Vec<_>>()
-            .into();
+        let result: Vector = f1.iter().map(|x| 1.0 - x).collect::<Vec<_>>().into();
         ops::hadamard(&f1, &result)
     }
 }
@@ -141,8 +137,11 @@ impl Activation for Id {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use assert_approx_eq::assert_approx_eq;
+
     use crate::la::vector::Vector;
+
+    use super::*;
 
     #[test]
     fn test_sigmoid() {
@@ -310,13 +309,13 @@ mod tests {
 
         // Act
         let z1 = Vector::from(values.iter().map(|&x| x + h).collect::<Vec<_>>());
-        let f1 = SoftMax{}.f(&z1);
+        let f1 = SoftMax {}.f(&z1);
         let z2 = Vector::from(values);
-        let f2 = SoftMax{}.f(&z2);
+        let f2 = SoftMax {}.f(&z2);
         let df = &(&f1 - &f2) / h;
 
         // Assert
-        let df_num = SoftMax{}.df(&z2);
+        let df_num = SoftMax {}.df(&z2);
         assert_approx_eq!(df_num[0], df[0], 1e-3f64);
         assert_approx_eq!(df_num[1], df[1], 1e-3f64);
         assert_approx_eq!(df_num[2], df[2], 1e-3f64);

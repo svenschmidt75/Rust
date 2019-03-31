@@ -1,4 +1,4 @@
-use assert_approx_eq::assert_approx_eq;
+use std::ops::AddAssign;
 
 use crate::la::ops;
 use crate::la::vector::Vector;
@@ -12,7 +12,7 @@ pub trait Matrix {
 }
 
 pub struct Transpose<'a> {
-    matrix: &'a Matrix
+    matrix: &'a Matrix,
 }
 
 impl<'a> Transpose<'a> {
@@ -60,21 +60,14 @@ impl Matrix2D {
     }
 
     pub fn new_from_data(nrows: usize, ncols: usize, data: Vec<f64>) -> Self {
-        assert_eq!(
-            nrows * ncols,
-            data.len(),
-            "Not enough data provided for matrix initialization"
-        );
+        assert_eq!(nrows * ncols, data.len(), "Not enough data provided for matrix initialization");
         Matrix2D { data, nrows, ncols }
     }
 
     fn linear_index(&self, row: usize, col: usize) -> usize {
         // row-major memory layout
         let linear_index = row * self.ncols + col;
-        assert!(
-            linear_index < self.data.len(),
-            "Matrix.linear_index: Index too large"
-        );
+        assert!(linear_index < self.data.len(), "Matrix.linear_index: Index too large");
         linear_index
     }
 
@@ -119,9 +112,22 @@ impl<'a> Matrix for Matrix2D {
     }
 }
 
+impl AddAssign<&Matrix2D> for Matrix2D {
+    fn add_assign(&mut self, other: &Self) {
+        assert_eq!(self.nrows(), other.nrows(), "Matrices must have same number of rows");
+        assert_eq!(self.ncols(), other.ncols(), "Matrices must have same number of columns");
+        for idx in 0..self.data.len() {
+            let v1 = self.data[idx];
+            let v2 = other.data[idx];
+            self.data[idx] = v1 + v2;
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
+    use assert_approx_eq::assert_approx_eq;
+
     use super::*;
 
     #[test]
@@ -226,4 +232,24 @@ mod tests {
         assert_eq!(3.0, m.get(0, 2));
         assert_eq!(5.0, m.get(1, 1))
     }
+
+    #[test]
+    fn test_addassign() {
+        // Arrange
+        let mut m1 = Matrix2D::new_from_data(3, 3, vec![1.0, 5.0, -1.0, 11.0, 3.0, 4.0, 1.0, -1.0, 3.0]);
+        let mut m2 = Matrix2D::new_from_data(3, 3, vec![7.0, 2.0, 9.0, 1.0, 2.0, 5.0, 0.0, 2.0, 4.0]);
+
+        // Act
+        m1 += &m2;
+
+        // Assert
+        assert_approx_eq!(8.0, m1.get(0, 0));
+        assert_approx_eq!(9.0, m1.get(1, 2));
+        assert_approx_eq!(1.0, m1.get(2, 0));
+        assert_approx_eq!(1.0, m1.get(2, 1));
+        assert_approx_eq!(7.0, m1.get(2, 2));
+    }
+
+
+
 }

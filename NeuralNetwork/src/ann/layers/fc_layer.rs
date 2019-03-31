@@ -55,7 +55,7 @@ impl Layer for FCLayer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    //    use super::*;
 
     #[test]
     fn test_index() {}
