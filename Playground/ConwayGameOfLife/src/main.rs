@@ -74,7 +74,7 @@ fn main() {
                     texture.update(None, &pixel_data, (width * 4) as usize).unwrap();
                     renderer.copy(&texture, None, None).unwrap();
                     renderer.present();
-                    thread::sleep(::std::time::Duration::new(0, 100_00));
+//                    thread::sleep(::std::time::Duration::new(0, 100_00));
                 }
             }
         }
