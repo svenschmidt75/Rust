@@ -26,7 +26,6 @@ pub fn hadamard(v1: &Vector, v2: &Vector) -> Vector {
 }
 
 pub fn outer_product(v1: &Vector, v2: &Vector) -> Matrix2D {
-    assert_eq!(v1.dim(), v2.dim(), "Vectors must have same dimension");
     let mut m = Matrix2D::new(v1.dim(), v2.dim());
     for row in 0..v1.dim() {
         let r = v1[row];

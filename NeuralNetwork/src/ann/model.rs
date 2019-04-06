@@ -3,8 +3,7 @@ use rand::{thread_rng, Rng};
 
 use crate::ann::activation::{Activation, Id};
 use crate::ann::cost_function::CostFunction;
-use crate::ann::layers::fc_layer::FCLayer;
-use crate::ann::layers::layer::Layer;
+use crate::ann::layers::layer::{FCLayer, Layer};
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
 use crate::la::matrix::Matrix2D;
@@ -17,9 +16,7 @@ pub struct Model {
 
 impl Model {
     pub fn new() -> Model {
-        Model {
-            layers: vec![Box::new(FCLayer::new(Matrix2D::new(0, 0), Vector::new(0), Box::new(Id {})))],
-        }
+        Model { layers: vec![] }
     }
 
     pub fn add(&mut self, layer: Box<dyn Layer>) {
@@ -148,8 +145,8 @@ impl Model {
         let mut dbs = Vec::<Vector>::with_capacity(mbs.len());
 
         let output_layer_index = self.output_layer_index();
-        for i in 0..output_layer_index - 1 {
-            let layer_index = output_layer_index - i - 1;
+        for i in 0..output_layer_index {
+            let layer_index = output_layer_index - i;
 
             let nactivations = self.layers[layer_index].nactivations();
             let nactivations_prev = self.layers[layer_index - 1].nactivations();
@@ -185,23 +182,27 @@ impl Model {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     use assert_approx_eq::assert_approx_eq;
 
     use crate::ann::activation;
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::QuadraticCost;
-    use crate::ann::layers::fc_layer::FCLayer;
+    use crate::ann::layers::layer::{FCLayer, InputLayer};
     use crate::la::matrix::Matrix;
     use crate::la::matrix::Matrix2D;
     use crate::la::vector::Vector;
-
-    use super::*;
 
     #[test]
     fn test_feedforward() {
         // Arrange
         let mut model = Model::new();
+
+        let input_layer = InputLayer::new(2);
+        model.add(Box::new(input_layer));
+
         let weights1 = Matrix2D::new_from_data(3, 2, vec![0.0, 0.01, 0.02, 0.10, 0.11, 0.12]);
         let biases1: Vector = vec![0.1, 0.2, 0.3].into();
         let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
@@ -242,6 +243,10 @@ mod tests {
     fn test_backprop_errors() {
         // Arrange
         let mut model = Model::new();
+
+        let input_layer = InputLayer::new(2);
+        model.add(Box::new(input_layer));
+
         let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
         let biases1: Vector = vec![0.2, 0.2].into();
         let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
@@ -273,9 +278,36 @@ mod tests {
     #[test]
     fn test_calculate_derivatives() {
         // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(2);
+        model.add(Box::new(input_layer));
+
+        let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
+        let biases1: Vector = vec![0.2, 0.2].into();
+        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
+        model.add(Box::new(hidden_layer));
+
+        let weights2 = Matrix2D::new_from_data(1, 2, vec![0.3, 0.3]);
+        let biases2: Vector = vec![0.4].into();
+        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(Sigmoid {}));
+        model.add(Box::new(output_layer));
+
+        let mut mb = model.create_minibatch();
+        mb.z[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+
+        // expected output
+        let y = Vector::from(vec![0.0]);
+
+        model.feedforward(&mut mb);
+        model.backprop(&mut mb, &QuadraticCost {}, &y);
 
         // Act
+        let mbs: [Minibatch; 1] = [mb];
+        let (dws, dbs) = model.calculate_derivatives(&mbs);
 
         // Assert
+        //        assert_approx_eq!(0.7480485918792308, mb.z[2][0], 1e-5f64);
     }
 }

@@ -51,21 +51,25 @@ impl CostFunction for QuadraticCost {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::ann::layers::layer::{FCLayer, InputLayer};
+
     use assert_approx_eq::assert_approx_eq;
 
     use crate::ann::activation::Id;
     use crate::ann::activation::Sigmoid;
-    use crate::ann::layers::fc_layer::FCLayer;
     use crate::ann::layers::training_data::TrainingData;
     use crate::la::matrix::Matrix2D;
     use crate::la::vector::Vector;
-
-    use super::*;
 
     #[test]
     fn test_network_cost() {
         // Arrange
         let mut model = Model::new();
+
+        let input_layer = InputLayer::new(2);
+        model.add(Box::new(input_layer));
+
         let weights1 = Matrix2D::new_from_data(3, 2, vec![0.01, 0.02, 0.03, 0.04, 0.05, 0.06]);
         let biases1: Vector = vec![0.1, 0.2, 0.3].into();
         let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Id {}));
