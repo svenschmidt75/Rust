@@ -180,15 +180,16 @@ impl Model {
         // Reason 1: get_weights() does not need to be mutable
         // Reason 2: for CNN, the weights matrix is sparse
 
-        for layer_index in 0..output_layer_index + 1 {
+        // SS: dws and dbs contain the layer 1 deltas at index 0!
+        for layer_index in 1..output_layer_index + 1 {
             {
                 let weights = self.layers[layer_index].get_weights_mut();
-                let dw = &dws[layer_index];
+                let dw = &dws[layer_index - 1];
                 *weights += dw;
             }
             {
                 let biases = self.layers[layer_index].get_biases_mut();
-                let db = &dbs[layer_index];
+                let db = &dbs[layer_index - 1];
                 *biases += db;
             }
         }
@@ -348,4 +349,41 @@ mod tests {
         // dC \ dw^2_1
         assert_eq!(1, dws[1].nrows());
     }
+
+    #[test]
+    fn test_update_network_does_not_throw() {
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(2);
+        model.add(Box::new(input_layer));
+
+        let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
+        let biases1: Vector = vec![0.2, 0.2].into();
+        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
+        model.add(Box::new(hidden_layer));
+
+        let weights2 = Matrix2D::new_from_data(1, 2, vec![0.3, 0.3]);
+        let biases2: Vector = vec![0.4].into();
+        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(Sigmoid {}));
+        model.add(Box::new(output_layer));
+
+        let mut mb = model.create_minibatch();
+        mb.z[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+
+        // expected output
+        let y = Vector::from(vec![0.0]);
+
+        model.feedforward(&mut mb);
+        model.backprop(&mut mb, &QuadraticCost {}, &y);
+        let mbs: [Minibatch; 1] = [mb];
+        let (dws, dbs) = model.calculate_derivatives(&mbs);
+
+        // Act
+        model.update_network(0.1, dws, dbs);
+
+        // Assert
+    }
+
 }
