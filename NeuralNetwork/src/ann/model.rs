@@ -145,9 +145,7 @@ impl Model {
         let mut dbs = Vec::<Vector>::with_capacity(mbs.len());
 
         let output_layer_index = self.output_layer_index();
-        for i in 0..output_layer_index {
-            let layer_index = output_layer_index - i;
-
+        for layer_index in 1..output_layer_index + 1 {
             let nactivations = self.layers[layer_index].nactivations();
             let nactivations_prev = self.layers[layer_index - 1].nactivations();
 
@@ -308,6 +306,26 @@ mod tests {
         let (dws, dbs) = model.calculate_derivatives(&mbs);
 
         // Assert
-        //        assert_approx_eq!(0.7480485918792308, mb.z[2][0], 1e-5f64);
+        assert_eq!(2, dws.len());
+
+        /*
+           | dC \ dw^1_00   dC \ dw^1_01 |
+           | dC \ dw^1_10   dC \ dw^1_11 |
+        */
+        assert_eq!(2, dws[0].nrows());
+        assert_eq!(2, dws[0].ncols());
+
+        // | dC \ dw^2_00   dC \ dw^2_01 |
+        assert_eq!(1, dws[1].nrows());
+        assert_eq!(2, dws[1].ncols());
+
+        assert_eq!(2, dbs.len());
+
+        // dC \ db^1_0
+        assert_eq!(2, dws[0].nrows());
+
+        // dC \ db^2_0
+        // dC \ dw^2_1
+        assert_eq!(1, dws[1].nrows());
     }
 }
