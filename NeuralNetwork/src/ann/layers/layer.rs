@@ -14,6 +14,8 @@ pub trait Layer {
 
     fn get_weights_mut(&mut self) -> &mut Matrix2D;
 
+    fn get_biases_mut(&mut self) -> &mut Vector;
+
     fn get_activation(&self) -> &Activation;
 }
 
@@ -60,6 +62,10 @@ impl Layer for FCLayer {
         &mut self.weights
     }
 
+    fn get_biases_mut(&mut self) -> &mut Vector {
+        &mut self.biases
+    }
+
     fn get_activation(&self) -> &Activation {
         &*self.activation
     }
@@ -89,7 +95,11 @@ impl Layer for InputLayer {
     }
 
     fn get_weights_mut(&mut self) -> &mut Matrix2D {
-        unimplemented!()
+        unreachable!()
+    }
+
+    fn get_biases_mut(&mut self) -> &mut Vector {
+        unreachable!()
     }
 
     fn get_activation(&self) -> &Activation {

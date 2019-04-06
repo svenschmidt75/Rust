@@ -181,14 +181,15 @@ impl Model {
         // Reason 2: for CNN, the weights matrix is sparse
 
         for layer_index in 0..output_layer_index + 1 {
-            let weights = self.layers[layer_index].get_weights_mut();
-            for row in 0..weights.nrows() {
-                for col in 0..weights.ncols() {
-                    let w = weights.get(row, col);
-                    let dw = dws[layer_index].get(row, col);
-                    let updated_w = w - eta * dw;
-                    *weights.set(row, col) = updated_w;
-                }
+            {
+                let weights = self.layers[layer_index].get_weights_mut();
+                let dw = &dws[layer_index];
+                *weights += dw;
+            }
+            {
+                let biases = self.layers[layer_index].get_biases_mut();
+                let db = &dbs[layer_index];
+                *biases += db;
             }
         }
     }
@@ -200,8 +201,6 @@ impl Model {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use assert_approx_eq::assert_approx_eq;
 
     use crate::ann::activation;
@@ -211,6 +210,8 @@ mod tests {
     use crate::ann::layers::layer::{FCLayer, InputLayer};
     use crate::la::matrix::Matrix2D;
     use crate::la::vector::Vector;
+
+    use super::*;
 
     #[test]
     fn test_feedforward() {
