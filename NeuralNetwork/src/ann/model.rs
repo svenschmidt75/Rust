@@ -386,4 +386,64 @@ mod tests {
         // Assert
     }
 
+    #[test]
+    fn test_train_model() {
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(2);
+        model.add(Box::new(input_layer));
+
+        let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
+        let biases1: Vector = vec![0.2, 0.2].into();
+        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
+        model.add(Box::new(hidden_layer));
+
+        let weights2 = Matrix2D::new_from_data(1, 2, vec![0.3, 0.3]);
+        let biases2: Vector = vec![0.4].into();
+        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(Sigmoid {}));
+        model.add(Box::new(output_layer));
+
+        let mut mb = model.create_minibatch();
+        mb.z[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+
+        // expected output
+        let y = Vector::from(vec![0.0]);
+
+        //train(&mut self, data: &(&Vec<TrainingData>, &Vec<TrainingData>, &Vec<TrainingData>), epochs: usize, eta: f64, _lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
+
+        // model an AND gate
+        let training_data = vec![
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 1.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 1.0]),
+                output_activations: Vector::from(vec![1.0]),
+            },
+        ];
+        let data = (&training_data, &vec![], &vec![]);
+
+        // Act
+        model.train(&data, 1000, 0.0001, 1.0, 1, &QuadraticCost {});
+
+        // Assert
+        let mut mb = model.create_minibatch();
+        mb.z[0] = Vector::from(vec![0.0, 0.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        model.feedforward(&mut mb);
+
+        assert_approx_eq!(0.0, &mb.a[2][0]);
+    }
+
 }
