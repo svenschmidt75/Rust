@@ -1,5 +1,5 @@
 use crate::ann::activation::Activation;
-use crate::la::matrix::{Matrix, Matrix2D};
+use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
 
@@ -10,7 +10,9 @@ pub trait Layer {
 
     fn nactivations(&self) -> usize;
 
-    fn get_weights(&self) -> &Matrix;
+    fn get_weights(&self) -> &Matrix2D;
+
+    fn get_weights_mut(&mut self) -> &mut Matrix2D;
 
     fn get_activation(&self) -> &Activation;
 }
@@ -50,8 +52,12 @@ impl Layer for FCLayer {
         self.biases.dim()
     }
 
-    fn get_weights(&self) -> &Matrix {
+    fn get_weights(&self) -> &Matrix2D {
         &self.weights
+    }
+
+    fn get_weights_mut(&mut self) -> &mut Matrix2D {
+        &mut self.weights
     }
 
     fn get_activation(&self) -> &Activation {
@@ -70,7 +76,7 @@ impl InputLayer {
 }
 
 impl Layer for InputLayer {
-    fn feedforward(&self, a: &Vector) -> (Vector, Vector) {
+    fn feedforward(&self, _a: &Vector) -> (Vector, Vector) {
         unreachable!()
     }
 
@@ -78,8 +84,12 @@ impl Layer for InputLayer {
         self.nactivations
     }
 
-    fn get_weights(&self) -> &Matrix {
+    fn get_weights(&self) -> &Matrix2D {
         unreachable!()
+    }
+
+    fn get_weights_mut(&mut self) -> &mut Matrix2D {
+        unimplemented!()
     }
 
     fn get_activation(&self) -> &Activation {

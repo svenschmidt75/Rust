@@ -1,46 +1,6 @@
 use crate::la::ops;
 use crate::la::vector::Vector;
 
-pub trait Matrix {
-    fn transpose<'a>(&'a self) -> Box<dyn Matrix + 'a>;
-    fn ncols(&self) -> usize;
-    fn nrows(&self) -> usize;
-    fn get(&self, row: usize, col: usize) -> f64;
-    fn ax(&self, x: &Vector) -> Vector;
-}
-
-pub struct Transpose<'a> {
-    matrix: &'a Matrix,
-}
-
-impl<'a> Transpose<'a> {
-    pub fn new(matrix: &Matrix) -> Transpose {
-        Transpose { matrix }
-    }
-}
-
-impl<'a> Matrix for Transpose<'a> {
-    fn transpose<'b>(&'b self) -> Box<dyn Matrix + 'b> {
-        Box::new(Transpose::new(self))
-    }
-
-    fn ncols(&self) -> usize {
-        self.matrix.nrows()
-    }
-
-    fn nrows(&self) -> usize {
-        self.matrix.ncols()
-    }
-
-    fn get(&self, row: usize, col: usize) -> f64 {
-        self.matrix.get(col, row)
-    }
-
-    fn ax(&self, x: &Vector) -> Vector {
-        ops::ax(self, x)
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct Matrix2D {
     data: Vec<f64>,
@@ -86,27 +46,19 @@ impl Matrix2D {
         let linear_index = self.linear_index(row, col);
         &mut self.data[linear_index]
     }
-}
 
-impl<'a> Matrix for Matrix2D {
-    fn transpose<'b>(&'b self) -> Box<dyn Matrix + 'b> {
-        Box::new(Transpose::new(self))
+    pub fn transpose(&self) -> Matrix2D {
+        let mut t = Matrix2D::new(self.ncols, self.nrows);
+        for col in 0..self.ncols {
+            for row in 0..self.nrows {
+                *t.set(col, row) = self.get(row, col);
+            }
+        }
+        t
     }
 
-    fn ncols(&self) -> usize {
-        self.ncols
-    }
-
-    fn nrows(&self) -> usize {
-        self.nrows
-    }
-
-    fn get(&self, row: usize, col: usize) -> f64 {
-        (self as &Matrix2D).get(row, col)
-    }
-
-    fn ax(&self, x: &Vector) -> Vector {
-        ops::ax(self, x)
+    pub fn ax(&self, v: &Vector) -> Vector {
+        ops::ax(self, v)
     }
 }
 

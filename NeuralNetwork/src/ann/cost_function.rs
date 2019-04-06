@@ -1,5 +1,4 @@
 use crate::ann::activation::Activation;
-use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
 use crate::ann::model::Model;

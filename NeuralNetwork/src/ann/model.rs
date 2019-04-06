@@ -1,9 +1,9 @@
 use rand::seq::SliceRandom;
-use rand::{thread_rng, Rng};
+use rand::thread_rng;
 
-use crate::ann::activation::{Activation, Id};
+use crate::ann::activation::Activation;
 use crate::ann::cost_function::CostFunction;
-use crate::ann::layers::layer::{FCLayer, Layer};
+use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
 use crate::la::matrix::Matrix2D;
@@ -44,7 +44,7 @@ impl Model {
     // number of epochs
     // size of minibatch
     // no regularization for now
-    pub fn train(&mut self, data: &(&Vec<TrainingData>, &Vec<TrainingData>, &Vec<TrainingData>), epochs: usize, lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
+    pub fn train(&mut self, data: &(&Vec<TrainingData>, &Vec<TrainingData>, &Vec<TrainingData>), epochs: usize, eta: f64, _lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
         // call initialize on each layer
 
         // for each epoch
@@ -67,7 +67,7 @@ impl Model {
 
         let n_minibatches = Model::number_of_minibatches(trainingdata_indices.len(), minibatch_size);
 
-        for epoch in 0..epochs {
+        for _epoch in 0..epochs {
             // random shuffle on training data
             trainingdata_indices.shuffle(&mut rng);
 
@@ -84,7 +84,7 @@ impl Model {
                     self.backprop(mb, cost_function, known_classification);
                 }
                 let (dws, dbs) = self.calculate_derivatives(&mbs[..]);
-                self.update_network(dws, dbs);
+                self.update_network(eta, dws, dbs);
             }
 
             // SS: epoch completed, print statistics
@@ -171,7 +171,27 @@ impl Model {
         (dws, dbs)
     }
 
-    fn update_network(&mut self, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {}
+    fn update_network(&mut self, eta: f64, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {
+        let output_layer_index = self.output_layer_index();
+        assert_eq!(output_layer_index, dws.len());
+        assert_eq!(output_layer_index, dbs.len());
+
+        // SS: move this into layer class?
+        // Reason 1: get_weights() does not need to be mutable
+        // Reason 2: for CNN, the weights matrix is sparse
+
+        for layer_index in 0..output_layer_index + 1 {
+            let weights = self.layers[layer_index].get_weights_mut();
+            for row in 0..weights.nrows() {
+                for col in 0..weights.ncols() {
+                    let w = weights.get(row, col);
+                    let dw = dws[layer_index].get(row, col);
+                    let updated_w = w - eta * dw;
+                    *weights.set(row, col) = updated_w;
+                }
+            }
+        }
+    }
 
     pub fn summary(&self) {
         // print out number of layers, number of parameters, etc.
@@ -189,7 +209,6 @@ mod tests {
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::QuadraticCost;
     use crate::ann::layers::layer::{FCLayer, InputLayer};
-    use crate::la::matrix::Matrix;
     use crate::la::matrix::Matrix2D;
     use crate::la::vector::Vector;
 
