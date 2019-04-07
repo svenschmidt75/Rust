@@ -1,10 +1,13 @@
+use rand::Rng;
+
 use crate::ann::activation::Activation;
 use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
 
 pub trait Layer {
-    //    fn initialize(); -- allocate memory for parameters
+    fn initialize(&mut self);
+
     //    fn on_start_new_epoch();
     fn feedforward(&self, a: &Vector) -> (Vector, Vector);
 
@@ -39,6 +42,21 @@ impl FCLayer {
 }
 
 impl Layer for FCLayer {
+    fn initialize(&mut self) {
+        let mut rng = rand::thread_rng();
+        for row in 0..self.weights.nrows() {
+            for col in 0..self.weights.ncols() {
+                let value: f64 = rng.gen();
+                *self.weights.set(row, col) = value / 100.0;
+            }
+        }
+
+        for idx in 0..self.biases.dim() {
+            let value: f64 = rng.gen();
+            self.biases[idx] = value / 100.0;
+        }
+    }
+
     fn feedforward(&self, input: &Vector) -> (Vector, Vector) {
         // SS: number of activations in this layer: self.weights.nrows()
         let output = ops::ax(&self.weights, input);
@@ -82,6 +100,8 @@ impl InputLayer {
 }
 
 impl Layer for InputLayer {
+    fn initialize(&mut self) {}
+
     fn feedforward(&self, _a: &Vector) -> (Vector, Vector) {
         unreachable!()
     }
@@ -109,8 +129,23 @@ impl Layer for InputLayer {
 
 #[cfg(test)]
 mod tests {
-    //    use super::*;
+    use assert_approx_eq::assert_approx_eq;
+
+    use crate::ann::activation::Id;
+
+    use super::*;
 
     #[test]
-    fn test_index() {}
+    fn test_initialize() {
+        // Arrange
+        let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
+        let biases1: Vector = vec![0.2, 0.2].into();
+        let mut layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Id {}));
+
+        // Act
+        layer.initialize();
+
+        // Assert
+        assert!(layer.get_weights().get(0, 0) <= 1.0 / 100.0);
+    }
 }

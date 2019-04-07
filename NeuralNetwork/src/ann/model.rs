@@ -59,6 +59,10 @@ impl Model {
 
         // print update step after each epoch
 
+        for layer in &mut self.layers {
+            layer.initialize();
+        }
+
         let training_data = data.0;
         let mut trainingdata_indices: Vec<_> = (0..training_data.len()).collect();
         let mut rng = thread_rng();
@@ -435,7 +439,7 @@ mod tests {
         let data = (&training_data, &vec![], &vec![]);
 
         // Act
-        model.train(&data, 1000, 0.0001, 1.0, 1, &QuadraticCost {});
+        model.train(&data, 10000, 0.0001, 1.0, 1, &QuadraticCost {});
 
         // Assert
         let mut mb = model.create_minibatch();
@@ -443,7 +447,6 @@ mod tests {
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
 
-        //        assert_approx_eq!(0.0, &mb.a[2][0]);
+        assert_approx_eq!(0.0, &mb.a[2][0]);
     }
-
 }
