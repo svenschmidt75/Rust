@@ -74,10 +74,35 @@ impl std::ops::AddAssign<&Matrix2D> for Matrix2D {
     }
 }
 
+impl std::ops::SubAssign<&Matrix2D> for Matrix2D {
+    fn sub_assign(&mut self, other: &Self) {
+        assert_eq!(self.nrows(), other.nrows(), "Matrices must have same number of rows");
+        assert_eq!(self.ncols(), other.ncols(), "Matrices must have same number of columns");
+        for idx in 0..self.data.len() {
+            let v1 = self.data[idx];
+            let v2 = other.data[idx];
+            self.data[idx] = v1 - v2;
+        }
+    }
+}
+
 impl std::ops::DivAssign<usize> for Matrix2D {
     fn div_assign(&mut self, rhs: usize) {
         // SS: collect to force evaluation as lazy...
         self.data.iter_mut().for_each(|v| *v /= rhs as f64);
+    }
+}
+
+impl std::ops::Mul<&Matrix2D> for f64 {
+    type Output = Matrix2D;
+
+    fn mul(self, rhs: &Matrix2D) -> Self::Output {
+        let mut result = Matrix2D::new(rhs.nrows, rhs.ncols);
+        for idx in 0..rhs.data.len() {
+            let value = &rhs.data[idx];
+            result.data[idx] = *value * self;
+        }
+        result
     }
 }
 
@@ -149,7 +174,7 @@ mod tests {
     #[test]
     fn test_nrows() {
         // Arrange
-        let mut m = Matrix2D::new(2, 3);
+        let m = Matrix2D::new(2, 3);
 
         // Act
         let nrows = m.nrows();
@@ -161,7 +186,7 @@ mod tests {
     #[test]
     fn test_ncols() {
         // Arrange
-        let mut m = Matrix2D::new(2, 3);
+        let m = Matrix2D::new(2, 3);
 
         // Act
         let ncols = m.ncols();
@@ -208,6 +233,23 @@ mod tests {
     }
 
     #[test]
+    fn test_subassign() {
+        // Arrange
+        let mut m1 = Matrix2D::new_from_data(3, 3, vec![1.0, 5.0, -1.0, 11.0, 3.0, 4.0, 1.0, -1.0, 3.0]);
+        let mut m2 = Matrix2D::new_from_data(3, 3, vec![7.0, 2.0, 9.0, 1.0, 2.0, 5.0, 0.0, 2.0, 4.0]);
+
+        // Act
+        m1 -= &m2;
+
+        // Assert
+        assert_approx_eq!(-6.0, m1.get(0, 0));
+        assert_approx_eq!(-1.0, m1.get(1, 2));
+        assert_approx_eq!(1.0, m1.get(2, 0));
+        assert_approx_eq!(-3.0, m1.get(2, 1));
+        assert_approx_eq!(-1.0, m1.get(2, 2));
+    }
+
+    #[test]
     fn test_divassign() {
         // Arrange
         let mut m1 = Matrix2D::new_from_data(3, 3, vec![1.0, 5.0, -1.0, 11.0, 3.0, 4.0, 1.0, -1.0, 3.0]);
@@ -222,6 +264,23 @@ mod tests {
         assert_approx_eq!(1.0 / scalar, m1.get(2, 0));
         assert_approx_eq!(-1.0 / scalar, m1.get(2, 1));
         assert_approx_eq!(3.0 / scalar, m1.get(2, 2));
+    }
+
+    #[test]
+    fn test_mul() {
+        // Arrange
+        let m1 = Matrix2D::new_from_data(3, 3, vec![1.0, 5.0, -1.0, 11.0, 3.0, 4.0, 1.0, -1.0, 3.0]);
+        let scalar = 15.0;
+
+        // Act
+        let result = scalar * &m1;
+
+        // Assert
+        assert_approx_eq!(1.0 * scalar, result.get(0, 0));
+        assert_approx_eq!(4.0 * scalar, result.get(1, 2));
+        assert_approx_eq!(1.0 * scalar, result.get(2, 0));
+        assert_approx_eq!(-1.0 * scalar, result.get(2, 1));
+        assert_approx_eq!(3.0 * scalar, result.get(2, 2));
     }
 
 }

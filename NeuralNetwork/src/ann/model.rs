@@ -185,12 +185,12 @@ impl Model {
             {
                 let weights = self.layers[layer_index].get_weights_mut();
                 let dw = &dws[layer_index - 1];
-                *weights += dw;
+                *weights -= &(eta * dw);
             }
             {
                 let biases = self.layers[layer_index].get_biases_mut();
                 let db = &dbs[layer_index - 1];
-                *biases += db;
+                //                *biases -= eta * db;
             }
         }
     }
