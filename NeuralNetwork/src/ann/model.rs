@@ -9,7 +9,6 @@ use crate::ann::minibatch::Minibatch;
 use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
-use std::cmp;
 
 pub struct Model {
     layers: Vec<Box<dyn Layer>>,
@@ -248,19 +247,19 @@ mod tests {
         // Assert
 
         // a^{1}_{0}
-        let a10 = activation::sigmoid(weights1.get(0, 0) * mb.a[0][0] + weights1.get(0, 1) * mb.a[0][1] + biases1[0]);
+        let a10 = activation::sigmoid(weights1[(0, 0)] * mb.a[0][0] + weights1[(0, 1)] * mb.a[0][1] + biases1[0]);
         assert_eq!(a10, mb.a[1][0]);
 
         // a^{1}_{1}
-        let a11 = activation::sigmoid(weights1.get(1, 0) * mb.a[0][0] + weights1.get(1, 1) * mb.a[0][1] + biases1[1]);
+        let a11 = activation::sigmoid(weights1[(1, 0)] * mb.a[0][0] + weights1[(1, 1)] * mb.a[0][1] + biases1[1]);
         assert_eq!(a11, mb.a[1][1]);
 
         // a^{1}_{2}
-        let a12 = activation::sigmoid(weights1.get(2, 0) * mb.a[0][0] + weights1.get(2, 1) * mb.a[0][1] + biases1[2]);
+        let a12 = activation::sigmoid(weights1[(2, 0)] * mb.a[0][0] + weights1[(2, 1)] * mb.a[0][1] + biases1[2]);
         assert_eq!(a12, mb.a[1][2]);
 
         // a^{2}_{0}
-        let a20 = activation::relu(weights2.get(0, 0) * mb.a[1][0] + weights2.get(0, 1) * mb.a[1][1] + weights2.get(0, 2) * mb.a[1][2] + biases2[0]);
+        let a20 = activation::relu(weights2[(0, 0)] * mb.a[1][0] + weights2[(0, 1)] * mb.a[1][1] + weights2[(0, 2)] * mb.a[1][2] + biases2[0]);
         assert_eq!(a20, mb.a[2][0]);
     }
 

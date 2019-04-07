@@ -1,3 +1,5 @@
+use std::ops::{Index, IndexMut};
+
 use crate::la::ops;
 use crate::la::vector::Vector;
 
@@ -37,21 +39,11 @@ impl Matrix2D {
         self.nrows
     }
 
-    pub fn get(&self, row: usize, col: usize) -> f64 {
-        let linear_index = self.linear_index(row, col);
-        self.data[linear_index]
-    }
-
-    pub fn set(&mut self, row: usize, col: usize) -> &mut f64 {
-        let linear_index = self.linear_index(row, col);
-        &mut self.data[linear_index]
-    }
-
     pub fn transpose(&self) -> Matrix2D {
         let mut t = Matrix2D::new(self.ncols, self.nrows);
         for col in 0..self.ncols {
             for row in 0..self.nrows {
-                *t.set(col, row) = self.get(row, col);
+                t[(col, row)] = self[(row, col)];
             }
         }
         t
@@ -59,6 +51,28 @@ impl Matrix2D {
 
     pub fn ax(&self, v: &Vector) -> Vector {
         ops::ax(self, v)
+    }
+}
+
+impl Index<(usize, usize)> for Matrix2D {
+    type Output = f64;
+
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        let linear_index = index.0 * self.ncols + index.1;
+        if linear_index >= self.data.len() {
+            panic!("Index ({}, {}) invalid", index.0, index.1)
+        }
+        &self.data[linear_index]
+    }
+}
+
+impl IndexMut<(usize, usize)> for Matrix2D {
+    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+        let linear_index = index.0 * self.ncols + index.1;
+        if linear_index >= self.data.len() {
+            panic!("Index ({}, {}) invalid", index.0, index.1)
+        }
+        &mut self.data[linear_index]
     }
 }
 
@@ -121,12 +135,12 @@ mod tests {
         // Act
         // 1.0 | 2.0 | 3.0
         // 4.0 | 5.0 | 6.0
-        *m.set(0, 0) = 1.0;
-        *m.set(0, 1) = 2.0;
-        *m.set(0, 2) = 3.0;
-        *m.set(1, 0) = 4.0;
-        *m.set(1, 1) = 5.0;
-        *m.set(1, 2) = 6.0;
+        m[(0, 0)] = 1.0;
+        m[(0, 1)] = 2.0;
+        m[(0, 2)] = 3.0;
+        m[(1, 0)] = 4.0;
+        m[(1, 1)] = 5.0;
+        m[(1, 2)] = 6.0;
 
         // Act
         let tr = m.transpose();
@@ -134,12 +148,12 @@ mod tests {
         // Assert
         assert_eq!(3, tr.nrows());
         assert_eq!(2, tr.ncols());
-        assert_approx_eq!(1.0, tr.get(0, 0), 1e-3f64);
-        assert_approx_eq!(4.0, tr.get(0, 1), 1e-3f64);
-        assert_approx_eq!(2.0, tr.get(1, 0), 1e-3f64);
-        assert_approx_eq!(5.0, tr.get(1, 1), 1e-3f64);
-        assert_approx_eq!(3.0, tr.get(2, 0), 1e-3f64);
-        assert_approx_eq!(6.0, tr.get(2, 1), 1e-3f64);
+        assert_approx_eq!(1.0, tr[(0, 0)], 1e-3f64);
+        assert_approx_eq!(4.0, tr[(0, 1)], 1e-3f64);
+        assert_approx_eq!(2.0, tr[(1, 0)], 1e-3f64);
+        assert_approx_eq!(5.0, tr[(1, 1)], 1e-3f64);
+        assert_approx_eq!(3.0, tr[(2, 0)], 1e-3f64);
+        assert_approx_eq!(6.0, tr[(2, 1)], 1e-3f64);
     }
 
     #[test]
@@ -150,12 +164,12 @@ mod tests {
         // Act
         // 1.0 | 2.0 | 3.0
         // 4.0 | 5.0 | 6.0
-        *m.set(0, 0) = 1.0;
-        *m.set(0, 1) = 2.0;
-        *m.set(0, 2) = 3.0;
-        *m.set(1, 0) = 4.0;
-        *m.set(1, 1) = 5.0;
-        *m.set(1, 2) = 6.0;
+        m[(0, 0)] = 1.0;
+        m[(0, 1)] = 2.0;
+        m[(0, 2)] = 3.0;
+        m[(1, 0)] = 4.0;
+        m[(1, 1)] = 5.0;
+        m[(1, 2)] = 6.0;
 
         // Act
         let tr = m.transpose();
@@ -164,12 +178,12 @@ mod tests {
         // Assert
         assert_eq!(2, tr2.nrows());
         assert_eq!(3, tr2.ncols());
-        assert_approx_eq!(1.0, tr2.get(0, 0), 1e-3f64);
-        assert_approx_eq!(2.0, tr2.get(0, 1), 1e-3f64);
-        assert_approx_eq!(3.0, tr2.get(0, 2), 1e-3f64);
-        assert_approx_eq!(4.0, tr2.get(1, 0), 1e-3f64);
-        assert_approx_eq!(5.0, tr2.get(1, 1), 1e-3f64);
-        assert_approx_eq!(6.0, tr2.get(1, 2), 1e-3f64);
+        assert_approx_eq!(1.0, tr2[(0, 0)], 1e-3f64);
+        assert_approx_eq!(2.0, tr2[(0, 1)], 1e-3f64);
+        assert_approx_eq!(3.0, tr2[(0, 2)], 1e-3f64);
+        assert_approx_eq!(4.0, tr2[(1, 0)], 1e-3f64);
+        assert_approx_eq!(5.0, tr2[(1, 1)], 1e-3f64);
+        assert_approx_eq!(6.0, tr2[(1, 2)], 1e-3f64);
     }
 
     #[test]
@@ -204,16 +218,54 @@ mod tests {
         // Act
         // 1.0 | 2.0 | 3.0
         // 4.0 | 5.0 | 6.0
-        *m.set(0, 0) = 1.0;
-        *m.set(0, 1) = 2.0;
-        *m.set(0, 2) = 3.0;
-        *m.set(1, 0) = 4.0;
-        *m.set(1, 1) = 5.0;
-        *m.set(1, 2) = 6.0;
+        m[(0, 0)] = 1.0;
+        m[(0, 1)] = 2.0;
+        m[(0, 2)] = 3.0;
+        m[(1, 0)] = 4.0;
+        m[(1, 1)] = 5.0;
+        m[(1, 2)] = 6.0;
 
         // Assert
-        assert_eq!(3.0, m.get(0, 2));
-        assert_eq!(5.0, m.get(1, 1))
+        assert_eq!(3.0, m[(0, 2)]);
+        assert_eq!(5.0, m[(1, 1)])
+    }
+
+    #[test]
+    fn test_index_tuple() {
+        // Arrange
+        let mut m = Matrix2D::new(2, 3);
+
+        // Act
+        // 1.0 | 2.0 | 3.0
+        // 4.0 | 5.0 | 6.0
+        m[(0, 0)] = 1.0;
+        m[(0, 1)] = 2.0;
+        m[(0, 2)] = 3.0;
+        m[(1, 0)] = 4.0;
+        m[(1, 1)] = 5.0;
+        m[(1, 2)] = 6.0;
+
+        // Assert
+        assert_eq!(3.0, m[(0, 2)]);
+    }
+
+    #[test]
+    fn test_indexmut_tuple() {
+        // Arrange
+        let mut m = Matrix2D::new(2, 3);
+
+        // Act
+        // 1.0 | 2.0 | 3.0
+        // 4.0 | 5.0 | 6.0
+        m[(0, 0)] = 1.0;
+        m[(0, 1)] = 2.0;
+        m[(0, 2)] = 3.0;
+        m[(1, 0)] = 4.0;
+        m[(1, 1)] = 5.0;
+        m[(1, 2)] = 6.0;
+
+        // Assert
+        assert_eq!(3.0, m[(0, 2)]);
     }
 
     #[test]
@@ -226,11 +278,11 @@ mod tests {
         m1 += &m2;
 
         // Assert
-        assert_approx_eq!(8.0, m1.get(0, 0));
-        assert_approx_eq!(9.0, m1.get(1, 2));
-        assert_approx_eq!(1.0, m1.get(2, 0));
-        assert_approx_eq!(1.0, m1.get(2, 1));
-        assert_approx_eq!(7.0, m1.get(2, 2));
+        assert_approx_eq!(8.0, m1[(0, 0)]);
+        assert_approx_eq!(9.0, m1[(1, 2)]);
+        assert_approx_eq!(1.0, m1[(2, 0)]);
+        assert_approx_eq!(1.0, m1[(2, 1)]);
+        assert_approx_eq!(7.0, m1[(2, 2)]);
     }
 
     #[test]
@@ -243,11 +295,11 @@ mod tests {
         m1 -= &m2;
 
         // Assert
-        assert_approx_eq!(-6.0, m1.get(0, 0));
-        assert_approx_eq!(-1.0, m1.get(1, 2));
-        assert_approx_eq!(1.0, m1.get(2, 0));
-        assert_approx_eq!(-3.0, m1.get(2, 1));
-        assert_approx_eq!(-1.0, m1.get(2, 2));
+        assert_approx_eq!(-6.0, m1[(0, 0)]);
+        assert_approx_eq!(-1.0, m1[(1, 2)]);
+        assert_approx_eq!(1.0, m1[(2, 0)]);
+        assert_approx_eq!(-3.0, m1[(2, 1)]);
+        assert_approx_eq!(-1.0, m1[(2, 2)]);
     }
 
     #[test]
@@ -260,11 +312,11 @@ mod tests {
         m1 /= scalar as usize;
 
         // Assert
-        assert_approx_eq!(1.0 / scalar, m1.get(0, 0));
-        assert_approx_eq!(4.0 / scalar, m1.get(1, 2));
-        assert_approx_eq!(1.0 / scalar, m1.get(2, 0));
-        assert_approx_eq!(-1.0 / scalar, m1.get(2, 1));
-        assert_approx_eq!(3.0 / scalar, m1.get(2, 2));
+        assert_approx_eq!(1.0 / scalar, m1[(0, 0)]);
+        assert_approx_eq!(4.0 / scalar, m1[(1, 2)]);
+        assert_approx_eq!(1.0 / scalar, m1[(2, 0)]);
+        assert_approx_eq!(-1.0 / scalar, m1[(2, 1)]);
+        assert_approx_eq!(3.0 / scalar, m1[(2, 2)]);
     }
 
     #[test]
@@ -277,11 +329,10 @@ mod tests {
         let result = scalar * &m1;
 
         // Assert
-        assert_approx_eq!(1.0 * scalar, result.get(0, 0));
-        assert_approx_eq!(4.0 * scalar, result.get(1, 2));
-        assert_approx_eq!(1.0 * scalar, result.get(2, 0));
-        assert_approx_eq!(-1.0 * scalar, result.get(2, 1));
-        assert_approx_eq!(3.0 * scalar, result.get(2, 2));
+        assert_approx_eq!(1.0 * scalar, result[(0, 0)]);
+        assert_approx_eq!(4.0 * scalar, result[(1, 2)]);
+        assert_approx_eq!(1.0 * scalar, result[(2, 0)]);
+        assert_approx_eq!(-1.0 * scalar, result[(2, 1)]);
+        assert_approx_eq!(3.0 * scalar, result[(2, 2)]);
     }
-
 }

@@ -7,7 +7,7 @@ pub fn ax(m: &Matrix2D, x: &Vector) -> Vector {
     for ri in 0..(m.nrows()) {
         let mut tmp = 0.0;
         for ci in 0..(m.ncols()) {
-            tmp += m.get(ri, ci) * x[ci];
+            tmp += m[(ri, ci)] * x[ci];
         }
         ax[ri] = tmp;
     }
@@ -29,10 +29,10 @@ pub fn outer_product(v1: &Vector, v2: &Vector) -> Matrix2D {
     let mut m = Matrix2D::new(v1.dim(), v2.dim());
     for row in 0..v1.dim() {
         let r = v1[row];
-        for column in 0..v2.dim() {
-            let c = v2[column];
+        for col in 0..v2.dim() {
+            let c = v2[col];
             let tmp = r * c;
-            *m.set(row, column) = tmp;
+            m[(row, col)] = tmp;
         }
     }
     m
@@ -70,8 +70,8 @@ mod tests {
 
         // Assert
         assert_eq!(2, ax2.dim());
-        assert_eq!(m.get(0, 0) * x[0] + m.get(0, 1) * x[1] + m.get(0, 2) * x[2] + m.get(0, 3) * x[3], ax2[0]);
-        assert_eq!(m.get(1, 0) * x[0] + m.get(1, 1) * x[1] + m.get(1, 2) * x[2] + m.get(1, 3) * x[3], ax2[1]);
+        assert_eq!(m[(0, 0)] * x[0] + m[(0, 1)] * x[1] + m[(0, 2)] * x[2] + m[(0, 3)] * x[3], ax2[0]);
+        assert_eq!(m[(1, 0)] * x[0] + m[(1, 1)] * x[1] + m[(1, 2)] * x[2] + m[(1, 3)] * x[3], ax2[1]);
     }
 
     #[test]
@@ -103,8 +103,8 @@ mod tests {
         // Assert
         assert_eq!(v1.dim(), result.nrows());
         assert_eq!(v2.dim(), result.ncols());
-        assert_approx_eq!(42.0, result.get(0, 0), 1E-5f64);
-        assert_approx_eq!(-5.0, result.get(1, 3), 1E-5f64);
-        assert_approx_eq!(-9.0, result.get(4, 4), 1E-5f64);
+        assert_approx_eq!(42.0, result[(0, 0)], 1E-5f64);
+        assert_approx_eq!(-5.0, result[(1, 3)], 1E-5f64);
+        assert_approx_eq!(-9.0, result[(4, 4)], 1E-5f64);
     }
 }
