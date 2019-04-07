@@ -62,18 +62,18 @@ impl Index<usize> for Vector {
     }
 }
 
-impl From<Vec<f64>> for Vector {
-    fn from(data: Vec<f64>) -> Self {
-        Vector { data }
-    }
-}
-
 impl IndexMut<usize> for Vector {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         if index >= self.data.len() {
             panic!("Index {} too large", index)
         }
         &mut self.data[index]
+    }
+}
+
+impl From<Vec<f64>> for Vector {
+    fn from(data: Vec<f64>) -> Self {
+        Vector { data }
     }
 }
 
@@ -121,6 +121,30 @@ impl std::ops::AddAssign<&Vector> for Vector {
             let v2 = other.data[idx];
             self.data[idx] = v1 + v2;
         }
+    }
+}
+
+impl std::ops::SubAssign<&Vector> for Vector {
+    fn sub_assign(&mut self, other: &Self) {
+        assert_eq!(self.dim(), other.dim(), "Vectors must have same number of elements");
+        for idx in 0..self.data.len() {
+            let v1 = self.data[idx];
+            let v2 = other.data[idx];
+            self.data[idx] = v1 - v2;
+        }
+    }
+}
+
+impl std::ops::Mul<&Vector> for f64 {
+    type Output = Vector;
+
+    fn mul(self, rhs: &Vector) -> Self::Output {
+        let mut result = Vector::new(rhs.dim());
+        for idx in 0..rhs.data.len() {
+            let value = &rhs.data[idx];
+            result.data[idx] = *value * self;
+        }
+        result
     }
 }
 
@@ -216,6 +240,22 @@ mod tests {
     }
 
     #[test]
+    fn test_vector_subassign() {
+        // Arrange
+        let mut vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+        let vec2: Vector = vec![1.1, 2.2, 3.3, 4.4].into();
+
+        // Act
+        vec1 -= &vec2;
+
+        // Assert
+        assert_approx_eq!(1.0 - 1.1, vec1[0]);
+        assert_approx_eq!(2.0 - 2.2, vec1[1]);
+        assert_approx_eq!(3.0 - 3.3, vec1[2]);
+        assert_approx_eq!(4.0 - 4.4, vec1[3]);
+    }
+
+    #[test]
     fn test_vector_sub() {
         // Arrange
         let vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
@@ -262,6 +302,22 @@ mod tests {
         assert_approx_eq!(2.0 / scalar, vec1[1]);
         assert_approx_eq!(3.0 / scalar, vec1[2]);
         assert_approx_eq!(4.0 / scalar, vec1[3]);
+    }
+
+    #[test]
+    fn test_vector_mul() {
+        // Arrange
+        let vec1: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
+        let scalar = 15.0;
+
+        // Act
+        let result = scalar * &vec1;
+
+        // Assert
+        assert_approx_eq!(1.0 * scalar, result[0]);
+        assert_approx_eq!(2.0 * scalar, result[1]);
+        assert_approx_eq!(3.0 * scalar, result[2]);
+        assert_approx_eq!(4.0 * scalar, result[3]);
     }
 
     #[test]
