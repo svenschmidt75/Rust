@@ -62,27 +62,28 @@ impl Matrix2D {
     }
 }
 
+fn binary_op<F>(lhs: &mut Matrix2D, rhs: &Matrix2D, f: F)
+where
+    F: Fn(f64, f64) -> f64,
+{
+    assert_eq!(lhs.nrows(), rhs.nrows(), "Matrices must have same number of rows");
+    assert_eq!(lhs.ncols(), rhs.ncols(), "Matrices must have same number of columns");
+    for idx in 0..lhs.data.len() {
+        let v1 = lhs.data[idx];
+        let v2 = rhs.data[idx];
+        lhs.data[idx] = f(v1, v2);
+    }
+}
+
 impl std::ops::AddAssign<&Matrix2D> for Matrix2D {
     fn add_assign(&mut self, other: &Self) {
-        assert_eq!(self.nrows(), other.nrows(), "Matrices must have same number of rows");
-        assert_eq!(self.ncols(), other.ncols(), "Matrices must have same number of columns");
-        for idx in 0..self.data.len() {
-            let v1 = self.data[idx];
-            let v2 = other.data[idx];
-            self.data[idx] = v1 + v2;
-        }
+        binary_op(self, other, |x, y| x + y);
     }
 }
 
 impl std::ops::SubAssign<&Matrix2D> for Matrix2D {
     fn sub_assign(&mut self, other: &Self) {
-        assert_eq!(self.nrows(), other.nrows(), "Matrices must have same number of rows");
-        assert_eq!(self.ncols(), other.ncols(), "Matrices must have same number of columns");
-        for idx in 0..self.data.len() {
-            let v1 = self.data[idx];
-            let v2 = other.data[idx];
-            self.data[idx] = v1 - v2;
-        }
+        binary_op(self, other, |x, y| x - y);
     }
 }
 

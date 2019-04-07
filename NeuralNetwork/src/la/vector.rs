@@ -113,25 +113,27 @@ impl std::ops::DivAssign<usize> for Vector {
     }
 }
 
+fn binary_op<F>(lhs: &mut Vector, rhs: &Vector, f: F)
+where
+    F: Fn(f64, f64) -> f64,
+{
+    assert_eq!(lhs.dim(), rhs.dim(), "Vectors must have same number of elements");
+    for idx in 0..lhs.data.len() {
+        let v1 = lhs.data[idx];
+        let v2 = rhs.data[idx];
+        lhs.data[idx] = f(v1, v2);
+    }
+}
+
 impl std::ops::AddAssign<&Vector> for Vector {
     fn add_assign(&mut self, other: &Self) {
-        assert_eq!(self.dim(), other.dim(), "Vectors must have same number of elements");
-        for idx in 0..self.data.len() {
-            let v1 = self.data[idx];
-            let v2 = other.data[idx];
-            self.data[idx] = v1 + v2;
-        }
+        binary_op(self, other, |x, y| x + y);
     }
 }
 
 impl std::ops::SubAssign<&Vector> for Vector {
     fn sub_assign(&mut self, other: &Self) {
-        assert_eq!(self.dim(), other.dim(), "Vectors must have same number of elements");
-        for idx in 0..self.data.len() {
-            let v1 = self.data[idx];
-            let v2 = other.data[idx];
-            self.data[idx] = v1 - v2;
-        }
+        binary_op(self, other, |x, y| x - y);
     }
 }
 
