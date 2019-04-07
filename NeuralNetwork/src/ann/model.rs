@@ -9,6 +9,7 @@ use crate::ann::minibatch::Minibatch;
 use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
+use std::cmp;
 
 pub struct Model {
     layers: Vec<Box<dyn Layer>>,
@@ -67,7 +68,8 @@ impl Model {
         let mut trainingdata_indices: Vec<_> = (0..training_data.len()).collect();
         let mut rng = thread_rng();
 
-        let mut mbs = (0..minibatch_size).map(|_| self.create_minibatch()).collect::<Vec<_>>();
+        let mbsize = training_data.len() / minibatch_size;
+        let mut mbs = (0..mbsize).map(|_| self.create_minibatch()).collect::<Vec<_>>();
 
         let n_minibatches = Model::number_of_minibatches(trainingdata_indices.len(), minibatch_size);
 
@@ -79,7 +81,7 @@ impl Model {
             let chunks = trainingdata_indices.chunks_mut(n_minibatches);
 
             for chunk in chunks {
-                for minibatch_index in 0..minibatch_size {
+                for minibatch_index in 0..mbsize {
                     let mb = &mut mbs[minibatch_index];
                     let training_sample = &training_data[chunk[minibatch_index]];
                     let known_classification = &training_sample.output_activations;
@@ -439,14 +441,28 @@ mod tests {
         let data = (&training_data, &vec![], &vec![]);
 
         // Act
-        model.train(&data, 10000, 0.0001, 1.0, 1, &QuadraticCost {});
+        model.train(&data, 1000, 0.05, 1.0, 4, &QuadraticCost {});
 
         // Assert
         let mut mb = model.create_minibatch();
         mb.z[0] = Vector::from(vec![0.0, 0.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
+        assert_approx_eq!(0.06767588917975884, &mb.a[2][0], 1E-2);
 
-        assert_approx_eq!(0.0, &mb.a[2][0]);
+        mb.z[0] = Vector::from(vec![1.0, 0.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        model.feedforward(&mut mb);
+        //        assert_approx_eq!(0.18941306978303418, &mb.a[2][0], 1E-2);
+
+        mb.z[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        model.feedforward(&mut mb);
+        //        assert_approx_eq!(0.06869306322881202, &mb.a[2][0], 1E-2);
+
+        mb.z[0] = Vector::from(vec![1.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        model.feedforward(&mut mb);
+        //        assert_approx_eq!(0.5705021128252346, &mb.a[2][0], 1E-2);
     }
 }
