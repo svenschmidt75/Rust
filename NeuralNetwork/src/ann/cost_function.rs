@@ -69,14 +69,10 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let weights1 = Matrix2D::new_from_data(3, 2, vec![0.01, 0.02, 0.03, 0.04, 0.05, 0.06]);
-        let biases1: Vector = vec![0.1, 0.2, 0.3].into();
-        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Id {}));
+        let hidden_layer = FCLayer::new(3, Box::new(Id {}));
         model.add(Box::new(hidden_layer));
 
-        let weights2 = Matrix2D::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
-        let biases2: Vector = vec![0.1].into();
-        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(Id {}));
+        let output_layer = FCLayer::new(1, Box::new(Id {}));
         model.add(Box::new(output_layer));
 
         // Act

@@ -14,6 +14,17 @@ pub struct Model {
     layers: Vec<Box<dyn Layer>>,
 }
 
+fn get_neighbors2<U, T>(v: &mut Vec<T>, idx: usize) -> (&U, &mut U)
+where
+    T: Sized + AsRef<U> + AsMut<U>,
+    U: ?Sized,
+{
+    let (l, r) = v.split_at_mut(idx);
+    let item1 = l.last().unwrap().as_ref();
+    let item2 = r[0].as_mut();
+    (item1, item2)
+}
+
 impl Model {
     pub fn new() -> Model {
         Model { layers: vec![] }
@@ -29,6 +40,14 @@ impl Model {
 
     pub fn output_layer_index(&self) -> usize {
         self.layers.len() - 1
+    }
+
+    pub fn get_weights(&self, layer_index: usize) -> &Matrix2D {
+        &self.layers[layer_index].get_weights()
+    }
+
+    pub fn get_biases(&self, layer_index: usize) -> &Vector {
+        &self.layers[layer_index].get_biases()
     }
 
     fn number_of_minibatches(training_data_size: usize, minibatch_size: usize) -> usize {
@@ -59,12 +78,7 @@ impl Model {
 
         // print update step after each epoch
 
-        for idx in 1..self.layers.len() {
-            let (l, r) = &mut self.layers.split_at_mut(idx);
-            let prev = l.last().unwrap().as_ref();
-            let mut current = r[0].as_mut();
-            current.initialize(prev);
-        }
+        self.initialize_layers();
 
         let training_data = data.0;
         let mut trainingdata_indices: Vec<_> = (0..training_data.len()).collect();
@@ -96,6 +110,13 @@ impl Model {
             }
 
             // SS: epoch completed, print statistics
+        }
+    }
+
+    fn initialize_layers(&mut self) {
+        for idx in 1..self.layers.len() {
+            let (prev, current) = get_neighbors2(&mut self.layers, idx);
+            current.initialize(prev);
         }
     }
 
@@ -230,14 +251,10 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let weights1 = Matrix2D::new_from_data(3, 2, vec![0.0, 0.01, 0.02, 0.10, 0.11, 0.12]);
-        let biases1: Vector = vec![0.1, 0.2, 0.3].into();
-        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
+        let hidden_layer = FCLayer::new(3, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let weights2 = Matrix2D::new_from_data(1, 3, vec![0.1, 0.2, 0.3]);
-        let biases2: Vector = vec![0.1].into();
-        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(ReLU {}));
+        let output_layer = FCLayer::new(1, Box::new(ReLU {}));
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
@@ -248,6 +265,10 @@ mod tests {
         model.feedforward(&mut mb);
 
         // Assert
+        let weights1 = model.get_weights(1);
+        let weights2 = model.get_weights(2);
+        let biases1 = model.get_biases(1);
+        let biases2 = model.get_biases(2);
 
         // a^{1}_{0}
         let a10 = activation::sigmoid(weights1[(0, 0)] * mb.a[0][0] + weights1[(0, 1)] * mb.a[0][1] + biases1[0]);
@@ -274,14 +295,10 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
-        let biases1: Vector = vec![0.2, 0.2].into();
-        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
+        let hidden_layer = FCLayer::new(2, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let weights2 = Matrix2D::new_from_data(1, 2, vec![0.3, 0.3]);
-        let biases2: Vector = vec![0.4].into();
-        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(Sigmoid {}));
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
@@ -310,14 +327,10 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
-        let biases1: Vector = vec![0.2, 0.2].into();
-        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
+        let hidden_layer = FCLayer::new(2, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let weights2 = Matrix2D::new_from_data(1, 2, vec![0.3, 0.3]);
-        let biases2: Vector = vec![0.4].into();
-        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(Sigmoid {}));
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
@@ -366,14 +379,12 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
-        let biases1: Vector = vec![0.2, 0.2].into();
-        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
+        let hidden_layer = FCLayer::new(2, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
         let weights2 = Matrix2D::new_from_data(1, 2, vec![0.3, 0.3]);
         let biases2: Vector = vec![0.4].into();
-        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(Sigmoid {}));
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
@@ -402,14 +413,10 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let weights1 = Matrix2D::new_from_data(2, 2, vec![0.1, 0.1, 0.1, 0.1]);
-        let biases1: Vector = vec![0.2, 0.2].into();
-        let hidden_layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Sigmoid {}));
+        let hidden_layer = FCLayer::new(2, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let weights2 = Matrix2D::new_from_data(1, 2, vec![0.3, 0.3]);
-        let biases2: Vector = vec![0.4].into();
-        let output_layer = FCLayer::new(weights2.clone(), biases2.clone(), Box::new(Sigmoid {}));
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
@@ -476,10 +483,10 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let hidden_layer = FCLayer::new2(50, Box::new(Sigmoid {}));
+        let hidden_layer = FCLayer::new(50, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let output_layer = FCLayer::new2(1, Box::new(Sigmoid {}));
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
@@ -537,5 +544,4 @@ mod tests {
         model.feedforward(&mut mb);
         assert_approx_eq!(0.46, &mb.a[2][0], 1E-2);
     }
-
 }
