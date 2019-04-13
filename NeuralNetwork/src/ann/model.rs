@@ -59,8 +59,11 @@ impl Model {
 
         // print update step after each epoch
 
-        for layer in &mut self.layers {
-            layer.initialize();
+        for idx in 1..self.layers.len() {
+            let (l, r) = &mut self.layers.split_at_mut(idx);
+            let prev = l.last().unwrap().as_ref();
+            let mut current = r[0].as_mut();
+            current.initialize(prev);
         }
 
         let training_data = data.0;
@@ -464,4 +467,75 @@ mod tests {
         model.feedforward(&mut mb);
         //        assert_approx_eq!(0.5705021128252346, &mb.a[2][0], 1E-2);
     }
+
+    #[test]
+    fn test_train_model2() {
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(2);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new2(50, Box::new(Sigmoid {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new2(1, Box::new(Sigmoid {}));
+        model.add(Box::new(output_layer));
+
+        let mut mb = model.create_minibatch();
+        mb.z[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+
+        // expected output
+        let y = Vector::from(vec![0.0]);
+
+        //train(&mut self, data: &(&Vec<TrainingData>, &Vec<TrainingData>, &Vec<TrainingData>), epochs: usize, eta: f64, _lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
+
+        // model an AND gate
+        let training_data = vec![
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 1.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 1.0]),
+                output_activations: Vector::from(vec![1.0]),
+            },
+        ];
+        let data = (&training_data, &vec![], &vec![]);
+
+        // Act
+        model.train(&data, 1000, 0.5, 1.0, 4, &QuadraticCost {});
+
+        // Assert
+        let mut mb = model.create_minibatch();
+        mb.z[0] = Vector::from(vec![0.0, 0.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        model.feedforward(&mut mb);
+        assert_approx_eq!(0.04, &mb.a[2][0], 1E-2);
+
+        mb.z[0] = Vector::from(vec![1.0, 0.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        model.feedforward(&mut mb);
+        assert_approx_eq!(0.17, &mb.a[2][0], 1E-2);
+
+        mb.z[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        model.feedforward(&mut mb);
+        assert_approx_eq!(0.17, &mb.a[2][0], 1E-2);
+
+        mb.z[0] = Vector::from(vec![1.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        model.feedforward(&mut mb);
+        assert_approx_eq!(0.46, &mb.a[2][0], 1E-2);
+    }
+
 }

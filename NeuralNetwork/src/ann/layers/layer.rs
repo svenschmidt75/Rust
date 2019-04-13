@@ -4,9 +4,11 @@ use crate::ann::activation::Activation;
 use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub trait Layer {
-    fn initialize(&mut self);
+    fn initialize(&mut self, prev_layer: &Layer);
 
     //    fn on_start_new_epoch();
     fn feedforward(&self, a: &Vector) -> (Vector, Vector);
@@ -25,13 +27,28 @@ pub trait Layer {
 pub struct FCLayer {
     weights: Matrix2D,
     biases: Vector,
+    nneurons: usize,
     activation: Box<dyn Activation>,
 }
 
 impl FCLayer {
     pub fn new(weights: Matrix2D, biases: Vector, activation: Box<dyn Activation>) -> FCLayer {
         assert_eq!(weights.nrows(), biases.dim());
-        FCLayer { weights, biases, activation }
+        FCLayer {
+            weights: weights,
+            biases: biases,
+            activation,
+            nneurons: 1,
+        }
+    }
+
+    pub fn new2(nneurons: usize, activation: Box<dyn Activation>) -> FCLayer {
+        FCLayer {
+            weights: Matrix2D::new(2, 2),
+            biases: Vector::new(2),
+            activation,
+            nneurons,
+        }
     }
 
     fn get_weight(&self, i: usize, j: usize) -> f64 {
@@ -42,7 +59,16 @@ impl FCLayer {
 }
 
 impl Layer for FCLayer {
-    fn initialize(&mut self) {
+    fn initialize(&mut self, prev_layer: &Layer) {
+        // SS: Number of neurons in previous layer
+        let n = prev_layer.nactivations();
+
+        // nrows: number of neurons in current layer
+        // ncols: number of neurons in previous layer
+        self.weights = Matrix2D::new(self.nneurons, n);
+
+        self.biases = Vector::new(self.nneurons);
+
         let mut rng = rand::thread_rng();
         for row in 0..self.weights.nrows() {
             for col in 0..self.weights.ncols() {
@@ -100,7 +126,7 @@ impl InputLayer {
 }
 
 impl Layer for InputLayer {
-    fn initialize(&mut self) {}
+    fn initialize(&mut self, prev_layer: &Layer) {}
 
     fn feedforward(&self, _a: &Vector) -> (Vector, Vector) {
         unreachable!()
@@ -143,7 +169,7 @@ mod tests {
         let mut layer = FCLayer::new(weights1.clone(), biases1.clone(), Box::new(Id {}));
 
         // Act
-        layer.initialize();
+        //        layer.initialize();
 
         // Assert
         assert!(layer.get_weights()[(0, 0)] <= 1.0 / 100.0);
