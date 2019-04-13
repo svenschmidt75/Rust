@@ -66,3 +66,9 @@ NeuralNetwork/target/debug/
 NeuralNetwork/target/
 
 NeuralNetwork/Cargo\.lock
+
+Playground/ErrorHandling/\.idea/
+
+Playground/ErrorHandling/Cargo\.lock
+
+Playground/ErrorHandling/target/
