@@ -22,6 +22,8 @@ pub trait Layer {
     fn get_biases_mut(&mut self) -> &mut Vector;
 
     fn get_activation(&self) -> &Activation;
+
+    fn print_summary(&self);
 }
 
 pub struct FCLayer {
@@ -105,6 +107,11 @@ impl Layer for FCLayer {
     fn get_activation(&self) -> &Activation {
         &*self.activation
     }
+
+    fn print_summary(&self) {
+        let nparams = self.weights.ncols() * self.weights.nrows() + self.biases.dim();
+        println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
+    }
 }
 
 pub struct InputLayer {
@@ -145,6 +152,10 @@ impl Layer for InputLayer {
     }
 
     fn get_activation(&self) -> &Activation {
+        unreachable!()
+    }
+
+    fn print_summary(&self) {
         unreachable!()
     }
 }

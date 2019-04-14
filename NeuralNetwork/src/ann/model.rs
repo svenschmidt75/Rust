@@ -78,7 +78,25 @@ impl Model {
 
         // print update step after each epoch
 
+        // print out number of layers, number of parameters, etc.
+        //        configuration += fmt.Sprintf("%d\n", n.nodes[len(n.nodes)-1])
+        //        fmt.Print("\nNetwork configuration: ", configuration)
+        //        fmt.Printf("Training batch size: %d\n", len(trainingSamples))
+        //        fmt.Printf("Validation batch size: %d\n", len(validationSamples))
+        //        fmt.Printf("Minibatch size: %d\n", sizeMiniBatch)
+        //        fmt.Printf("Number of minibatches: %d\n", nMiniBatches)
+        //        fmt.Printf("Learning rate: %f\n", eta)
+        //        fmt.Printf("Cost function: %s\n", costFunction)
+        //        fmt.Printf("L2 regularization: %f\n\n", lambda)
+
         self.initialize_layers();
+
+        println!("{:15} | {:15} | {:15}", "layer type", "shape", "param #");
+        println!("{:->15} | {:->15} | {:->15}", "-", "-", "-");
+        for layer in self.layers.iter().skip(1) {
+            layer.print_summary();
+        }
+        println!("{:->15} | {:->15} | {:->15}", "-", "-", "-");
 
         let training_data = data.0;
         let mut trainingdata_indices: Vec<_> = (0..training_data.len()).collect();
@@ -224,9 +242,7 @@ impl Model {
         }
     }
 
-    pub fn summary(&self) {
-        // print out number of layers, number of parameters, etc.
-    }
+    pub fn summary(&self) {}
 }
 
 #[cfg(test)]
@@ -495,8 +511,6 @@ mod tests {
 
         // expected output
         let y = Vector::from(vec![0.0]);
-
-        //train(&mut self, data: &(&Vec<TrainingData>, &Vec<TrainingData>, &Vec<TrainingData>), epochs: usize, eta: f64, _lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
 
         // model an AND gate
         let training_data = vec![
