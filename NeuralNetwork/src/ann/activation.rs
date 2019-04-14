@@ -7,7 +7,7 @@ pub trait Activation {
     fn df(&self, v: &Vector) -> Vector;
 }
 
-pub struct Sigmoid {}
+pub struct Sigmoid;
 
 pub fn sigmoid(z: f64) -> f64 {
     1.0 / (1.0 + (-z).exp())
@@ -27,7 +27,7 @@ impl Activation for Sigmoid {
     }
 }
 
-pub struct ReLU {}
+pub struct ReLU;
 
 pub fn relu(z: f64) -> f64 {
     z.max(0.0)
@@ -52,7 +52,7 @@ impl Activation for ReLU {
     }
 }
 
-pub struct LeakyReLU {}
+pub struct LeakyReLU;
 
 pub fn leaky_relu(z: f64) -> f64 {
     if z <= 0.0 {
@@ -80,7 +80,7 @@ impl Activation for LeakyReLU {
     }
 }
 
-pub struct Tanh {}
+pub struct Tanh;
 
 pub fn tanh(z: f64) -> f64 {
     2.0 / (1.0 + (-2.0 * z).exp()) - 1.0
@@ -101,7 +101,7 @@ impl Activation for Tanh {
     }
 }
 
-pub struct SoftMax {}
+pub struct SoftMax;
 
 impl Activation for SoftMax {
     fn f(&self, v: &Vector) -> Vector {
@@ -117,7 +117,7 @@ impl Activation for SoftMax {
     }
 }
 
-pub struct Id {}
+pub struct Id;
 
 impl Activation for Id {
     fn f(&self, v: &Vector) -> Vector {
@@ -126,6 +126,26 @@ impl Activation for Id {
 
     fn df(&self, v: &Vector) -> Vector {
         Vector::from((0..v.dim()).map(|_| 0.0).collect::<Vec<_>>())
+    }
+}
+
+pub struct Sin;
+
+pub fn sin(z: f64) -> f64 {
+    z.sin()
+}
+
+pub fn cos(z: f64) -> f64 {
+    z.cos()
+}
+
+impl Activation for Sin {
+    fn f(&self, v: &Vector) -> Vector {
+        ops::f(v, &sin)
+    }
+
+    fn df(&self, v: &Vector) -> Vector {
+        ops::f(v, &cos)
     }
 }
 

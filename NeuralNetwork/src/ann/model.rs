@@ -1,15 +1,17 @@
+use std::cmp;
+
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
 use crate::ann::activation::Activation;
 use crate::ann::cost_function::CostFunction;
+use crate::ann::cost_function::QuadraticCost;
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
 use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
-use std::cmp;
 
 pub struct Model {
     layers: Vec<Box<dyn Layer>>,
@@ -252,6 +254,56 @@ impl Model {
     }
 
     pub fn summary(&self) {}
+
+    fn calculate_delta(model: &Model, layer_index: usize, mb: &Minibatch, x: &TrainingData) -> Vector {
+        let output_layer_index = model.output_layer_index();
+        if layer_index == output_layer_index {
+            let layer = model.get_layer(layer_index);
+            let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
+            return (&mb.a[layer_index] - &x.output_activations).hadamard(&sigma_prime);
+        }
+        let delta_next = Model::calculate_delta(&model, layer_index + 1, &mb, &x);
+        let w_tr = model.get_weights(layer_index).transpose();
+        let layer = model.get_layer(layer_index);
+        let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
+        w_tr.ax(&delta_next).hadamard(&sigma_prime)
+    }
+
+    fn grad_bias(model: &mut Model, layer_index: usize, xs: &[TrainingData]) -> Vector {
+        assert!(layer_index > 0);
+        let layer = model.get_layer(layer_index);
+        let mut db = Vector::new(layer.nactivations());
+        let mut mb = model.create_minibatch();
+
+        for training_sample in xs {
+            let known_classification = &training_sample.output_activations;
+            mb.a[0] = training_sample.input_activations.clone();
+            model.feedforward(&mut mb);
+            let delta = Model::calculate_delta(&model, layer_index, &mb, &training_sample);
+            db += &delta;
+        }
+        db /= xs.len();
+        db
+    }
+
+    fn grad_weight(model: &mut Model, layer_index: usize, xs: &[TrainingData]) -> Matrix2D {
+        assert!(layer_index > 0);
+        let prev_layer = model.get_layer(layer_index - 1);
+        let layer = model.get_layer(layer_index);
+        let mut dw = Matrix2D::new(layer.nactivations(), prev_layer.nactivations());
+        let mut mb = model.create_minibatch();
+
+        for training_sample in xs {
+            let known_classification = &training_sample.output_activations;
+            mb.a[0] = training_sample.input_activations.clone();
+            model.feedforward(&mut mb);
+            let delta = Model::calculate_delta(&model, layer_index, &mb, &training_sample);
+            let tmp = ops::outer_product(&delta, &mb.a[layer_index - 1]);
+            dw += &tmp;
+        }
+        dw /= xs.len();
+        dw
+    }
 }
 
 #[cfg(test)]
@@ -571,5 +623,43 @@ mod tests {
         model.feedforward(&mut mb);
         //        assert_approx_eq!(0.46, &mb.a[2][0], 1E-2);
         println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
+    }
+
+    #[test]
+    fn test_train_sin_x() {
+        use crate::ann::activation::Sin;
+
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(1);
+        model.add(Box::new(input_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Sin {}));
+        model.add(Box::new(output_layer));
+
+        // model an AND gate
+        let training_data = (0..1000)
+            .map(|x| (x as f64) / 10.0)
+            .map(|x| TrainingData {
+                input_activations: Vector::from(vec![x]),
+                output_activations: Vector::from(vec![x.sin()]),
+            })
+            .collect::<Vec<_>>();
+        let data = (&training_data, &vec![], &vec![]);
+
+        // Act
+        model.train(&data, 1000, 0.05, 1.0, 4, &QuadraticCost {});
+
+        // Assert
+        let weights = model.get_weights(1);
+        let biiases = model.get_biases(1);
+
+        let output_layer_index = 1;
+        let mut mb = model.create_minibatch();
+        mb.a[0] = Sin {}.f(&Vector::from(vec![0.0]));
+        model.feedforward(&mut mb);
+        //        assert_approx_eq!(0.04, &mb.a[output_layer_index][0], 1E-2);
+        println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
     }
 }
