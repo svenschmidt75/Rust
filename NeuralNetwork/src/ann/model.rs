@@ -9,6 +9,7 @@ use crate::ann::minibatch::Minibatch;
 use crate::la::matrix::Matrix2D;
 use crate::la::ops;
 use crate::la::vector::Vector;
+use std::cmp;
 
 pub struct Model {
     layers: Vec<Box<dyn Layer>>,
@@ -50,13 +51,9 @@ impl Model {
         &self.layers[layer_index].get_biases()
     }
 
-    fn number_of_minibatches(training_data_size: usize, minibatch_size: usize) -> usize {
+    fn number_of_minibatches(training_data_size: usize, minibatch_size: usize) -> (usize, usize) {
         let n_minibatches = training_data_size / minibatch_size;
-        if training_data_size % minibatch_size != 0 {
-            n_minibatches + 1
-        } else {
-            n_minibatches
-        }
+        (n_minibatches, training_data_size % minibatch_size)
     }
 
     // pass in training and validation data
@@ -78,18 +75,17 @@ impl Model {
 
         // print update step after each epoch
 
-        // print out number of layers, number of parameters, etc.
-        //        configuration += fmt.Sprintf("%d\n", n.nodes[len(n.nodes)-1])
-        //        fmt.Print("\nNetwork configuration: ", configuration)
-        //        fmt.Printf("Training batch size: %d\n", len(trainingSamples))
-        //        fmt.Printf("Validation batch size: %d\n", len(validationSamples))
-        //        fmt.Printf("Minibatch size: %d\n", sizeMiniBatch)
-        //        fmt.Printf("Number of minibatches: %d\n", nMiniBatches)
-        //        fmt.Printf("Learning rate: %f\n", eta)
-        //        fmt.Printf("Cost function: %s\n", costFunction)
-        //        fmt.Printf("L2 regularization: %f\n\n", lambda)
-
         self.initialize_layers();
+
+        let training_data = data.0;
+        let mut trainingdata_indices: Vec<_> = (0..training_data.len()).collect();
+        let mut rng = thread_rng();
+
+        // SS: training samples per minibatch
+        let mb_size = cmp::min(training_data.len(), minibatch_size);
+        let mut mbs = (0..mb_size).map(|_| self.create_minibatch()).collect::<Vec<_>>();
+
+        let (n_minibatches, remainder) = Model::number_of_minibatches(trainingdata_indices.len(), mb_size);
 
         println!("{:15} | {:15} | {:15}", "layer type", "shape", "param #");
         println!("{:->15} | {:->15} | {:->15}", "-", "-", "-");
@@ -97,27 +93,36 @@ impl Model {
             layer.print_summary();
         }
         println!("{:->15} | {:->15} | {:->15}", "-", "-", "-");
+        println!();
 
-        let training_data = data.0;
-        let mut trainingdata_indices: Vec<_> = (0..training_data.len()).collect();
-        let mut rng = thread_rng();
+        println!("Number of training samples: {}", data.0.len());
+        println!("Number of validation samples: {}", data.1.len());
+        println!("Number of test samples: {}", data.2.len());
+        println!();
 
-        let mbsize = training_data.len() / minibatch_size;
-        let mut mbs = (0..mbsize).map(|_| self.create_minibatch()).collect::<Vec<_>>();
+        println!("Minibatch size: {}", mb_size);
+        println!("Number of minibatches: {}", n_minibatches);
+        println!();
 
-        let n_minibatches = Model::number_of_minibatches(trainingdata_indices.len(), minibatch_size);
+        println!("Learning rate: {}", eta);
+        println!("Number of epochs: {}", epochs);
+        println!("L2 regularization: {}", _lambda);
+        println!();
 
         for _epoch in 0..epochs {
             // random shuffle on training data
             trainingdata_indices.shuffle(&mut rng);
 
-            // split the training data into as many chunks as we have minibatches
-            let chunks = trainingdata_indices.chunks_mut(n_minibatches);
+            // SS: Split the training data into chunks, each the size of a minibatch.
+            // #chunks = mb_size, plus remainder
+            let chunks = trainingdata_indices.chunks(mb_size);
 
             for chunk in chunks {
-                for minibatch_index in 0..mbsize {
-                    let mb = &mut mbs[minibatch_index];
-                    let training_sample = &training_data[chunk[minibatch_index]];
+                //                println!("{:?}", chunk);
+                for idx in 0..chunk.len() {
+                    let mb = &mut mbs[idx];
+                    let training_sample_idx = chunk[idx];
+                    let training_sample = &training_data[training_sample_idx];
                     let known_classification = &training_sample.output_activations;
                     mb.a[0] = training_sample.input_activations.clone();
                     self.feedforward(mb);
@@ -499,7 +504,7 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let hidden_layer = FCLayer::new(50, Box::new(Sigmoid {}));
+        let hidden_layer = FCLayer::new(10, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
         let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
@@ -534,7 +539,7 @@ mod tests {
         let data = (&training_data, &vec![], &vec![]);
 
         // Act
-        model.train(&data, 1000, 0.5, 1.0, 4, &QuadraticCost {});
+        model.train(&data, 1000, 0.05, 1.0, 4, &QuadraticCost {});
 
         // Assert
         let mut mb = model.create_minibatch();
