@@ -256,6 +256,7 @@ impl Model {
     pub fn summary(&self) {}
 
     fn calculate_delta(model: &Model, layer_index: usize, mb: &Minibatch, x: &TrainingData) -> Vector {
+        // SS: same as backprop, but here we are using recursion
         let output_layer_index = model.output_layer_index();
         if layer_index == output_layer_index {
             let layer = model.get_layer(layer_index);
@@ -270,6 +271,7 @@ impl Model {
     }
 
     fn grad_bias(model: &mut Model, layer_index: usize, xs: &[TrainingData]) -> Vector {
+        // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
         let layer = model.get_layer(layer_index);
         let mut db = Vector::new(layer.nactivations());
@@ -287,6 +289,7 @@ impl Model {
     }
 
     fn grad_weight(model: &mut Model, layer_index: usize, xs: &[TrainingData]) -> Matrix2D {
+        // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
         let prev_layer = model.get_layer(layer_index - 1);
         let layer = model.get_layer(layer_index);
@@ -629,6 +632,11 @@ mod tests {
     fn test_train_sin_x() {
         use crate::ann::activation::Sin;
 
+        /* Train f(x) = sin(x) where x is the input activation and
+         * sin is the activation function of the output layer.
+         * Basically, z^{1}_{0} = sigma(w * x + b), where w=1 and b=0.
+         */
+
         // Arrange
         let mut model = Model::new();
 
@@ -638,9 +646,11 @@ mod tests {
         let output_layer = FCLayer::new(1, Box::new(Sin {}));
         model.add(Box::new(output_layer));
 
-        // model an AND gate
-        let training_data = (0..1000)
-            .map(|x| (x as f64) / 10.0)
+        // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let ntraining_samples = 1000;
+        let step = std::f64::consts::PI / ntraining_samples as f64;
+        let training_data = (0..ntraining_samples)
+            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
             .map(|x| TrainingData {
                 input_activations: Vector::from(vec![x]),
                 output_activations: Vector::from(vec![x.sin()]),
@@ -649,17 +659,15 @@ mod tests {
         let data = (&training_data, &vec![], &vec![]);
 
         // Act
-        model.train(&data, 1000, 0.05, 1.0, 4, &QuadraticCost {});
+        model.train(&data, 10, 0.05, 1.0, 4, &QuadraticCost {});
 
         // Assert
         let weights = model.get_weights(1);
-        let biiases = model.get_biases(1);
+        let expected_weight = 1.0;
+        assert_approx_eq!(expected_weight, weights[(0, 0)], 1E-8);
 
-        let output_layer_index = 1;
-        let mut mb = model.create_minibatch();
-        mb.a[0] = Sin {}.f(&Vector::from(vec![0.0]));
-        model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.04, &mb.a[output_layer_index][0], 1E-2);
-        println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
+        let biases = model.get_biases(1);
+        let expected_bias = 0.0;
+        assert_approx_eq!(expected_bias, biases[0], 1E-8);
     }
 }
