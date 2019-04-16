@@ -670,4 +670,63 @@ mod tests {
         let expected_bias = 0.0;
         assert_approx_eq!(expected_bias, biases[0], 1E-8);
     }
+
+    #[test]
+    fn test_train_sin_x_plus_sin_y() {
+        use crate::ann::activation::{Id, Sin};
+
+        /* Train f(x) = u1 * sin(x) + u2 * sin(x) + b2 where x is the input activation and
+         * sin is the activation function of the hidden layer. Id is the activation function
+         * for the output layer.
+         * Basically, z^{2}_{0} = sigma2(w2_0 * sigma1(x) + w2_1 * sigma1(x)) + b2, where w=1 and b=0.
+         */
+
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(1);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new(2, Box::new(Sin {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Id {}));
+        model.add(Box::new(output_layer));
+
+        // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let w2_0 = 1.2;
+        let w2_1 = 0.87;
+        let b2 = -1.1;
+        let ntraining_samples = 1000;
+        let step = std::f64::consts::PI / ntraining_samples as f64;
+        let training_data = (0..ntraining_samples)
+            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+            .map(|x| TrainingData {
+                input_activations: Vector::from(vec![x]),
+                output_activations: Vector::from(vec![w2_0 * x.sin() + w2_1 * x.sin() + b2]),
+            })
+            .collect::<Vec<_>>();
+        let data = (&training_data, &vec![], &vec![]);
+
+        // Act
+        model.train(&data, 1000, 0.05, 1.0, 25, &QuadraticCost {});
+
+        // Assert
+        let weights = model.get_weights(1);
+        let weights = model.get_weights(2);
+        let expected_weight = 1.0;
+        //        assert_approx_eq!(expected_weight, weights[(0, 0)], 1E-8);
+
+        let biases = model.get_biases(1);
+        let biases = model.get_biases(2);
+        let expected_bias = 0.0;
+        //        assert_approx_eq!(expected_bias, biases[0], 1E-8);
+
+        let output_layer_index = 2;
+        let mut mb = model.create_minibatch();
+        mb.a[0] = Vector::from(vec![1.5299556222982293]);
+        model.feedforward(&mut mb);
+        //        assert_approx_eq!(0.46, &mb.a[2][0], 1E-2);
+        println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
+    }
 }

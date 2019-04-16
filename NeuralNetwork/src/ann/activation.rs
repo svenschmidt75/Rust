@@ -125,7 +125,7 @@ impl Activation for Id {
     }
 
     fn df(&self, v: &Vector) -> Vector {
-        Vector::from((0..v.dim()).map(|_| 0.0).collect::<Vec<_>>())
+        Vector::from(vec![1.0; v.dim()])
     }
 }
 

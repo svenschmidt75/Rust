@@ -4,9 +4,9 @@ use crate::la::vector::Vector;
 pub fn ax(m: &Matrix2D, x: &Vector) -> Vector {
     assert_eq!(m.ncols(), x.dim(), "ops.ax: Matrix incompatible with vector");
     let mut ax = Vector::new(m.nrows());
-    for ri in 0..(m.nrows()) {
+    for ri in 0..m.nrows() {
         let mut tmp = 0.0;
-        for ci in 0..(m.ncols()) {
+        for ci in 0..m.ncols() {
             tmp += m[(ri, ci)] * x[ci];
         }
         ax[ri] = tmp;
