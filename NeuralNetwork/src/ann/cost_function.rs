@@ -7,7 +7,7 @@ use crate::la::ops;
 use crate::la::vector::Vector;
 
 pub trait CostFunction {
-    fn cost(&self, model: &mut Model, y: &Vec<TrainingData>) -> f64;
+    fn cost(&self, model: &mut Model, y: &[TrainingData]) -> f64;
 
     fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector;
 }
@@ -23,7 +23,7 @@ impl QuadraticCost {
 }
 
 impl CostFunction for QuadraticCost {
-    fn cost(&self, model: &mut Model, y: &Vec<TrainingData>) -> f64 {
+    fn cost(&self, model: &mut Model, y: &[TrainingData]) -> f64 {
         let mut total_cost = 0.0;
 
         // SS: can use map and sum here...
