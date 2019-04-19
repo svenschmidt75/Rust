@@ -353,6 +353,70 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_deltas_1() {
+        use crate::ann::activation::Id;
+
+        // Model used: f(x) = a * x + b * x + c
+        // w^{1}_{00} = a = 1.8
+        // w^{1}_{10} = b = 0.5
+        // Activation function  for hidden layer: Id
+        // w^{2}_{00} = 1
+        // w^{2}_{01} = 1
+        // Activation function  for output layer: Id
+        // b^{1}_{0} + b^{1}_{1} + b^{2}_{0} = c = -1.2
+
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(1);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new(2, Box::new(Id {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Id {}));
+        model.add(Box::new(output_layer));
+
+        // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let u1 = 1.8;
+        let u2 = 0.5;
+        let c = -1.2;
+        let ntraining_samples = 1000;
+        let step = std::f64::consts::PI / ntraining_samples as f64;
+        let training_data = (0..ntraining_samples)
+            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+            .map(|x| TrainingData {
+                input_activations: Vector::from(vec![x]),
+                output_activations: Vector::from(vec![u1 * x + u2 * x + c]),
+            })
+            .collect::<Vec<_>>();
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+        model.train(&data, 5, 0.005, 1.0, 25, &QuadraticCost {});
+
+        // Act
+        let mut mb = model.create_minibatch();
+        let training_sample = &training_data[0];
+        mb.a[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mb);
+
+        // Assert
+
+        // layer 2 - output layer
+        let delta_numeric = model.calculate_delta(2, &mb, training_sample);
+        model.backprop(&mut mb, &QuadraticCost {}, &training_sample.output_activations);
+        let delta_analytic = &mb.error[2];
+        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
+
+        // layer 1 - hidden layer
+        let delta_numeric = model.calculate_delta(1, &mb, training_sample);
+        model.backprop(&mut mb, &QuadraticCost {}, &training_sample.output_activations);
+        let delta_analytic = &mb.error[1];
+        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
+        assert_approx_eq!(delta_numeric[1], delta_analytic[1], 1E-8);
+    }
+
+    #[test]
     fn test_derivative_1() {
         use crate::ann::activation::Id;
 
