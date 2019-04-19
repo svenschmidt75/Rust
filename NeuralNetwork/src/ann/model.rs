@@ -115,7 +115,7 @@ impl Model {
         println!("L2 regularization: {}", _lambda);
         println!();
 
-        for _epoch in 0..epochs {
+        for epoch in 0..epochs {
             // random shuffle on training data
             trainingdata_indices.shuffle(&mut rng);
 
@@ -138,8 +138,21 @@ impl Model {
                 self.update_network(eta, dws, dbs);
             }
 
-            // SS: epoch completed, print statistics
+            // SS: epoch completed, print cost for all training samples, print accuracy
+            //            let accuracy = self.accuracy(training_data);
+            let cost = cost_function.cost(self, training_data);
+            println!("Epoch {} - cost {}", epoch + 1, cost);
         }
+    }
+
+    fn accuracy(&mut self, xs: &[TrainingData]) -> f64 {
+        let mut accuracy = 0.0;
+        let mut mb = self.create_minibatch();
+        for x in xs {
+            mb.a[0] = x.input_activations.clone();
+            self.feedforward(&mut mb);
+        }
+        accuracy
     }
 
     fn initialize_layers(&mut self) {
@@ -843,6 +856,9 @@ mod tests {
 
         /* Train f(x) = u1 * x + u2 * x + c where x is the input activation and
          * Id are the activation functions of the hidden layer and the output layer.
+         * Note: The solution is
+         * u1 + u2 = w^{2}_{0, 0} * w^{1}_{0, 0} + w^{2}_{0, 1} * w^{1}_{1, 0}
+         * c = w^{2}_{0, 0} * b^{1}_{0} + w^{2}_{0, 1} * b^{1}_{1} + b^{2}_{0}
          */
 
         // Arrange
@@ -874,25 +890,15 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 1000, 0.005, 1.0, 25, &QuadraticCost {});
+        model.train(&data, 10, 0.05, 1.0, 25, &QuadraticCost {});
 
         // Assert
-        let weights = model.get_weights(1);
-        let weights = model.get_weights(2);
-        let expected_weight = 1.0;
-        //        assert_approx_eq!(expected_weight, weights[(0, 0)], 1E-8);
-
-        let biases = model.get_biases(1);
-        let biases = model.get_biases(2);
-        let expected_bias = 0.0;
-        //        assert_approx_eq!(expected_bias, biases[0], 1E-8);
-
-        let output_layer_index = 2;
-        let mut mb = model.create_minibatch();
-        mb.a[0] = Vector::from(vec![1.5299556222982293]);
-        model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.46, &mb.a[2][0], 1E-2);
-        println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
+        let b1 = model.get_biases(1);
+        let b2 = model.get_biases(2);
+        let w1 = model.get_weights(1);
+        let w2 = model.get_weights(2);
+        assert_approx_eq!(u1 + u2, w2[(0, 0)] * w1[(0, 0)] + w2[(0, 1)] * w1[(1, 0)], 1E-8);
+        assert_approx_eq!(c, w2[(0, 0)] * b1[0] + w2[(0, 1)] * b1[1] + b2[0], 1E-8);
     }
 
     #[test]
@@ -994,7 +1000,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 1000, 0.05, 1.0, 25, &QuadraticCost {});
+        model.train(&data, 25, 0.5, 1.0, 25, &QuadraticCost {});
 
         // Assert
         let weights = model.get_weights(1);
