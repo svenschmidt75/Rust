@@ -308,16 +308,17 @@ impl Model {
 
     fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize) -> f64 {
         // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
-        let c1 = QuadraticCost {}.cost(self, training_samples);
-        let c2: f64;
-        let mut biases = self.layers[layer_index].get_biases_mut();
-        let delta = 0.0001;
-        let b = biases[la];
-        biases[la] = b + delta;
+        let delta = 0.000001;
         let c2 = QuadraticCost {}.cost(self, training_samples);
         let mut biases = self.layers[layer_index].get_biases_mut();
+        let b = biases[la];
+        biases[la] = b + delta;
+        let c1 = QuadraticCost {}.cost(self, training_samples);
+        let mut biases = self.layers[layer_index].get_biases_mut();
+
+        //: important, restore original bias
         biases[la] = b;
-        (c2 - c1) / delta
+        (c1 - c2) / delta
     }
 
     fn numerical_derivative_weight(model: &mut Model, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize) {
@@ -345,6 +346,9 @@ mod tests {
     #[test]
     fn test_cost() {
         use crate::ann::activation::Id;
+
+        // todo SS: describe model
+
         // Arrange
         let mut model = Model::new();
 
@@ -372,22 +376,22 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-
-        // Act
         model.train(&data, 5, 0.005, 1.0, 25, &QuadraticCost {});
 
         // Act
-        let outputlayer_index = model.output_layer_index();
-        let db = model.numerical_derivative_bias(&training_data[..], 2, 0);
-        let dbs = model.grad_bias(outputlayer_index, &training_data[..]);
-        println!("analytical {} - numerical {}", dbs[0], db);
-
-        let db1 = model.numerical_derivative_bias(&training_data[..], 1, 0);
-        let db2 = model.numerical_derivative_bias(&training_data[..], 1, 1);
-        let dbs = model.grad_bias(1, &training_data[..]);
-        println!("analytical {} - numerical {}", dbs[0], db1);
-
         // Assert
+
+        // layer 2 - output layer
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0);
+        let db_analytic = model.grad_bias(2, &training_data[..]);
+        assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
+
+        // layer 1 - hidden layer
+        let db_numeric_1 = model.numerical_derivative_bias(&training_data[..], 1, 0);
+        let db_numeric_2 = model.numerical_derivative_bias(&training_data[..], 1, 1);
+        let db_analytic = model.grad_bias(1, &training_data[..]);
+        assert_approx_eq!(db_numeric_1, db_analytic[0], 1E-8);
+        assert_approx_eq!(db_numeric_2, db_analytic[1], 1E-8);
     }
 
     #[test]
@@ -743,7 +747,7 @@ mod tests {
 
     #[test]
     fn test_train_4() {
-        use crate::ann::activation::{Id, Sin};
+        use crate::ann::activation::Id;
 
         /* Train f(x) = u1 * x + u2 * x + c where x is the input activation and
          * Id are the activation functions of the hidden layer and the output layer.
