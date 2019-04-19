@@ -321,11 +321,20 @@ impl Model {
         (c1 - c2) / delta
     }
 
-    fn numerical_derivative_weight(model: &mut Model, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize) {
+    fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize) -> f64 {
         // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
         // and pa is the neuron index in the previous layer.
-        //        let data = (training_samples, &vec![], &vec![]);
-        //        model.train(&data, 1000, 0.005, 1.0, 25, &QuadraticCost {});
+        let delta = 0.000001;
+        let c2 = QuadraticCost {}.cost(self, training_samples);
+        let mut weights = self.layers[layer_index].get_weights_mut();
+        let w = weights[(la, pa)];
+        weights[(la, pa)] = w + delta;
+        let c1 = QuadraticCost {}.cost(self, training_samples);
+        let mut weights = self.layers[layer_index].get_weights_mut();
+
+        //: important, restore original bias
+        weights[(la, pa)] = w;
+        (c1 - c2) / delta
     }
 }
 
@@ -344,10 +353,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_cost() {
+    fn test_derivative_1() {
         use crate::ann::activation::Id;
 
-        // todo SS: describe model
+        // Model used: f(x) = a * x + b * x + c
+        // w^{1}_{00} = a = 1.8
+        // w^{1}_{10} = b = 0.5
+        // Activation function  for hidden layer: Id
+        // w^{2}_{00} = 1
+        // w^{2}_{01} = 1
+        // Activation function  for output layer: Id
+        // b^{1}_{0} + b^{1}_{1} + b^{2}_{0} = c = -1.2
 
         // Arrange
         let mut model = Model::new();
@@ -386,12 +402,24 @@ mod tests {
         let db_analytic = model.grad_bias(2, &training_data[..]);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
+        let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 2, 0, 0);
+        let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 2, 0, 1);
+        let dw_analytic = model.grad_weight(2, &training_data[..]);
+        assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
+        assert_approx_eq!(dw_numeric_2, dw_analytic[(0, 1)], 1E-8);
+
         // layer 1 - hidden layer
         let db_numeric_1 = model.numerical_derivative_bias(&training_data[..], 1, 0);
         let db_numeric_2 = model.numerical_derivative_bias(&training_data[..], 1, 1);
         let db_analytic = model.grad_bias(1, &training_data[..]);
         assert_approx_eq!(db_numeric_1, db_analytic[0], 1E-8);
         assert_approx_eq!(db_numeric_2, db_analytic[1], 1E-8);
+
+        let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 1, 0, 0);
+        let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 1, 1, 0);
+        let dw_analytic = model.grad_weight(1, &training_data[..]);
+        assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
+        assert_approx_eq!(dw_numeric_2, dw_analytic[(1, 0)], 1E-8);
     }
 
     #[test]
