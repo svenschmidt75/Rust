@@ -255,52 +255,50 @@ impl Model {
 
     pub fn summary(&self) {}
 
-    fn calculate_delta(model: &Model, layer_index: usize, mb: &Minibatch, x: &TrainingData) -> Vector {
+    fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, x: &TrainingData) -> Vector {
         // SS: same as backprop, but here we are using recursion
-        let output_layer_index = model.output_layer_index();
+        let output_layer_index = self.output_layer_index();
         if layer_index == output_layer_index {
-            let layer = model.get_layer(layer_index);
+            let layer = self.get_layer(layer_index);
             let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
             return (&mb.a[layer_index] - &x.output_activations).hadamard(&sigma_prime);
         }
-        let delta_next = Model::calculate_delta(&model, layer_index + 1, &mb, &x);
-        let w_tr = model.get_weights(layer_index).transpose();
-        let layer = model.get_layer(layer_index);
+        let delta_next = self.calculate_delta(layer_index + 1, &mb, &x);
+        let w_tr = self.get_weights(layer_index + 1).transpose();
+        let layer = self.get_layer(layer_index);
         let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
         w_tr.ax(&delta_next).hadamard(&sigma_prime)
     }
 
-    fn grad_bias(model: &mut Model, layer_index: usize, xs: &[TrainingData]) -> Vector {
+    fn grad_bias(&self, layer_index: usize, xs: &[TrainingData]) -> Vector {
         // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
-        let layer = model.get_layer(layer_index);
+        let layer = self.get_layer(layer_index);
         let mut db = Vector::new(layer.nactivations());
-        let mut mb = model.create_minibatch();
-
+        let mut mb = self.create_minibatch();
         for training_sample in xs {
             let known_classification = &training_sample.output_activations;
             mb.a[0] = training_sample.input_activations.clone();
-            model.feedforward(&mut mb);
-            let delta = Model::calculate_delta(&model, layer_index, &mb, &training_sample);
+            self.feedforward(&mut mb);
+            let delta = self.calculate_delta(layer_index, &mb, &training_sample);
             db += &delta;
         }
         db /= xs.len();
         db
     }
 
-    fn grad_weight(model: &mut Model, layer_index: usize, xs: &[TrainingData]) -> Matrix2D {
+    fn grad_weight(&self, layer_index: usize, xs: &[TrainingData]) -> Matrix2D {
         // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
-        let prev_layer = model.get_layer(layer_index - 1);
-        let layer = model.get_layer(layer_index);
+        let prev_layer = self.get_layer(layer_index - 1);
+        let layer = self.get_layer(layer_index);
         let mut dw = Matrix2D::new(layer.nactivations(), prev_layer.nactivations());
-        let mut mb = model.create_minibatch();
-
+        let mut mb = self.create_minibatch();
         for training_sample in xs {
             let known_classification = &training_sample.output_activations;
             mb.a[0] = training_sample.input_activations.clone();
-            model.feedforward(&mut mb);
-            let delta = Model::calculate_delta(&model, layer_index, &mb, &training_sample);
+            self.feedforward(&mut mb);
+            let delta = self.calculate_delta(layer_index, &mb, &training_sample);
             let tmp = ops::outer_product(&delta, &mb.a[layer_index - 1]);
             dw += &tmp;
         }
@@ -311,11 +309,14 @@ impl Model {
     fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize) -> f64 {
         // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
         let c1 = QuadraticCost {}.cost(self, training_samples);
+        let c2: f64;
         let mut biases = self.layers[layer_index].get_biases_mut();
         let delta = 0.0001;
         let b = biases[la];
         biases[la] = b + delta;
         let c2 = QuadraticCost {}.cost(self, training_samples);
+        let mut biases = self.layers[layer_index].get_biases_mut();
+        biases[la] = b;
         (c2 - c1) / delta
     }
 
@@ -343,33 +344,48 @@ mod tests {
 
     #[test]
     fn test_cost() {
-        use crate::ann::activation::Sin;
-
+        use crate::ann::activation::Id;
         // Arrange
         let mut model = Model::new();
 
         let input_layer = InputLayer::new(1);
         model.add(Box::new(input_layer));
 
-        let output_layer = FCLayer::new(1, Box::new(Sin {}));
+        let hidden_layer = FCLayer::new(2, Box::new(Id {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Id {}));
         model.add(Box::new(output_layer));
 
         // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let u1 = 1.8;
+        let u2 = 0.5;
+        let c = -1.2;
         let ntraining_samples = 1000;
         let step = std::f64::consts::PI / ntraining_samples as f64;
         let training_data = (0..ntraining_samples)
             .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
             .map(|x| TrainingData {
                 input_activations: Vector::from(vec![x]),
-                output_activations: Vector::from(vec![x.sin()]),
+                output_activations: Vector::from(vec![u1 * x + u2 * x + c]),
             })
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 4, &QuadraticCost {});
 
         // Act
-        let db = model.numerical_derivative_bias(&training_data[..], 1, 0);
+        model.train(&data, 5, 0.005, 1.0, 25, &QuadraticCost {});
+
+        // Act
+        let outputlayer_index = model.output_layer_index();
+        let db = model.numerical_derivative_bias(&training_data[..], 2, 0);
+        let dbs = model.grad_bias(outputlayer_index, &training_data[..]);
+        println!("analytical {} - numerical {}", dbs[0], db);
+
+        let db1 = model.numerical_derivative_bias(&training_data[..], 1, 0);
+        let db2 = model.numerical_derivative_bias(&training_data[..], 1, 1);
+        let dbs = model.grad_bias(1, &training_data[..]);
+        println!("analytical {} - numerical {}", dbs[0], db1);
 
         // Assert
     }

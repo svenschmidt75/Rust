@@ -27,8 +27,8 @@ impl CostFunction for QuadraticCost {
         let mut total_cost = 0.0;
 
         // SS: can use map and sum here...
+        let mut mb = model.create_minibatch();
         for x in y {
-            let mut mb = model.create_minibatch();
             mb.a[0] = x.input_activations.clone();
             model.feedforward(&mut mb);
             let c = Self::cost(mb.output_activations(), &x.output_activations);
