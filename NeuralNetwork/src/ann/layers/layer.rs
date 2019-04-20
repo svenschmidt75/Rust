@@ -85,7 +85,7 @@ impl Layer for FCLayer {
     }
 
     fn nactivations(&self) -> usize {
-        self.biases.dim()
+        self.nneurons
     }
 
     fn get_weights(&self) -> &Matrix2D {
@@ -162,8 +162,6 @@ impl Layer for InputLayer {
 
 #[cfg(test)]
 mod tests {
-    use assert_approx_eq::assert_approx_eq;
-
     use crate::ann::activation::Id;
 
     use super::*;

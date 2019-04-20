@@ -72,36 +72,45 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let hidden_layer = FCLayer::new(3, Box::new(Id {}));
+        let hidden_layer = FCLayer::new(2, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let output_layer = FCLayer::new(1, Box::new(Id {}));
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
+
+        let mut mb = model.create_minibatch();
+        mb.z[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+
+        // model an AND gate
+        let training_data = vec![
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 1.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 1.0]),
+                output_activations: Vector::from(vec![1.0]),
+            },
+        ];
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+        model.train(&data, 1000, 15.5, 1.0, 4, &QuadraticCost {});
 
         // Act
         let cost = QuadraticCost {};
-        let training_data = vec![
-            TrainingData {
-                input_activations: vec![0.0, 0.0].into(),
-                output_activations: vec![0.0].into(),
-            },
-            TrainingData {
-                input_activations: vec![1.0, 0.0].into(),
-                output_activations: vec![0.0].into(),
-            },
-            TrainingData {
-                input_activations: vec![0.0, 1.0].into(),
-                output_activations: vec![0.0].into(),
-            },
-            TrainingData {
-                input_activations: vec![1.0, 1.0].into(),
-                output_activations: vec![1.0].into(),
-            },
-        ];
         let c = cost.cost(&mut model, &training_data);
 
         // Assert
-        assert_eq!(0.087771, c)
+        assert_approx_eq!(0.00008300650113936091, c, 1E-4);
     }
 
     #[test]

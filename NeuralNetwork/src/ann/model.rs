@@ -155,7 +155,7 @@ impl Model {
         accuracy
     }
 
-    fn initialize_layers(&mut self) {
+    pub fn initialize_layers(&mut self) {
         for idx in 1..self.layers.len() {
             let (prev, current) = get_neighbors2(&mut self.layers, idx);
             current.initialize(prev);
@@ -354,6 +354,7 @@ impl Model {
 #[cfg(test)]
 mod tests {
     use assert_approx_eq::assert_approx_eq;
+    use rand::Rng;
 
     use crate::ann::activation;
     use crate::ann::activation::ReLU;
@@ -500,6 +501,189 @@ mod tests {
     }
 
     #[test]
+    fn test_deltas_2() {
+        use crate::ann::activation::{Id, Sin};
+
+        /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
+         * sin is the activation function of the hidden layer. Id is the activation function
+         * for the output layer.
+         */
+
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(1);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new(1, Box::new(Sin {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Id {}));
+        model.add(Box::new(output_layer));
+
+        // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let w1_0 = 1.0;
+        let w2_0 = 1.0;
+        let b1 = 1.0;
+        let b2 = 1.0;
+        let ntraining_samples = 1000;
+        let step = std::f64::consts::PI / ntraining_samples as f64;
+        let training_data = (0..ntraining_samples)
+            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+            .map(|x| TrainingData {
+                input_activations: Vector::from(vec![x]),
+                output_activations: Vector::from(vec![w2_0 * (w1_0 * x + b1).sin() + b2]),
+            })
+            .collect::<Vec<_>>();
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+        model.train(&data, 10, 0.05, 1.0, 25, &QuadraticCost {});
+
+        // Act
+        let mut mb = model.create_minibatch();
+        let training_sample = &training_data[0];
+        mb.a[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mb);
+
+        // Assert
+
+        // layer 2 - output layer
+        let delta_numeric = model.calculate_delta(2, &mb, training_sample);
+        model.backprop(&mut mb, &QuadraticCost {}, &training_sample.output_activations);
+        let delta_analytic = &mb.error[2];
+        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
+
+        // layer 1 - hidden layer
+        let delta_numeric = model.calculate_delta(1, &mb, training_sample);
+        model.backprop(&mut mb, &QuadraticCost {}, &training_sample.output_activations);
+        let delta_analytic = &mb.error[1];
+        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
+    }
+
+    #[test]
+    fn test_derivative_2() {
+        use crate::ann::activation::{Id, Sin};
+
+        /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
+         * sin is the activation function of the hidden layer. Id is the activation function
+         * for the output layer.
+         */
+
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(1);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new(1, Box::new(Sin {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Id {}));
+        model.add(Box::new(output_layer));
+
+        // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let w1_0 = 2.345;
+        let w2_0 = -8.354;
+        let b1 = -0.63;
+        let b2 = 1.932;
+        let ntraining_samples = 1000;
+        let step = std::f64::consts::PI / ntraining_samples as f64;
+        let training_data = (0..ntraining_samples)
+            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+            .map(|x| TrainingData {
+                input_activations: Vector::from(vec![x]),
+                output_activations: Vector::from(vec![w2_0 * (w1_0 * x + b1).sin() + b2]),
+            })
+            .collect::<Vec<_>>();
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+        model.train(&data, 10, 0.05, 1.0, 25, &QuadraticCost {});
+
+        // Act
+        let mut mb = model.create_minibatch();
+        let training_sample = &training_data[0];
+        mb.a[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mb);
+
+        // Assert
+
+        // layer 2 - output layer
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0);
+        let db_analytic = model.grad_bias(2, &training_data[..]);
+        assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
+
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0);
+        let dw_analytic = model.grad_weight(2, &training_data[..]);
+        assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
+
+        // layer 1 - hidden layer
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0);
+        let db_analytic = model.grad_bias(1, &training_data[..]);
+        assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
+
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0);
+        let dw_analytic = model.grad_weight(1, &training_data[..]);
+        assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
+    }
+
+    #[test]
+    fn test_train_1() {
+        use crate::ann::activation::{Id, Sin};
+
+        /* Train f(x) = u1 * sin(x) + u2 * sin(x) + b2 where x is the input activation and
+         * sin is the activation function of the hidden layer. Id is the activation function
+         * for the output layer.
+         * Basically, z^{2}_{0} = sigma2(w2_0 * sigma1(x) + w2_1 * sigma1(x)) + b2, where w=1 and b=0.
+         */
+
+        // Arrange
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(1);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new(2, Box::new(Sin {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Id {}));
+        model.add(Box::new(output_layer));
+
+        // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let w2_0 = 1.2;
+        let w2_1 = 0.87;
+        let b2 = -1.1;
+        let ntraining_samples = 1000;
+        let step = std::f64::consts::PI / ntraining_samples as f64;
+        let training_data = (0..ntraining_samples)
+            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+            .map(|x| TrainingData {
+                input_activations: Vector::from(vec![x]),
+                output_activations: Vector::from(vec![w2_0 * x.sin() + w2_1 * x.sin() + b2]),
+            })
+            .collect::<Vec<_>>();
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+
+        // Act
+        model.train(&data, 100, 0.02, 1.0, 25, &QuadraticCost {});
+
+        // Assert
+        let output_layer_index = 2;
+        let mut mb = model.create_minibatch();
+        let mut rng = rand::thread_rng();
+        let result = (0..50_usize)
+            .map(|x| rng.gen::<usize>() % ntraining_samples)
+            .map(|idx| {
+                let td = &training_data[idx];
+                mb.a[0] = td.input_activations.clone();
+                model.feedforward(&mut mb);
+                (&mb.a[output_layer_index][0] - td.output_activations[0]).abs()
+            })
+            .fold(true, |acc, len| acc && len < 0.1);
+        assert!(result);
+    }
+
+    #[test]
     fn test_feedforward() {
         // Arrange
         let mut model = Model::new();
@@ -516,6 +700,8 @@ mod tests {
         let mut mb = model.create_minibatch();
         mb.a[0] = Vector::from(vec![0.0, 1.0]);
         mb.z[0] = Vector::from(vec![0.0, 1.0]);
+
+        model.initialize_layers();
 
         // Act
         model.feedforward(&mut mb);
@@ -544,7 +730,7 @@ mod tests {
     }
 
     #[test]
-    fn test_backprop_errors() {
+    fn test_calculate_derivatives_correct_dimensions() {
         // Arrange
         let mut model = Model::new();
 
@@ -564,38 +750,7 @@ mod tests {
         // expected output
         let y = Vector::from(vec![0.0]);
 
-        model.feedforward(&mut mb);
-
-        // Act
-        model.backprop(&mut mb, &QuadraticCost {}, &y);
-
-        // Assert
-        assert_approx_eq!(0.7480485918792308, mb.z[2][0], 1e-5f64);
-        assert_approx_eq!(0.3231058578630005, mb.z[1][0], 1e-5f64);
-        assert_approx_eq!(0.3231058578630005, mb.z[1][1], 1e-5f64);
-    }
-
-    #[test]
-    fn test_calculate_derivatives() {
-        // Arrange
-        let mut model = Model::new();
-
-        let input_layer = InputLayer::new(2);
-        model.add(Box::new(input_layer));
-
-        let hidden_layer = FCLayer::new(2, Box::new(Sigmoid {}));
-        model.add(Box::new(hidden_layer));
-
-        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
-        model.add(Box::new(output_layer));
-
-        let mut mb = model.create_minibatch();
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
-
-        // expected output
-        let y = Vector::from(vec![0.0]);
-
+        model.initialize_layers();
         model.feedforward(&mut mb);
         model.backprop(&mut mb, &QuadraticCost {}, &y);
 
@@ -650,6 +805,7 @@ mod tests {
         // expected output
         let y = Vector::from(vec![0.0]);
 
+        model.initialize_layers();
         model.feedforward(&mut mb);
         model.backprop(&mut mb, &QuadraticCost {}, &y);
         let mbs: [Minibatch; 1] = [mb];
@@ -657,8 +813,6 @@ mod tests {
 
         // Act
         model.update_network(0.1, dws, dbs);
-
-        // Assert
     }
 
     #[test]
@@ -678,11 +832,6 @@ mod tests {
         let mut mb = model.create_minibatch();
         mb.z[0] = Vector::from(vec![0.0, 1.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
-
-        // expected output
-        let y = Vector::from(vec![0.0]);
-
-        //train(&mut self, data: &(&Vec<TrainingData>, &Vec<TrainingData>, &Vec<TrainingData>), epochs: usize, eta: f64, _lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
 
         // model an AND gate
         let training_data = vec![
@@ -707,29 +856,34 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 1000, 0.05, 1.0, 4, &QuadraticCost {});
+        model.train(&data, 2000, 50.0, 1.0, 4, &QuadraticCost {});
 
         // Assert
         let mut mb = model.create_minibatch();
+
+        // 0 && 0 == 0
         mb.z[0] = Vector::from(vec![0.0, 0.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.06767588917975884, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.0039629946533253175, &mb.a[2][0], 1E-2);
 
+        // 1 && 0 == 0
         mb.z[0] = Vector::from(vec![1.0, 0.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.18941306978303418, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.05007500459128223, &mb.a[2][0], 1E-2);
 
+        // 0 && 1 == 0
         mb.z[0] = Vector::from(vec![0.0, 1.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.06869306322881202, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.051638397516774716, &mb.a[2][0], 1E-2);
 
+        // 1 && 1 == 0
         mb.z[0] = Vector::from(vec![1.0, 1.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.5705021128252346, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.5838657521381514, &mb.a[2][0], 1E-2);
     }
 
     #[test]
@@ -899,125 +1053,5 @@ mod tests {
         let w2 = model.get_weights(2);
         assert_approx_eq!(u1 + u2, w2[(0, 0)] * w1[(0, 0)] + w2[(0, 1)] * w1[(1, 0)], 1E-8);
         assert_approx_eq!(c, w2[(0, 0)] * b1[0] + w2[(0, 1)] * b1[1] + b2[0], 1E-8);
-    }
-
-    #[test]
-    fn test_train_3() {
-        use crate::ann::activation::{Id, Sin};
-
-        /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
-         * sin is the activation function of the hidden layer. Id is the activation function
-         * for the output layer.
-         */
-
-        // Arrange
-        let mut model = Model::new();
-
-        let input_layer = InputLayer::new(1);
-        model.add(Box::new(input_layer));
-
-        let hidden_layer = FCLayer::new(1, Box::new(Sin {}));
-        model.add(Box::new(hidden_layer));
-
-        let output_layer = FCLayer::new(1, Box::new(Id {}));
-        model.add(Box::new(output_layer));
-
-        // SS: restrict input to (-pi/2, pi/2) because of periodicity
-        let w1_0 = 1.0;
-        let w2_0 = 1.0;
-        let b1 = 1.0;
-        let b2 = 1.0;
-        let ntraining_samples = 1000;
-        let step = std::f64::consts::PI / ntraining_samples as f64;
-        let training_data = (0..ntraining_samples)
-            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
-            .map(|x| TrainingData {
-                input_activations: Vector::from(vec![x]),
-                output_activations: Vector::from(vec![w2_0 * (w1_0 * x + b1).sin() + b2]),
-            })
-            .collect::<Vec<_>>();
-        let tmp: [TrainingData; 0] = [];
-        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-
-        // Act
-        model.train(&data, 1000, 0.05, 1.0, 25, &QuadraticCost {});
-
-        // Assert
-        let weights = model.get_weights(1);
-        let weights = model.get_weights(2);
-        let expected_weight = 1.0;
-        //        assert_approx_eq!(expected_weight, weights[(0, 0)], 1E-8);
-
-        let biases = model.get_biases(1);
-        let biases = model.get_biases(2);
-        let expected_bias = 0.0;
-        //        assert_approx_eq!(expected_bias, biases[0], 1E-8);
-
-        let output_layer_index = 2;
-        let mut mb = model.create_minibatch();
-        mb.a[0] = Vector::from(vec![1.5299556222982293]);
-        model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.46, &mb.a[2][0], 1E-2);
-        println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
-    }
-
-    #[test]
-    fn test_train_sin_x_plus_sin_y() {
-        use crate::ann::activation::{Id, Sin};
-
-        /* Train f(x) = u1 * sin(x) + u2 * sin(x) + b2 where x is the input activation and
-         * sin is the activation function of the hidden layer. Id is the activation function
-         * for the output layer.
-         * Basically, z^{2}_{0} = sigma2(w2_0 * sigma1(x) + w2_1 * sigma1(x)) + b2, where w=1 and b=0.
-         */
-
-        // Arrange
-        let mut model = Model::new();
-
-        let input_layer = InputLayer::new(1);
-        model.add(Box::new(input_layer));
-
-        let hidden_layer = FCLayer::new(2, Box::new(Sin {}));
-        model.add(Box::new(hidden_layer));
-
-        let output_layer = FCLayer::new(1, Box::new(Id {}));
-        model.add(Box::new(output_layer));
-
-        // SS: restrict input to (-pi/2, pi/2) because of periodicity
-        let w2_0 = 1.2;
-        let w2_1 = 0.87;
-        let b2 = -1.1;
-        let ntraining_samples = 1000;
-        let step = std::f64::consts::PI / ntraining_samples as f64;
-        let training_data = (0..ntraining_samples)
-            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
-            .map(|x| TrainingData {
-                input_activations: Vector::from(vec![x]),
-                output_activations: Vector::from(vec![w2_0 * x.sin() + w2_1 * x.sin() + b2]),
-            })
-            .collect::<Vec<_>>();
-        let tmp: [TrainingData; 0] = [];
-        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-
-        // Act
-        model.train(&data, 25, 0.5, 1.0, 25, &QuadraticCost {});
-
-        // Assert
-        let weights = model.get_weights(1);
-        let weights = model.get_weights(2);
-        let expected_weight = 1.0;
-        //        assert_approx_eq!(expected_weight, weights[(0, 0)], 1E-8);
-
-        let biases = model.get_biases(1);
-        let biases = model.get_biases(2);
-        let expected_bias = 0.0;
-        //        assert_approx_eq!(expected_bias, biases[0], 1E-8);
-
-        let output_layer_index = 2;
-        let mut mb = model.create_minibatch();
-        mb.a[0] = Vector::from(vec![1.5299556222982293]);
-        model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.46, &mb.a[2][0], 1E-2);
-        println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
     }
 }
