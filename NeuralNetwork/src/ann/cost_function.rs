@@ -9,13 +9,14 @@ use crate::la::vector::Vector;
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &[TrainingData]) -> f64;
 
-    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector;
+    fn output_error(&self, a: &Vector, z: &Vector, y: &Vector, f: &Activation) -> Vector;
 }
 
 pub struct QuadraticCost;
 
 impl QuadraticCost {
     fn cost(a: &Vector, y: &Vector) -> f64 {
+        // SS: a are the output layer activations
         let diff = y - a;
         let diff2 = ops::hadamard(&diff, &diff);
         diff2.iter().sum()
@@ -37,9 +38,7 @@ impl CostFunction for QuadraticCost {
         total_cost / 2.0 / y.len() as f64
     }
 
-    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector {
-        let a = &mb.a[output_layer_index];
-        let z = &mb.z[output_layer_index];
+    fn output_error(&self, a: &Vector, z: &Vector, y: &Vector, f: &Activation) -> Vector {
         assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");
         assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
 
@@ -48,6 +47,48 @@ impl CostFunction for QuadraticCost {
         // grad_a C = a_L - y
         // sigma_prime of z_L = f.df(z)
         (a - y).hadamard(&f.df(z))
+    }
+}
+
+pub struct CrossEntropyCost;
+
+impl CrossEntropyCost {
+    fn cost(a: &Vector, y: &Vector) -> f64 {
+        // SS: a are the output layer activations
+        assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
+        let mut cost = 0.0;
+        for idx in 0..a.dim() {
+            let a_j = a[idx];
+            let y_j = y[idx];
+            let tmp1 = y_j * a_j.log10();
+            let tmp2 = (1.0 - y_j) * (1.0 - a_j).log10();
+            cost += tmp1 + tmp2;
+        }
+        cost
+    }
+}
+
+impl CostFunction for CrossEntropyCost {
+    fn cost(&self, model: &mut Model, y: &[TrainingData]) -> f64 {
+        let mut total_cost = 0.0;
+
+        // SS: can use map and sum here...
+        let mut mb = model.create_minibatch();
+        for x in y {
+            mb.a[0] = x.input_activations.clone();
+            model.feedforward(&mut mb);
+            let c = Self::cost(mb.output_activations(), &x.output_activations);
+            total_cost += c;
+        }
+        total_cost / y.len() as f64
+    }
+
+    fn output_error(&self, a: &Vector, _z: &Vector, y: &Vector, _f: &Activation) -> Vector {
+        // delta_L = grad_a C x sigma_prime of z_L, x = Hadamard
+        // Formula BP1a, http://neuralnetworksanddeeplearning.com/chap2.html
+        // grad_a C = a_L - y
+        // sigma_prime of z_L = f.df(z)
+        a - y
     }
 }
 
@@ -147,7 +188,7 @@ mod tests {
         };
 
         // Act
-        let error = cost.output_error(1, &mb, &x.output_activations, &Sigmoid {});
+        let error = cost.output_error(&mb.a[1], &mb.z[1], &x.output_activations, &Sigmoid {});
 
         // Assert
         let d: Vector = &mb.a[1] - &x.output_activations;

@@ -17,7 +17,7 @@ pub struct Model {
     layers: Vec<Box<dyn Layer>>,
 }
 
-fn get_neighbors2<U, T>(v: &mut Vec<T>, idx: usize) -> (&U, &mut U)
+fn get_neighbors<U, T>(v: &mut Vec<T>, idx: usize) -> (&U, &mut U)
 where
     T: Sized + AsRef<U> + AsMut<U>,
     U: ?Sized,
@@ -81,6 +81,8 @@ impl Model {
 
         // print update step after each epoch
 
+        // ss: MOVE THIS OUT HERE, SO WE CAN REUSE WEIGHTS,
+        // maybe to continue training with smaller learning rates
         self.initialize_layers();
 
         let training_data = data.0;
@@ -157,7 +159,7 @@ impl Model {
 
     pub fn initialize_layers(&mut self) {
         for idx in 1..self.layers.len() {
-            let (prev, current) = get_neighbors2(&mut self.layers, idx);
+            let (prev, current) = get_neighbors(&mut self.layers, idx);
             current.initialize(prev);
         }
     }
@@ -185,7 +187,7 @@ impl Model {
         let output_layer_index = self.output_layer_index();
         let layer = &self.layers[output_layer_index];
         let sigma = layer.get_activation();
-        let output_error = cost_function.output_error(output_layer_index, mb, y, sigma);
+        let output_error = cost_function.output_error(&mb.a[output_layer_index], &mb.z[output_layer_index], y, sigma);
         mb.error[output_layer_index] = output_error;
     }
 
