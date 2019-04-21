@@ -80,14 +80,13 @@ impl CostFunction for CrossEntropyCost {
             let c = Self::single_cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
         }
-        -total_cost / y.len() as f64
+        total_cost / y.len() as f64;
+        -total_cost
     }
 
     fn output_error(&self, a: &Vector, _z: &Vector, y: &Vector, _f: &Activation) -> Vector {
-        // delta_L = grad_a C x sigma_prime of z_L, x = Hadamard
-        // Formula BP1a, http://neuralnetworksanddeeplearning.com/chap2.html
-        // grad_a C = a_L - y
-        // sigma_prime of z_L = f.df(z)
+        // Note: This makes only sense when the sigmoid function is used in the output later!
+        // Otherwise, we still need to multiply by its derivative
         a - y
     }
 }
