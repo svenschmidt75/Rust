@@ -276,9 +276,9 @@ impl Model {
 
     fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, x: &TrainingData, cost: &CostFunction) -> Vector {
         // SS: same as backprop, but here we are using recursion
+        let layer = self.get_layer(layer_index);
         let output_layer_index = self.output_layer_index();
         if layer_index == output_layer_index {
-            let layer = self.get_layer(layer_index);
             let activation = layer.get_activation();
             let a = &mb.a[output_layer_index];
             let z = &mb.z[output_layer_index];
@@ -287,7 +287,6 @@ impl Model {
         }
         let delta_next = self.calculate_delta(layer_index + 1, &mb, &x, cost);
         let w_tr = self.get_weights(layer_index + 1).transpose();
-        let layer = self.get_layer(layer_index);
         let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
         w_tr.ax(&delta_next).hadamard(&sigma_prime)
     }
@@ -354,7 +353,7 @@ impl Model {
         let c1 = QuadraticCost {}.cost(self, training_samples);
         let mut weights = self.layers[layer_index].get_weights_mut();
 
-        //: important, restore original bias
+        //: important, restore original weight
         weights[(la, pa)] = w;
         (c1 - c2) / delta
     }
