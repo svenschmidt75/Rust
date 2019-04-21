@@ -274,22 +274,25 @@ impl Model {
 
     pub fn summary(&self) {}
 
-    fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, x: &TrainingData) -> Vector {
+    fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, x: &TrainingData, cost: &CostFunction) -> Vector {
         // SS: same as backprop, but here we are using recursion
         let output_layer_index = self.output_layer_index();
         if layer_index == output_layer_index {
             let layer = self.get_layer(layer_index);
-            let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
-            return (&mb.a[layer_index] - &x.output_activations).hadamard(&sigma_prime);
+            let activation = layer.get_activation();
+            let a = &mb.a[output_layer_index];
+            let z = &mb.z[output_layer_index];
+            let y = &x.output_activations;
+            return cost.output_error(a, z, y, activation);
         }
-        let delta_next = self.calculate_delta(layer_index + 1, &mb, &x);
+        let delta_next = self.calculate_delta(layer_index + 1, &mb, &x, cost);
         let w_tr = self.get_weights(layer_index + 1).transpose();
         let layer = self.get_layer(layer_index);
         let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
         w_tr.ax(&delta_next).hadamard(&sigma_prime)
     }
 
-    fn grad_bias(&self, layer_index: usize, xs: &[TrainingData]) -> Vector {
+    fn grad_bias(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction) -> Vector {
         // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
         let layer = self.get_layer(layer_index);
@@ -299,14 +302,14 @@ impl Model {
             let known_classification = &training_sample.output_activations;
             mb.a[0] = training_sample.input_activations.clone();
             self.feedforward(&mut mb);
-            let delta = self.calculate_delta(layer_index, &mb, &training_sample);
+            let delta = self.calculate_delta(layer_index, &mb, &training_sample, cost);
             db += &delta;
         }
         db /= xs.len();
         db
     }
 
-    fn grad_weight(&self, layer_index: usize, xs: &[TrainingData]) -> Matrix2D {
+    fn grad_weight(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction) -> Matrix2D {
         // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
         let prev_layer = self.get_layer(layer_index - 1);
@@ -317,7 +320,7 @@ impl Model {
             let known_classification = &training_sample.output_activations;
             mb.a[0] = training_sample.input_activations.clone();
             self.feedforward(&mut mb);
-            let delta = self.calculate_delta(layer_index, &mb, &training_sample);
+            let delta = self.calculate_delta(layer_index, &mb, &training_sample, cost);
             let tmp = ops::outer_product(&delta, &mb.a[layer_index - 1]);
             dw += &tmp;
         }
@@ -386,6 +389,8 @@ mod tests {
         // b^{1}_{0} + b^{1}_{1} + b^{2}_{0} = c = -1.2
 
         // Arrange
+        let cost_function = QuadraticCost;
+
         let mut model = Model::new();
 
         let input_layer = InputLayer::new(1);
@@ -412,7 +417,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 5, 0.005, 1.0, 25, &QuadraticCost {});
+        model.train(&data, 5, 0.005, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -423,13 +428,13 @@ mod tests {
         // Assert
 
         // layer 2 - output layer
-        let delta_numeric = model.calculate_delta(2, &mb, training_sample);
+        let delta_numeric = model.calculate_delta(2, &mb, training_sample, &cost_function);
         model.backprop(&mut mb, &QuadraticCost {}, &training_sample.output_activations);
         let delta_analytic = &mb.error[2];
         assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
 
         // layer 1 - hidden layer
-        let delta_numeric = model.calculate_delta(1, &mb, training_sample);
+        let delta_numeric = model.calculate_delta(1, &mb, training_sample, &cost_function);
         model.backprop(&mut mb, &QuadraticCost {}, &training_sample.output_activations);
         let delta_analytic = &mb.error[1];
         assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
@@ -450,6 +455,8 @@ mod tests {
         // b^{1}_{0} + b^{1}_{1} + b^{2}_{0} = c = -1.2
 
         // Arrange
+        let cost_function = QuadraticCost;
+
         let mut model = Model::new();
 
         let input_layer = InputLayer::new(1);
@@ -476,32 +483,32 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 5, 0.005, 1.0, 25, &QuadraticCost {});
+        model.train(&data, 5, 0.005, 1.0, 25, &cost_function);
 
         // Act
         // Assert
 
         // layer 2 - output layer
         let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0);
-        let db_analytic = model.grad_bias(2, &training_data[..]);
+        let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
         let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 2, 0, 0);
         let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 2, 0, 1);
-        let dw_analytic = model.grad_weight(2, &training_data[..]);
+        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
         assert_approx_eq!(dw_numeric_2, dw_analytic[(0, 1)], 1E-8);
 
         // layer 1 - hidden layer
         let db_numeric_1 = model.numerical_derivative_bias(&training_data[..], 1, 0);
         let db_numeric_2 = model.numerical_derivative_bias(&training_data[..], 1, 1);
-        let db_analytic = model.grad_bias(1, &training_data[..]);
+        let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric_1, db_analytic[0], 1E-8);
         assert_approx_eq!(db_numeric_2, db_analytic[1], 1E-8);
 
         let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 1, 0, 0);
         let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 1, 1, 0);
-        let dw_analytic = model.grad_weight(1, &training_data[..]);
+        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
         assert_approx_eq!(dw_numeric_2, dw_analytic[(1, 0)], 1E-8);
     }
@@ -516,6 +523,8 @@ mod tests {
          */
 
         // Arrange
+        let cost_function = QuadraticCost;
+
         let mut model = Model::new();
 
         let input_layer = InputLayer::new(1);
@@ -543,7 +552,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 25, &QuadraticCost {});
+        model.train(&data, 10, 0.05, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -554,13 +563,13 @@ mod tests {
         // Assert
 
         // layer 2 - output layer
-        let delta_numeric = model.calculate_delta(2, &mb, training_sample);
+        let delta_numeric = model.calculate_delta(2, &mb, training_sample, &cost_function);
         model.backprop(&mut mb, &QuadraticCost {}, &training_sample.output_activations);
         let delta_analytic = &mb.error[2];
         assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
 
         // layer 1 - hidden layer
-        let delta_numeric = model.calculate_delta(1, &mb, training_sample);
+        let delta_numeric = model.calculate_delta(1, &mb, training_sample, &cost_function);
         model.backprop(&mut mb, &QuadraticCost {}, &training_sample.output_activations);
         let delta_analytic = &mb.error[1];
         assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
@@ -576,6 +585,8 @@ mod tests {
          */
 
         // Arrange
+        let cost_function = QuadraticCost;
+
         let mut model = Model::new();
 
         let input_layer = InputLayer::new(1);
@@ -603,7 +614,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 25, &QuadraticCost {});
+        model.train(&data, 10, 0.05, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -615,20 +626,20 @@ mod tests {
 
         // layer 2 - output layer
         let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0);
-        let db_analytic = model.grad_bias(2, &training_data[..]);
+        let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
         let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0);
-        let dw_analytic = model.grad_weight(2, &training_data[..]);
+        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
 
         // layer 1 - hidden layer
         let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0);
-        let db_analytic = model.grad_bias(1, &training_data[..]);
+        let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
 
         let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0);
-        let dw_analytic = model.grad_weight(1, &training_data[..]);
+        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     }
 
