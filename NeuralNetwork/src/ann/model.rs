@@ -41,6 +41,10 @@ impl Model {
         self.layers[idx].as_ref()
     }
 
+    pub fn get_layer_mut(&mut self, idx: usize) -> &mut Layer {
+        self.layers[idx].as_mut()
+    }
+
     pub fn nlayers(&self) -> usize {
         self.layers.len()
     }

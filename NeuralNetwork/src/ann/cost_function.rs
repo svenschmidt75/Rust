@@ -21,6 +21,88 @@ impl QuadraticCost {
         let diff2 = ops::hadamard(&diff, &diff);
         diff2.iter().sum()
     }
+
+    fn calculate_delta(&self, model: &Model, layer_index: usize, mb: &Minibatch, x: &TrainingData) -> Vector {
+        // SS: same as backprop, but here we are using recursion
+        let output_layer_index = model.output_layer_index();
+        if layer_index == output_layer_index {
+            let layer = model.get_layer(layer_index);
+            let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
+            return (&mb.a[layer_index] - &x.output_activations).hadamard(&sigma_prime);
+        }
+        let delta_next = self.calculate_delta(model, layer_index + 1, &mb, &x);
+        let w_tr = model.get_weights(layer_index + 1).transpose();
+        let layer = model.get_layer(layer_index);
+        let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
+        w_tr.ax(&delta_next).hadamard(&sigma_prime)
+    }
+
+    fn grad_bias(&self, model: &Model, layer_index: usize, xs: &[TrainingData]) -> Vector {
+        // SS: same as calculate_derivatives, but here we are using recursion
+        assert!(layer_index > 0);
+        let layer = model.get_layer(layer_index);
+        let mut db = Vector::new(layer.nactivations());
+        let mut mb = model.create_minibatch();
+        for training_sample in xs {
+            let known_classification = &training_sample.output_activations;
+            mb.a[0] = training_sample.input_activations.clone();
+            model.feedforward(&mut mb);
+            let delta = self.calculate_delta(model, layer_index, &mb, &training_sample);
+            db += &delta;
+        }
+        db /= xs.len();
+        db
+    }
+
+    fn grad_weight(&self, model: &Model, layer_index: usize, xs: &[TrainingData]) -> Matrix2D {
+        // SS: same as calculate_derivatives, but here we are using recursion
+        assert!(layer_index > 0);
+        let prev_layer = model.get_layer(layer_index - 1);
+        let layer = model.get_layer(layer_index);
+        let mut dw = Matrix2D::new(layer.nactivations(), prev_layer.nactivations());
+        let mut mb = model.create_minibatch();
+        for training_sample in xs {
+            let known_classification = &training_sample.output_activations;
+            mb.a[0] = training_sample.input_activations.clone();
+            model.feedforward(&mut mb);
+            let delta = self.calculate_delta(model, layer_index, &mb, &training_sample);
+            let tmp = ops::outer_product(&delta, &mb.a[layer_index - 1]);
+            dw += &tmp;
+        }
+        dw /= xs.len();
+        dw
+    }
+
+    fn numerical_derivative_bias(&self, model: &mut Model, training_samples: &[TrainingData], layer_index: usize, la: usize) -> f64 {
+        // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
+        let delta = 0.000001;
+        let c2 = self.cost(model, training_samples);
+        let mut biases = model.get_layer_mut(layer_index).get_biases_mut();
+        let b = biases[la];
+        biases[la] = b + delta;
+        let c1 = self.cost(model, training_samples);
+        let mut biases = model.get_layer_mut(layer_index).get_biases_mut();
+
+        //: important, restore original bias
+        biases[la] = b;
+        (c1 - c2) / delta
+    }
+
+    fn numerical_derivative_weight(&self, model: &mut Model, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize) -> f64 {
+        // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
+        // and pa is the neuron index in the previous layer.
+        let delta = 0.000001;
+        let c2 = self.cost(model, training_samples);
+        let mut weights = model.get_layer_mut(layer_index).get_weights_mut();
+        let w = weights[(la, pa)];
+        weights[(la, pa)] = w + delta;
+        let c1 = self.cost(model, training_samples);
+        let mut weights = model.get_layer_mut(layer_index).get_weights_mut();
+
+        //: important, restore original bias
+        weights[(la, pa)] = w;
+        (c1 - c2) / delta
+    }
 }
 
 impl CostFunction for QuadraticCost {
@@ -80,7 +162,7 @@ impl CostFunction for CrossEntropyCost {
             let c = Self::cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
         }
-        total_cost / y.len() as f64
+        -total_cost / y.len() as f64
     }
 
     fn output_error(&self, a: &Vector, _z: &Vector, y: &Vector, _f: &Activation) -> Vector {
