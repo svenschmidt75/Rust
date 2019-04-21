@@ -185,7 +185,8 @@ impl Model {
         let output_layer_index = self.output_layer_index();
         let layer = &self.layers[output_layer_index];
         let sigma = layer.get_activation();
-        let output_error = cost_function.output_error(output_layer_index, mb, y, sigma);
+        let d_cost = cost_function.output_error(&mb.a[output_layer_index], y);
+        let output_error = d_cost.hadamard(&sigma.df(&mb.z[output_layer_index]));
         mb.error[output_layer_index] = output_error;
     }
 
