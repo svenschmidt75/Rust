@@ -9,7 +9,7 @@ use crate::la::vector::Vector;
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &[TrainingData]) -> f64;
 
-    fn output_error(&self, a: &Vector, y: &Vector) -> Vector;
+    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector;
 }
 
 pub struct QuadraticCost;
@@ -37,12 +37,17 @@ impl CostFunction for QuadraticCost {
         total_cost / 2.0 / y.len() as f64
     }
 
-    fn output_error(&self, a: &Vector, y: &Vector) -> Vector {
+    fn output_error(&self, output_layer_index: usize, mb: &Minibatch, y: &Vector, f: &Activation) -> Vector {
+        let a = &mb.a[output_layer_index];
+        let z = &mb.z[output_layer_index];
+        assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");
+        assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
+
         // delta_L = grad_a C x sigma_prime of z_L, x = Hadamard
         // Formula BP1a, http://neuralnetworksanddeeplearning.com/chap2.html
         // grad_a C = a_L - y
         // sigma_prime of z_L = f.df(z)
-        a - y
+        (a - y).hadamard(&f.df(z))
     }
 }
 
@@ -142,8 +147,7 @@ mod tests {
         };
 
         // Act
-        let d_cost = cost.output_error(&mb.a[1], &x.output_activations);
-        let error = d_cost.hadamard(&Sigmoid {}.df(&mb.z[1]));
+        let error = cost.output_error(1, &mb, &x.output_activations, &Sigmoid {});
 
         // Assert
         let d: Vector = &mb.a[1] - &x.output_activations;
