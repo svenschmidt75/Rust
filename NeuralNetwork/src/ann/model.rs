@@ -140,7 +140,7 @@ impl Model {
                     self.feedforward(mb);
                     self.backprop(mb, cost_function, known_classification);
                 }
-                let (dws, dbs) = self.calculate_derivatives(&mbs[..]);
+                let (dws, dbs) = self.calculate_derivatives(&mbs[..], lambda);
                 self.update_network(eta, dws, dbs);
             }
 
@@ -215,7 +215,7 @@ impl Model {
         }
     }
 
-    pub fn calculate_derivatives(&self, mbs: &[Minibatch]) -> (Vec<Matrix2D>, Vec<Vector>) {
+    pub fn calculate_derivatives(&self, mbs: &[Minibatch], lambda: f64) -> (Vec<Matrix2D>, Vec<Vector>) {
         // TODO SS: Can the calculation of the derivatives be done in parallel,
         // followed by a reduction step to sum them up?
 
@@ -241,8 +241,10 @@ impl Model {
                 let db_i = delta_i;
                 dCdb += &db_i;
             }
-            dCdw /= mbs.len();
+            let w = self.get_layer(layer_index).get_weights();
+            dCdw = &(dCdw + &(lambda * w)) / (mbs.len() as f64);
             dws.push(dCdw);
+
             dCdb /= mbs.len();
             dbs.push(dCdb);
         }
@@ -312,7 +314,7 @@ impl Model {
         db
     }
 
-    fn grad_weight(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction) -> Matrix2D {
+    fn grad_weight(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction, lambda: f64) -> Matrix2D {
         // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
         let prev_layer = self.get_layer(layer_index - 1);
@@ -327,7 +329,11 @@ impl Model {
             let tmp = ops::outer_product(&delta, &mb.a[layer_index - 1]);
             dw += &tmp;
         }
-        dw /= xs.len();
+        let ntraining_samples = xs.len() as f64;
+
+        let w = self.get_layer(layer_index).get_weights();
+        dw = &(dw + &(lambda * w)) / ntraining_samples;
+
         dw
     }
 
@@ -503,7 +509,7 @@ mod tests {
 
         let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
         let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 2, 0, 1, &cost_function, 0.0);
-        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
+        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
         assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
         assert_approx_eq!(dw_numeric_2, dw_analytic[(0, 1)], 1E-8);
 
@@ -516,7 +522,7 @@ mod tests {
 
         let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
         let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 1, 1, 0, &cost_function, 0.0);
-        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
+        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
         assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
         assert_approx_eq!(dw_numeric_2, dw_analytic[(1, 0)], 1E-8);
     }
@@ -638,7 +644,7 @@ mod tests {
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
         let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
-        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
+        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
 
         // layer 1 - hidden layer
@@ -647,7 +653,7 @@ mod tests {
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
 
         let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
-        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
+        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     }
 
@@ -764,7 +770,7 @@ mod tests {
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
         let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
-        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
+        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
 
         // layer 1 - hidden layer
@@ -773,7 +779,7 @@ mod tests {
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
 
         let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
-        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
+        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     }
 
@@ -890,7 +896,7 @@ mod tests {
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
         let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
-        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
+        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
 
         // layer 1 - hidden layer
@@ -899,7 +905,7 @@ mod tests {
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
 
         let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
-        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
+        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     }
 
@@ -1208,7 +1214,7 @@ mod tests {
 
         // Act
         let mbs: [Minibatch; 1] = [mb];
-        let (dws, dbs) = model.calculate_derivatives(&mbs);
+        let (dws, dbs) = model.calculate_derivatives(&mbs, 0.0);
 
         // Assert
         assert_eq!(2, dws.len());
@@ -1261,7 +1267,7 @@ mod tests {
         model.feedforward(&mut mb);
         model.backprop(&mut mb, &QuadraticCost {}, &y);
         let mbs: [Minibatch; 1] = [mb];
-        let (dws, dbs) = model.calculate_derivatives(&mbs);
+        let (dws, dbs) = model.calculate_derivatives(&mbs, 0.0);
 
         // Act
         model.update_network(0.1, dws, dbs);
