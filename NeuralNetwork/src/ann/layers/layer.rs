@@ -23,6 +23,8 @@ pub trait Layer {
 
     fn get_activation(&self) -> &Activation;
 
+    fn weightsSquaredSum(&self) -> f64;
+
     fn print_summary(&self);
 }
 
@@ -108,6 +110,17 @@ impl Layer for FCLayer {
         &*self.activation
     }
 
+    fn weightsSquaredSum(&self) -> f64 {
+        let mut w2 = 0.0;
+        for col in 0..self.weights.ncols() {
+            for row in 0..self.weights.nrows() {
+                let w = self.weights[(row, col)];
+                w2 += w * w;
+            }
+        }
+        w2
+    }
+
     fn print_summary(&self) {
         let nparams = self.weights.ncols() * self.weights.nrows() + self.biases.dim();
         println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
@@ -152,6 +165,10 @@ impl Layer for InputLayer {
     }
 
     fn get_activation(&self) -> &Activation {
+        unreachable!()
+    }
+
+    fn weightsSquaredSum(&self) -> f64 {
         unreachable!()
     }
 

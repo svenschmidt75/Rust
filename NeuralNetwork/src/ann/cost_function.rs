@@ -7,7 +7,7 @@ use crate::la::ops;
 use crate::la::vector::Vector;
 
 pub trait CostFunction {
-    fn cost(&self, model: &mut Model, y: &[TrainingData]) -> f64;
+    fn cost(&self, model: &mut Model, y: &[TrainingData], lambda: f64) -> f64;
 
     fn output_error(&self, a: &Vector, z: &Vector, y: &Vector, f: &Activation) -> Vector;
 }
@@ -24,7 +24,7 @@ impl QuadraticCost {
 }
 
 impl CostFunction for QuadraticCost {
-    fn cost(&self, model: &mut Model, y: &[TrainingData]) -> f64 {
+    fn cost(&self, model: &mut Model, y: &[TrainingData], lambda: f64) -> f64 {
         let mut total_cost = 0.0;
 
         // SS: can use map and sum here...
@@ -35,7 +35,12 @@ impl CostFunction for QuadraticCost {
             let c = Self::single_cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
         }
-        total_cost / 2.0 / y.len() as f64
+        let ntraining_samples = y.len() as f64;
+
+        // SS: add effects of L2 regularization
+        let w2 = model.weightsSquaredSum();
+        total_cost = (total_cost + w2 * lambda) / 2.0 / ntraining_samples;
+        total_cost
     }
 
     fn output_error(&self, a: &Vector, z: &Vector, y: &Vector, f: &Activation) -> Vector {
@@ -52,6 +57,8 @@ impl CostFunction for QuadraticCost {
 
 pub struct CrossEntropyCost;
 
+// SS: This implements categorical cross-entropy.
+
 impl CrossEntropyCost {
     fn single_cost(a: &Vector, y: &Vector) -> f64 {
         // SS: a are the output layer activations
@@ -62,14 +69,15 @@ impl CrossEntropyCost {
             let y_j = y[idx];
             let tmp1 = y_j * a_j.log10();
             let tmp2 = (1.0 - y_j) * (1.0 - a_j).log10();
-            cost += tmp1 + tmp2;
+            let tmp3 = tmp1 + tmp2;
+            cost += tmp3;
         }
         cost
     }
 }
 
 impl CostFunction for CrossEntropyCost {
-    fn cost(&self, model: &mut Model, y: &[TrainingData]) -> f64 {
+    fn cost(&self, model: &mut Model, y: &[TrainingData], lambda: f64) -> f64 {
         let mut total_cost = 0.0;
 
         // SS: can use map and sum here...
@@ -80,7 +88,11 @@ impl CostFunction for CrossEntropyCost {
             let c = Self::single_cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
         }
-        total_cost / y.len() as f64;
+        let ntraining_samples = y.len() as f64;
+
+        // SS: add effects of L2 regularization
+        let w2 = model.weightsSquaredSum();
+        total_cost = (total_cost + w2 * lambda / 2.0) / ntraining_samples;
         -total_cost
     }
 
@@ -147,7 +159,7 @@ mod tests {
 
         // Act
         let cost = QuadraticCost {};
-        let c = cost.cost(&mut model, &training_data);
+        let c = cost.cost(&mut model, &training_data, 0.0);
 
         // Assert
         assert_approx_eq!(0.00008300650113936091, c, 1E-4);

@@ -70,7 +70,7 @@ impl Model {
     // number of epochs
     // size of minibatch
     // no regularization for now
-    pub fn train(&mut self, data: &(&[TrainingData], &[TrainingData], &[TrainingData]), epochs: usize, eta: f64, _lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
+    pub fn train(&mut self, data: &(&[TrainingData], &[TrainingData], &[TrainingData]), epochs: usize, eta: f64, lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
         // call initialize on each layer
 
         // for each epoch
@@ -118,7 +118,7 @@ impl Model {
 
         println!("Learning rate: {}", eta);
         println!("Number of epochs: {}", epochs);
-        println!("L2 regularization: {}", _lambda);
+        println!("L2 regularization: {}", lambda);
         println!();
 
         for epoch in 0..epochs {
@@ -146,8 +146,9 @@ impl Model {
 
             // SS: epoch completed, print cost for all training samples, print accuracy
             //            let accuracy = self.accuracy(training_data);
-            let cost = cost_function.cost(self, training_data);
-            println!("Epoch {} - cost {}", epoch + 1, cost);
+            let cost = cost_function.cost(self, training_data, lambda);
+            let error = QuadraticCost {}.cost(self, training_data, lambda);
+            println!("Epoch {} - cost {} - error {}", epoch + 1, cost, error);
         }
     }
 
@@ -274,6 +275,10 @@ impl Model {
 
     pub fn summary(&self) {}
 
+    pub fn weightsSquaredSum(&self) -> f64 {
+        self.layers.iter().fold(0.0, |accum, layer| accum + layer.weightsSquaredSum())
+    }
+
     fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, y: &Vector, cost: &CostFunction) -> Vector {
         // SS: same as backprop, but here we are using recursion
         let layer = self.get_layer(layer_index);
@@ -326,36 +331,40 @@ impl Model {
         dw
     }
 
-    fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, cost: &CostFunction) -> f64 {
+    fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, cost: &CostFunction, lambda: f64) -> f64 {
         // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
         let delta = 0.000001;
-        let c2 = cost.cost(self, training_samples);
         let mut biases = self.layers[layer_index].get_biases_mut();
         let b = biases[la];
+        biases[la] = b - delta;
+        let c1 = cost.cost(self, training_samples, lambda);
+        let mut biases = self.layers[layer_index].get_biases_mut();
         biases[la] = b + delta;
-        let c1 = cost.cost(self, training_samples);
+        let c2 = cost.cost(self, training_samples, lambda);
         let mut biases = self.layers[layer_index].get_biases_mut();
 
         //: important, restore original bias
         biases[la] = b;
-        let dc = (c1 - c2) / delta;
+        let dc = (c2 - c1) / delta / 2_f64;
         dc
     }
 
-    fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize, cost: &CostFunction) -> f64 {
+    fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize, cost: &CostFunction, lambda: f64) -> f64 {
         // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
         // and pa is the neuron index in the previous layer.
         let delta = 0.000001;
-        let c2 = cost.cost(self, training_samples);
         let mut weights = self.layers[layer_index].get_weights_mut();
         let w = weights[(la, pa)];
+        weights[(la, pa)] = w - delta;
+        let c1 = cost.cost(self, training_samples, lambda);
+        let mut weights = self.layers[layer_index].get_weights_mut();
         weights[(la, pa)] = w + delta;
-        let c1 = cost.cost(self, training_samples);
+        let c2 = cost.cost(self, training_samples, lambda);
         let mut weights = self.layers[layer_index].get_weights_mut();
 
         //: important, restore original weight
         weights[(la, pa)] = w;
-        (c1 - c2) / delta
+        (c2 - c1) / delta / 2_f64
     }
 }
 
@@ -488,25 +497,25 @@ mod tests {
         // Assert
 
         // layer 2 - output layer
-        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function);
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function, 0.0);
         let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
-        let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function);
-        let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 2, 0, 1, &cost_function);
+        let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
+        let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 2, 0, 1, &cost_function, 0.0);
         let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
         assert_approx_eq!(dw_numeric_2, dw_analytic[(0, 1)], 1E-8);
 
         // layer 1 - hidden layer
-        let db_numeric_1 = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function);
-        let db_numeric_2 = model.numerical_derivative_bias(&training_data[..], 1, 1, &cost_function);
+        let db_numeric_1 = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
+        let db_numeric_2 = model.numerical_derivative_bias(&training_data[..], 1, 1, &cost_function, 0.0);
         let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric_1, db_analytic[0], 1E-8);
         assert_approx_eq!(db_numeric_2, db_analytic[1], 1E-8);
 
-        let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function);
-        let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 1, 1, 0, &cost_function);
+        let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
+        let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 1, 1, 0, &cost_function, 0.0);
         let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
         assert_approx_eq!(dw_numeric_2, dw_analytic[(1, 0)], 1E-8);
@@ -624,28 +633,26 @@ mod tests {
         // Assert
 
         // layer 2 - output layer
-        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function);
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function, 0.0);
         let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
-        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function);
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
         let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
 
         // layer 1 - hidden layer
-        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function);
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
         let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
 
-        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function);
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
         let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     }
 
     #[test]
     fn test_deltas_3() {
-        use crate::ann::activation::{Id, Sin};
-
         /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
          * sin is the activation function of the hidden layer. Id is the activation function
          * for the output layer.
@@ -706,8 +713,6 @@ mod tests {
 
     #[test]
     fn test_derivative_3() {
-        use crate::ann::activation::{Id, Sin};
-
         /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
          * sin is the activation function of the hidden layer. Id is the activation function
          * for the output layer.
@@ -754,90 +759,26 @@ mod tests {
         // Assert
 
         // layer 2 - output layer
-        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function);
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function, 0.0);
         let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
-        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function);
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
         let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
 
         // layer 1 - hidden layer
-        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function);
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
         let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
 
-        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function);
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
         let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     }
 
     #[test]
     fn test_deltas_crossentropy_1() {
-        use crate::ann::activation::{Id, Sin};
-
-        /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
-         * sin is the activation function of the hidden layer. Id is the activation function
-         * for the output layer.
-         */
-
-        // Arrange
-        let cost_function = CrossEntropyCost;
-
-        let mut model = Model::new();
-
-        let input_layer = InputLayer::new(1);
-        model.add(Box::new(input_layer));
-
-        let hidden_layer = FCLayer::new(1, Box::new(Sigmoid {}));
-        model.add(Box::new(hidden_layer));
-
-        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
-        model.add(Box::new(output_layer));
-
-        // SS: restrict input to (-pi/2, pi/2) because of periodicity
-        let w1_0 = 1.0;
-        let w2_0 = 1.0;
-        let b1 = 1.0;
-        let b2 = 1.0;
-        let ntraining_samples = 1000;
-        let step = std::f64::consts::PI / ntraining_samples as f64;
-        let training_data = (0..ntraining_samples)
-            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
-            .map(|x| TrainingData {
-                input_activations: Vector::from(vec![x]),
-                output_activations: Vector::from(vec![activation::sigmoid(w2_0 * activation::sigmoid(w1_0 * x + b1) + b2)]),
-            })
-            .collect::<Vec<_>>();
-        let tmp: [TrainingData; 0] = [];
-        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 25, &cost_function);
-
-        // Act
-        let mut mb = model.create_minibatch();
-        let training_sample = &training_data[0];
-        mb.a[0] = training_sample.input_activations.clone();
-        model.feedforward(&mut mb);
-
-        // Assert
-
-        // layer 2 - output layer
-        let delta_numeric = model.calculate_delta(2, &mb, &training_sample.output_activations, &cost_function);
-        model.backprop(&mut mb, &cost_function, &training_sample.output_activations);
-        let delta_analytic = &mb.error[2];
-        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
-
-        // layer 1 - hidden layer
-        let delta_numeric = model.calculate_delta(1, &mb, &training_sample.output_activations, &cost_function);
-        model.backprop(&mut mb, &cost_function, &training_sample.output_activations);
-        let delta_analytic = &mb.error[1];
-        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
-    }
-
-    #[test]
-    fn test_derivative_crossentropy_1() {
-        use crate::ann::activation::{Id, Sin};
-
         /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
          * sin is the activation function of the hidden layer. Id is the activation function
          * for the output layer.
@@ -880,24 +821,84 @@ mod tests {
         let training_sample = &training_data[0];
         mb.a[0] = training_sample.input_activations.clone();
         model.feedforward(&mut mb);
+        model.backprop(&mut mb, &cost_function, &training_sample.output_activations);
 
         // Assert
 
         // layer 2 - output layer
-        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function);
+        let delta_numeric = model.calculate_delta(2, &mb, &training_sample.output_activations, &cost_function);
+        let delta_analytic = &mb.error[2];
+        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
+
+        // layer 1 - hidden layer
+        let delta_numeric = model.calculate_delta(1, &mb, &training_sample.output_activations, &cost_function);
+        let delta_analytic = &mb.error[1];
+        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
+    }
+
+    #[test]
+    fn test_derivative_crossentropy_1() {
+        /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
+         * sin is the activation function of the hidden layer. Id is the activation function
+         * for the output layer.
+         */
+
+        // Arrange
+        let cost_function = CrossEntropyCost;
+
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(2);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new(5, Box::new(Sigmoid {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
+        model.add(Box::new(output_layer));
+
+        // model an AND gate
+        let training_data = vec![
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 1.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 1.0]),
+                output_activations: Vector::from(vec![1.0]),
+            },
+        ];
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+
+        // Act
+        model.train(&data, 100, 15.0, 1.0, 4, &cost_function);
+
+        // Assert
+
+        // layer 2 - output layer
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function, 0.0);
         let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
-        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function);
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
         let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
 
         // layer 1 - hidden layer
-        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function);
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
         let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
         assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
 
-        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function);
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
         let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function);
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     }
@@ -1018,8 +1019,6 @@ mod tests {
 
     #[test]
     fn test_train_crossentropy_12() {
-        use crate::ann::activation::{Id, Sin};
-
         /* Train f(x) = u1 * sin(x) + u2 * sin(x) + b2 where x is the input activation and
          * sin is the activation function of the hidden layer. Id is the activation function
          * for the output layer.
@@ -1079,8 +1078,6 @@ mod tests {
 
     #[test]
     fn test_train_crossentropy_1() {
-        use crate::ann::activation::{Id, Sin};
-
         /* Train f(x) = u1 * sin(x) + u2 * sin(x) + b2 where x is the input activation and
          * sin is the activation function of the hidden layer. Id is the activation function
          * for the output layer.
