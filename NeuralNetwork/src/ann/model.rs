@@ -1354,7 +1354,7 @@ mod tests {
 
         mb.a[0] = Vector::from(vec![1.0, 1.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.9983682893807054, &mb.a[2][0], 1E-3);
+        assert_approx_eq!(1.0 - 0.9983682893807054, 1.0 - &mb.a[2][0], 1E-2);
         println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
     }
 

@@ -64,7 +64,7 @@ impl FCLayer {
         }
         for idx in 0..self.biases.dim() {
             let value: f64 = rng.gen();
-            self.biases[idx] = value * std_dev;
+            self.biases[idx] = 0.0;
         }
     }
 }
