@@ -1225,6 +1225,9 @@ mod tests {
     #[test]
     fn test_train_model() {
         // Arrange
+
+        let cost_function = QuadraticCost;
+
         let mut model = Model::new();
 
         let input_layer = InputLayer::new(2);
@@ -1235,10 +1238,6 @@ mod tests {
 
         let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
-
-        let mut mb = model.create_minibatch();
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
 
         // model an AND gate
         let training_data = vec![
@@ -1263,7 +1262,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 2000, 50.0, 0.0, 4, &QuadraticCost {});
+        model.train(&data, 2000, 50.0, 0.0, 4, &cost_function);
 
         // Assert
         let mut mb = model.create_minibatch();
@@ -1294,8 +1293,11 @@ mod tests {
     }
 
     #[test]
-    fn test_train_model2() {
+    fn test_train_model_l2_regularization() {
         // Arrange
+
+        let cost_function = CrossEntropyCost;
+
         let mut model = Model::new();
 
         let input_layer = InputLayer::new(2);
@@ -1306,13 +1308,6 @@ mod tests {
 
         let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
-
-        let mut mb = model.create_minibatch();
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
-
-        // expected output
-        let y = Vector::from(vec![0.0]);
 
         // model an AND gate
         let training_data = vec![
@@ -1337,33 +1332,29 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 1000, 0.05, 1.0, 4, &QuadraticCost {});
+        model.train(&data, 1000, 5.5, 0.0, 4, &cost_function);
 
         // Assert
         let output_layer_index = 2;
         let mut mb = model.create_minibatch();
-        mb.z[0] = Vector::from(vec![0.0, 0.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.a[0] = Vector::from(vec![0.0, 0.0]);
         model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.04, &mb.a[output_layer_index][0], 1E-2);
+        assert_approx_eq!(0.0000000000773372082024192, &mb.a[output_layer_index][0], 1E-8);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
-        mb.z[0] = Vector::from(vec![1.0, 0.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.a[0] = Vector::from(vec![1.0, 0.0]);
         model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.17, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.00037824182895952047, &mb.a[2][0], 1E-7);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.a[0] = Vector::from(vec![0.0, 1.0]);
         model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.17, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.0003782382222926433, &mb.a[2][0], 1E-7);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
-        mb.z[0] = Vector::from(vec![1.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.a[0] = Vector::from(vec![1.0, 1.0]);
         model.feedforward(&mut mb);
-        //        assert_approx_eq!(0.46, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.9983682893807054, &mb.a[2][0], 1E-6);
         println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
     }
 
