@@ -278,7 +278,8 @@ impl Model {
     pub fn summary(&self) {}
 
     pub fn weightsSquaredSum(&self) -> f64 {
-        self.layers.iter().fold(0.0, |accum, layer| accum + layer.weightsSquaredSum())
+        // SS: skip  the input layer
+        self.layers.iter().skip(1).fold(0.0, |accum, layer| accum + layer.weightsSquaredSum())
     }
 
     fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, y: &Vector, cost: &CostFunction) -> Vector {
@@ -497,7 +498,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 5, 0.005, 1.0, 25, &cost_function);
+        model.train(&data, 5, 0.005, 0.0, 25, &cost_function);
 
         // Act
         // Assert
@@ -719,6 +720,72 @@ mod tests {
 
     #[test]
     fn test_derivative_3() {
+        /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
+         * sin is the activation function of the hidden layer. Id is the activation function
+         * for the output layer.
+         */
+
+        // Arrange
+        let cost_function = QuadraticCost;
+
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(1);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new(1, Box::new(Sigmoid {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
+        model.add(Box::new(output_layer));
+
+        // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let w1_0 = 2.345;
+        let w2_0 = -8.354;
+        let b1 = -0.63;
+        let b2 = 1.932;
+        let ntraining_samples = 1000;
+        let step = std::f64::consts::PI / ntraining_samples as f64;
+        let training_data = (0..ntraining_samples)
+            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+            .map(|x| TrainingData {
+                input_activations: Vector::from(vec![x]),
+                output_activations: Vector::from(vec![activation::sigmoid(w2_0 * activation::sigmoid(w1_0 * x + b1) + b2)]),
+            })
+            .collect::<Vec<_>>();
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+        model.train(&data, 10, 0.05, 0.0, 25, &cost_function);
+
+        // Act
+        let mut mb = model.create_minibatch();
+        let training_sample = &training_data[0];
+        mb.a[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mb);
+
+        // Assert
+
+        // layer 2 - output layer
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function, 0.0);
+        let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
+        assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
+
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
+        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
+        assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
+
+        // layer 1 - hidden layer
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
+        let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
+        assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
+
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
+        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
+        assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
+    }
+
+    #[test]
+    fn test_derivative_3_with_l2_regularization() {
         /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
          * sin is the activation function of the hidden layer. Id is the activation function
          * for the output layer.
