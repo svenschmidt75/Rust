@@ -1332,29 +1332,29 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 1000, 5.5, 0.0, 4, &cost_function);
+        model.train(&data, 1000, 7.0, 0.000001, 4, &cost_function);
 
         // Assert
         let output_layer_index = 2;
         let mut mb = model.create_minibatch();
         mb.a[0] = Vector::from(vec![0.0, 0.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.0000000000773372082024192, &mb.a[output_layer_index][0], 1E-6);
+        assert_approx_eq!(0.000000008600374481948007, &mb.a[output_layer_index][0], 1E-6);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
         mb.a[0] = Vector::from(vec![1.0, 0.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.0004020023748751751, &mb.a[2][0], 1E-3);
+        assert_approx_eq!(0.0002504695377738481, &mb.a[2][0], 1E-3);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
         mb.a[0] = Vector::from(vec![0.0, 1.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.0003782382222926433, &mb.a[2][0], 1E-3);
+        assert_approx_eq!(0.00023494173889617028, &mb.a[2][0], 1E-3);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
         mb.a[0] = Vector::from(vec![1.0, 1.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(1.0 - 0.9983682893807054, 1.0 - &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.9992958721912137, &mb.a[2][0], 1E-3);
         println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
     }
 
