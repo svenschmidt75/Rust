@@ -1303,10 +1303,10 @@ mod tests {
         let input_layer = InputLayer::new(2);
         model.add(Box::new(input_layer));
 
-        let hidden_layer = FCLayer::new(10, Box::new(Sigmoid {}));
+        let hidden_layer = FCLayer::new(10, Box::new(Sigmoid));
         model.add(Box::new(hidden_layer));
 
-        let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
+        let output_layer = FCLayer::new(1, Box::new(Sigmoid));
         model.add(Box::new(output_layer));
 
         // model an AND gate
@@ -1339,22 +1339,22 @@ mod tests {
         let mut mb = model.create_minibatch();
         mb.a[0] = Vector::from(vec![0.0, 0.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.0000000000773372082024192, &mb.a[output_layer_index][0], 1E-8);
+        assert_approx_eq!(0.0000000000773372082024192, &mb.a[output_layer_index][0], 1E-6);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
         mb.a[0] = Vector::from(vec![1.0, 0.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.00037824182895952047, &mb.a[2][0], 1E-7);
+        assert_approx_eq!(0.0004020023748751751, &mb.a[2][0], 1E-3);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
         mb.a[0] = Vector::from(vec![0.0, 1.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.0003782382222926433, &mb.a[2][0], 1E-7);
+        assert_approx_eq!(0.0003782382222926433, &mb.a[2][0], 1E-3);
         println!("expected: {}   is: {}", 0.0, &mb.a[output_layer_index][0]);
 
         mb.a[0] = Vector::from(vec![1.0, 1.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.9983682893807054, &mb.a[2][0], 1E-6);
+        assert_approx_eq!(0.9983682893807054, &mb.a[2][0], 1E-3);
         println!("expected: {}   is: {}", 1.0, &mb.a[output_layer_index][0]);
     }
 

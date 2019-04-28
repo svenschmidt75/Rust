@@ -51,17 +51,20 @@ impl FCLayer {
         self.weights[(i, j)]
     }
 
-    fn initialize_parameters(&mut self) {
+    fn initialize_parameters(&mut self, fan_in: usize, fan_out: usize) {
+        // SS: modified Xavier initialization
+        //Stanford Neural networks, Lecture 6, https://www.youtube.com/watch?v=wEoyxE0GP2M&list=PL3FW7Lu3i5JvHM8ljYj-zLfQRF3EO8sYv&index=6
         let mut rng = rand::thread_rng();
+        let std_dev = 1.0 / (fan_in as f64 / 2.0);
         for row in 0..self.weights.nrows() {
             for col in 0..self.weights.ncols() {
                 let value: f64 = rng.gen();
-                self.weights[(row, col)] = value / 100.0;
+                self.weights[(row, col)] = value * std_dev;
             }
         }
         for idx in 0..self.biases.dim() {
             let value: f64 = rng.gen();
-            self.biases[idx] = value / 100.0;
+            self.biases[idx] = value * std_dev;
         }
     }
 }
@@ -71,8 +74,7 @@ impl Layer for FCLayer {
         let n = prev_layer.nactivations();
         self.weights = Matrix2D::new(self.nneurons, n);
         self.biases = Vector::new(self.nneurons);
-
-        self.initialize_parameters();
+        self.initialize_parameters(n, self.nneurons);
     }
 
     fn feedforward(&self, input: &Vector) -> (Vector, Vector) {
