@@ -66,11 +66,7 @@ impl Model {
         (n_minibatches, training_data_size % minibatch_size)
     }
 
-    // pass in training and validation data
-    // number of epochs
-    // size of minibatch
-    // no regularization for now
-    pub fn train(&mut self, data: &(&[TrainingData], &[TrainingData], &[TrainingData]), epochs: usize, eta: f64, lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
+    pub fn train(&mut self, data: &(&[TrainingData], &[TrainingData], &[TrainingData]), epochs: usize, eta: f64, rho: f64, lambda: f64, minibatch_size: usize, cost_function: &CostFunction) {
         // call initialize on each layer
 
         // for each epoch
@@ -141,7 +137,8 @@ impl Model {
                     self.backprop(mb, cost_function, known_classification);
                 }
                 let (dws, dbs) = self.calculate_derivatives(&mbs[..], lambda);
-                self.update_network(eta, dws, dbs);
+                self.apply_momentum(eta, rho, dws, dbs);
+                self.update_network();
             }
 
             // SS: epoch completed, print cost for all training samples, print accuracy
@@ -242,7 +239,7 @@ impl Model {
                 dCdb += &db_i;
             }
             let w = self.get_layer(layer_index).get_weights();
-            dCdw = &(dCdw + &(lambda * w)) / (mbs.len() as f64);
+            dCdw = &(&dCdw + &(lambda * w)) / (mbs.len() as f64);
             dws.push(dCdw);
 
             dCdb /= mbs.len();
@@ -251,10 +248,33 @@ impl Model {
         (dws, dbs)
     }
 
-    fn update_network(&mut self, eta: f64, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {
+    fn apply_momentum(&mut self, eta: f64, rho: f64, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {
         let output_layer_index = self.output_layer_index();
         assert_eq!(output_layer_index, dws.len());
         assert_eq!(output_layer_index, dbs.len());
+
+        for layer_index in 1..output_layer_index + 1 {
+            {
+                let momentum_weights = self.layers[layer_index].get_momentum_weights();
+                let weights = self.layers[layer_index].get_weights_mut();
+                let dw = &dws[layer_index - 1];
+                let momentum_weights2 = &(rho * momentum_weights) - &(eta * dw);
+                *weights += &momentum_weights2;
+                self.layers[layer_index].set_momentum_weights(momentum_weights2);
+            }
+            {
+                let momentum_biases = self.layers[layer_index].get_momentum_biases();
+                let biases = self.layers[layer_index].get_biases_mut();
+                let db = &dbs[layer_index - 1];
+                let momentum_biases2 = &(rho * momentum_biases) - &(eta * db);
+                *biases += &momentum_biases2;
+                self.layers[layer_index].set_momentum_biases(momentum_biases2);
+            }
+        }
+    }
+
+    fn update_network(&mut self) {
+        let output_layer_index = self.output_layer_index();
 
         // SS: move this into layer class?
         // Reason 1: get_weights() does not need to be mutable
@@ -264,13 +284,13 @@ impl Model {
         for layer_index in 1..output_layer_index + 1 {
             {
                 let weights = self.layers[layer_index].get_weights_mut();
-                let dw = &dws[layer_index - 1];
-                *weights -= &(eta * dw);
+                let momentum_weights = self.layers[layer_index].get_momentum_weights();
+                *weights += momentum_weights;
             }
             {
                 let biases = self.layers[layer_index].get_biases_mut();
-                let db = &dbs[layer_index - 1];
-                *biases -= &(eta * db);
+                let momentum_biases = self.layers[layer_index].get_momentum_biases();
+                *biases += momentum_biases;
             }
         }
     }
@@ -333,7 +353,7 @@ impl Model {
         let ntraining_samples = xs.len() as f64;
 
         let w = self.get_layer(layer_index).get_weights();
-        dw = &(dw + &(lambda * w)) / ntraining_samples;
+        dw = &(&dw + &(lambda * w)) / ntraining_samples;
 
         dw
     }

@@ -17,9 +17,17 @@ pub trait Layer {
 
     fn get_weights_mut(&mut self) -> &mut Matrix2D;
 
+    fn get_momentum_weights(&self) -> &Matrix2D;
+
+    fn set_momentum_weights(&mut self, momentum_weights: Matrix2D);
+
     fn get_biases(&self) -> &Vector;
 
     fn get_biases_mut(&mut self) -> &mut Vector;
+
+    fn get_momentum_biases(&self) -> &Vector;
+
+    fn set_momentum_biases(&mut self, momentum_biases: Vector);
 
     fn get_activation(&self) -> &Activation;
 
@@ -30,7 +38,9 @@ pub trait Layer {
 
 pub struct FCLayer {
     weights: Matrix2D,
+    momentum_weights: Matrix2D,
     biases: Vector,
+    momentum_biases: Vector,
     nneurons: usize,
     activation: Box<dyn Activation>,
 }
@@ -39,7 +49,9 @@ impl FCLayer {
     pub fn new(nneurons: usize, activation: Box<dyn Activation>) -> FCLayer {
         FCLayer {
             weights: Matrix2D::new(0, 0),
+            momentum_weights: Matrix2D::new(0, 0),
             biases: Vector::new(0),
+            momentum_biases: Vector::new(0),
             activation,
             nneurons,
         }
@@ -73,7 +85,9 @@ impl Layer for FCLayer {
     fn initialize(&mut self, prev_layer: &Layer) {
         let n = prev_layer.nactivations();
         self.weights = Matrix2D::new(self.nneurons, n);
+        self.momentum_weights = Matrix2D::new(self.nneurons, n);
         self.biases = Vector::new(self.nneurons);
+        self.momentum_biases = Vector::new(self.nneurons);
         self.initialize_parameters(n, self.nneurons);
     }
 
@@ -127,6 +141,22 @@ impl Layer for FCLayer {
         let nparams = self.weights.ncols() * self.weights.nrows() + self.biases.dim();
         println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
     }
+
+    fn get_momentum_weights(&self) -> &Matrix2D {
+        &self.momentum_weights
+    }
+
+    fn set_momentum_weights(&mut self, momentum_weights: Matrix2D) {
+        self.momentum_weights = momentum_weights;
+    }
+
+    fn get_momentum_biases(&self) -> &Vector {
+        &self.momentum_biases
+    }
+
+    fn set_momentum_biases(&mut self, momentum_biases: Vector) {
+        self.momentum_biases = momentum_biases;
+    }
 }
 
 pub struct InputLayer {
@@ -158,11 +188,27 @@ impl Layer for InputLayer {
         unreachable!()
     }
 
+    fn get_momentum_weights(&self) -> &Matrix2D {
+        unreachable!()
+    }
+
+    fn set_momentum_weights(&mut self, momentum_weights: Matrix2D) {
+        unreachable!()
+    }
+
     fn get_biases(&self) -> &Vector {
         unreachable!()
     }
 
     fn get_biases_mut(&mut self) -> &mut Vector {
+        unreachable!()
+    }
+
+    fn get_momentum_biases(&self) -> &Vector {
+        unreachable!()
+    }
+
+    fn set_momentum_biases(&mut self, momentum_biases: Vector) {
         unreachable!()
     }
 

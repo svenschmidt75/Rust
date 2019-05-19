@@ -134,7 +134,7 @@ impl std::ops::Div<f64> for &Matrix2D {
     }
 }
 
-impl std::ops::Add<&Matrix2D> for Matrix2D {
+impl std::ops::Add<&Matrix2D> for &Matrix2D {
     type Output = Matrix2D;
 
     fn add(self, rhs: &Matrix2D) -> Self::Output {
@@ -145,6 +145,22 @@ impl std::ops::Add<&Matrix2D> for Matrix2D {
             let value = &self.data[idx];
             let other = &rhs.data[idx];
             result.data[idx] = value + other;
+        }
+        result
+    }
+}
+
+impl std::ops::Sub<&Matrix2D> for &Matrix2D {
+    type Output = Matrix2D;
+
+    fn sub(self, rhs: &Matrix2D) -> Self::Output {
+        assert_eq!(self.nrows(), rhs.nrows(), "Matrices must have same number of rows");
+        assert_eq!(self.ncols(), rhs.ncols(), "Matrices must have same number of columns");
+        let mut result = Matrix2D::new(rhs.nrows, rhs.ncols);
+        for idx in 0..rhs.data.len() {
+            let value = &self.data[idx];
+            let other = &rhs.data[idx];
+            result.data[idx] = value - other;
         }
         result
     }

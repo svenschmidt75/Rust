@@ -155,7 +155,7 @@ mod tests {
         ];
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 1000, 15.5, 0.0, 4, &QuadraticCost {});
+        model.train(&data, 1000, 15.5, 0.0, 0.0, 4, &QuadraticCost {});
 
         // Act
         let cost = QuadraticCost {};
