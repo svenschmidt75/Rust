@@ -1,3 +1,6 @@
+mod image;
+mod loader;
+
 #[cfg(test)]
 mod tests {
     #[test]
