@@ -1,4 +1,4 @@
-struct Image {
+pub struct Image {
     data: Vec<u8>,
     width: usize,
     height: usize,
