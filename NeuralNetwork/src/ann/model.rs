@@ -258,17 +258,15 @@ impl Model {
                 let momentum_weights = self.layers[layer_index].get_momentum_weights();
                 let weights = self.layers[layer_index].get_weights();
                 let dw = &dws[layer_index - 1];
-                let momentum_weights2 = &(rho * momentum_weights) - &(eta * dw);
-                let updated_weights = weights + &momentum_weights2;
-                self.layers[layer_index].set_momentum_weights(updated_weights);
+                let updates_momentum_weights = &(rho * momentum_weights) - &(eta * dw);
+                self.layers[layer_index].set_momentum_weights(updates_momentum_weights);
             }
             {
                 let momentum_biases = self.layers[layer_index].get_momentum_biases();
                 let biases = self.layers[layer_index].get_biases();
                 let db = &dbs[layer_index - 1];
-                let momentum_biases2 = &(rho * momentum_biases) - &(eta * db);
-                let updated_biases = biases + &momentum_biases2;
-                self.layers[layer_index].set_momentum_biases(updated_biases);
+                let updated_momentum_biases = &(rho * momentum_biases) - &(eta * db);
+                self.layers[layer_index].set_momentum_biases(updated_momentum_biases);
             }
         }
     }
@@ -1284,7 +1282,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 2000, 50.0, 0.0, 0.0, 4, &cost_function);
+        model.train(&data, 2000, 50.0, 0.0, 0.0001, 4, &cost_function);
 
         // Assert
         let mut mb = model.create_minibatch();
@@ -1293,25 +1291,25 @@ mod tests {
         mb.z[0] = Vector::from(vec![0.0, 0.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.0039629946533253175, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.0039629946533253175, &mb.a[2][0], 0.02);
 
         // 1 && 0 == 0
         mb.z[0] = Vector::from(vec![1.0, 0.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.05007500459128223, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.05007500459128223, &mb.a[2][0], 0.04);
 
         // 0 && 1 == 0
         mb.z[0] = Vector::from(vec![0.0, 1.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.051638397516774716, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.051638397516774716, &mb.a[2][0], 0.04);
 
         // 1 && 1 == 0
         mb.z[0] = Vector::from(vec![1.0, 1.0]);
         mb.a[0] = Sigmoid {}.f(&mb.z[0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.5838657521381514, &mb.a[2][0], 1E-2);
+        assert_approx_eq!(0.5838657521381514, &mb.a[2][0], 0.04);
     }
 
     #[test]
