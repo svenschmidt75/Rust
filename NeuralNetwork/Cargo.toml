@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "lib/la",
+    "lib/linear_algebra",
     "lib/ann",
 ]

@@ -72,3 +72,15 @@ Playground/ErrorHandling/\.idea/
 Playground/ErrorHandling/Cargo\.lock
 
 Playground/ErrorHandling/target/
+
+NeuralNetwork/MNIST/t10k-images\.idx3-ubyte
+
+NeuralNetwork/MNIST/t10k-labels\.idx1-ubyte
+
+NeuralNetwork/MNIST/train-images\.idx3-ubyte
+
+NeuralNetwork/MNIST/train-images50\.idx3-ubyte
+
+NeuralNetwork/MNIST/train-labels\.idx1-ubyte
+
+NeuralNetwork/MNIST/train-labels50\.idx1-ubyte
