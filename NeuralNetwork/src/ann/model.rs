@@ -256,19 +256,19 @@ impl Model {
         for layer_index in 1..output_layer_index + 1 {
             {
                 let momentum_weights = self.layers[layer_index].get_momentum_weights();
-                let weights = self.layers[layer_index].get_weights_mut();
+                let weights = self.layers[layer_index].get_weights();
                 let dw = &dws[layer_index - 1];
                 let momentum_weights2 = &(rho * momentum_weights) - &(eta * dw);
-                *weights += &momentum_weights2;
-                self.layers[layer_index].set_momentum_weights(momentum_weights2);
+                let updated_weights = weights + &momentum_weights2;
+                self.layers[layer_index].set_momentum_weights(updated_weights);
             }
             {
                 let momentum_biases = self.layers[layer_index].get_momentum_biases();
-                let biases = self.layers[layer_index].get_biases_mut();
+                let biases = self.layers[layer_index].get_biases();
                 let db = &dbs[layer_index - 1];
                 let momentum_biases2 = &(rho * momentum_biases) - &(eta * db);
-                *biases += &momentum_biases2;
-                self.layers[layer_index].set_momentum_biases(momentum_biases2);
+                let updated_biases = biases + &momentum_biases2;
+                self.layers[layer_index].set_momentum_biases(updated_biases);
             }
         }
     }
@@ -283,14 +283,16 @@ impl Model {
         // SS: dws and dbs contain the layer 1 deltas at index 0!
         for layer_index in 1..output_layer_index + 1 {
             {
-                let weights = self.layers[layer_index].get_weights_mut();
+                let weights = self.layers[layer_index].get_weights();
                 let momentum_weights = self.layers[layer_index].get_momentum_weights();
-                *weights += momentum_weights;
+                let updated_weights = weights + momentum_weights;
+                self.layers[layer_index].set_weights(updated_weights);
             }
             {
-                let biases = self.layers[layer_index].get_biases_mut();
+                let biases = self.layers[layer_index].get_biases();
                 let momentum_biases = self.layers[layer_index].get_momentum_biases();
-                *biases += momentum_biases;
+                let updated_biases = biases + momentum_biases;
+                self.layers[layer_index].set_biases(updated_biases);
             }
         }
     }
@@ -299,7 +301,7 @@ impl Model {
 
     pub fn weightsSquaredSum(&self) -> f64 {
         // SS: skip  the input layer
-        self.layers.iter().skip(1).fold(0.0, |accum, layer| accum + layer.weightsSquaredSum())
+        self.layers.iter().skip(1).fold(0.0, |accum, layer| accum + layer.weights_squared_sum())
     }
 
     fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, y: &Vector, cost: &CostFunction) -> Vector {
@@ -452,7 +454,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 5, 0.005, 1.0, 25, &cost_function);
+        model.train(&data, 5, 0.005, 0.0, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -518,7 +520,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 5, 0.005, 0.0, 25, &cost_function);
+        model.train(&data, 5, 0.005, 0.0, 0.0, 25, &cost_function);
 
         // Act
         // Assert
@@ -587,7 +589,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 25, &cost_function);
+        model.train(&data, 10, 0.05, 0.0, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -649,7 +651,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 25, &cost_function);
+        model.train(&data, 10, 0.05, 0.0, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -715,7 +717,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 25, &cost_function);
+        model.train(&data, 10, 0.05, 0.0, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -775,7 +777,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 0.0, 25, &cost_function);
+        model.train(&data, 10, 0.05, 0.0, 0.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -841,7 +843,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 25, &cost_function);
+        model.train(&data, 10, 0.05, 0.0, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -907,7 +909,7 @@ mod tests {
             .collect::<Vec<_>>();
         let tmp: [TrainingData; 0] = [];
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 10, 0.05, 1.0, 25, &cost_function);
+        model.train(&data, 10, 0.05, 0.0, 1.0, 25, &cost_function);
 
         // Act
         let mut mb = model.create_minibatch();
@@ -973,7 +975,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 100, 5.0, 1.0, 4, &cost_function);
+        model.train(&data, 100, 5.0, 0.0, 1.0, 4, &cost_function);
 
         // Assert
 
@@ -1035,7 +1037,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 100, 0.02, 0.0, 25, &QuadraticCost {});
+        model.train(&data, 100, 0.02, 0.0, 0.0, 25, &QuadraticCost {});
 
         // Assert
         let output_layer_index = 2;
@@ -1092,7 +1094,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 100, 0.02, 0.0, 25, &QuadraticCost {});
+        model.train(&data, 100, 0.02, 0.0, 0.0, 25, &QuadraticCost {});
 
         // Assert
         let output_layer_index = 2;
@@ -1239,7 +1241,7 @@ mod tests {
         let (dws, dbs) = model.calculate_derivatives(&mbs, 0.0);
 
         // Act
-        model.update_network(0.1, dws, dbs);
+        model.update_network();
     }
 
     #[test]
@@ -1282,7 +1284,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 2000, 50.0, 0.0, 4, &cost_function);
+        model.train(&data, 2000, 50.0, 0.0, 0.0, 4, &cost_function);
 
         // Assert
         let mut mb = model.create_minibatch();
@@ -1352,7 +1354,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 1000, 7.0, 0.000001, 4, &cost_function);
+        model.train(&data, 1000, 7.0, 0.0, 0.000001, 4, &cost_function);
 
         // Assert
         let output_layer_index = 2;
@@ -1410,7 +1412,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 10, 0.05, 0.0, 4, &QuadraticCost {});
+        model.train(&data, 10, 0.05, 0.0, 0.0, 4, &QuadraticCost {});
 
         // Assert
         let weights = model.get_weights(1);
@@ -1462,7 +1464,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 10, 0.05, 0.0, 25, &QuadraticCost {});
+        model.train(&data, 10, 0.05, 0.0, 0.0, 25, &QuadraticCost {});
 
         // Assert
         let b1 = model.get_biases(1);

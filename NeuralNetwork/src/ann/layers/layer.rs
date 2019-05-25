@@ -15,6 +15,8 @@ pub trait Layer {
 
     fn get_weights(&self) -> &Matrix2D;
 
+    fn set_weights(&mut self, weights: Matrix2D);
+
     fn get_weights_mut(&mut self) -> &mut Matrix2D;
 
     fn get_momentum_weights(&self) -> &Matrix2D;
@@ -25,13 +27,15 @@ pub trait Layer {
 
     fn get_biases_mut(&mut self) -> &mut Vector;
 
+    fn set_biases(&mut self, biases: Vector);
+
     fn get_momentum_biases(&self) -> &Vector;
 
     fn set_momentum_biases(&mut self, momentum_biases: Vector);
 
     fn get_activation(&self) -> &Activation;
 
-    fn weightsSquaredSum(&self) -> f64;
+    fn weights_squared_sum(&self) -> f64;
 
     fn print_summary(&self);
 }
@@ -114,6 +118,10 @@ impl Layer for FCLayer {
         &mut self.weights
     }
 
+    fn set_weights(&mut self, weights: Matrix2D) {
+        self.weights = weights;
+    }
+
     fn get_biases(&self) -> &Vector {
         &self.biases
     }
@@ -122,11 +130,15 @@ impl Layer for FCLayer {
         &mut self.biases
     }
 
+    fn set_biases(&mut self, biases: Vector) {
+        self.biases = biases;
+    }
+
     fn get_activation(&self) -> &Activation {
         &*self.activation
     }
 
-    fn weightsSquaredSum(&self) -> f64 {
+    fn weights_squared_sum(&self) -> f64 {
         let mut w2 = 0.0;
         for col in 0..self.weights.ncols() {
             for row in 0..self.weights.nrows() {
@@ -184,6 +196,10 @@ impl Layer for InputLayer {
         unreachable!()
     }
 
+    fn set_weights(&mut self, weights: Matrix2D) {
+        unreachable!()
+    }
+
     fn get_weights_mut(&mut self) -> &mut Matrix2D {
         unreachable!()
     }
@@ -204,6 +220,10 @@ impl Layer for InputLayer {
         unreachable!()
     }
 
+    fn set_biases(&mut self, biases: Vector) {
+        unreachable!()
+    }
+
     fn get_momentum_biases(&self) -> &Vector {
         unreachable!()
     }
@@ -216,7 +236,7 @@ impl Layer for InputLayer {
         unreachable!()
     }
 
-    fn weightsSquaredSum(&self) -> f64 {
+    fn weights_squared_sum(&self) -> f64 {
         unreachable!()
     }
 
