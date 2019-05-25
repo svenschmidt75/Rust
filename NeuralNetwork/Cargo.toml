@@ -1,5 +1,7 @@
 [workspace]
 members = [
+    "lib/mnist/mnist_convert_png",
+    "lib/mnist/mnist_loader",
     "lib/linear_algebra",
     "lib/ann",
 ]
