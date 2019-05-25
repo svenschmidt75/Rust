@@ -1,0 +1,10 @@
+[package]
+name = "ann"
+version = "0.1.0"
+authors = ["Sven Schmidt <svenschmidt75@googlemail.com>"]
+edition = "2018"
+
+[dependencies]
+rand = "0.6.4"
+assert_approx_eq = "1.1.0"
+linear_algebra = { path = "../la" }

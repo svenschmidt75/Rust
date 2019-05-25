@@ -1,5 +1,5 @@
-use crate::la::ops;
-use crate::la::vector::Vector;
+use linear_algebra::ops;
+use linear_algebra::vector::Vector;
 
 pub trait Activation {
     fn f(&self, v: &Vector) -> Vector;
@@ -155,7 +155,7 @@ impl Activation for Sin {
 mod tests {
     use assert_approx_eq::assert_approx_eq;
 
-    use crate::la::vector::Vector;
+    use linear_algebra::vector::Vector;
 
     use super::*;
 

@@ -1,7 +1,7 @@
 use std::ops::Index;
 use std::ops::IndexMut;
 
-use crate::la::ops;
+use crate::ops;
 
 #[derive(Clone, Debug)]
 pub struct Vector {

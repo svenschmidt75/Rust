@@ -2,9 +2,9 @@ use crate::ann::activation::Activation;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
 use crate::ann::model::Model;
-use crate::la::matrix::Matrix2D;
-use crate::la::ops;
-use crate::la::vector::Vector;
+use linear_algebra::matrix::Matrix2D;
+use linear_algebra::ops;
+use linear_algebra::vector::Vector;
 
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &[TrainingData], lambda: f64) -> f64;
@@ -113,8 +113,8 @@ mod tests {
     use crate::ann::activation::Id;
     use crate::ann::activation::Sigmoid;
     use crate::ann::layers::training_data::TrainingData;
-    use crate::la::matrix::Matrix2D;
-    use crate::la::vector::Vector;
+    use linear_algebra::matrix::Matrix2D;
+    use linear_algebra::vector::Vector;
 
     #[test]
     fn test_network_cost() {

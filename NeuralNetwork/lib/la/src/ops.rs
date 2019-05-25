@@ -1,5 +1,5 @@
-use crate::la::matrix::Matrix2D;
-use crate::la::vector::Vector;
+use crate::matrix::Matrix2D;
+use crate::vector::Vector;
 
 pub fn ax(m: &Matrix2D, x: &Vector) -> Vector {
     assert_eq!(m.ncols(), x.dim(), "ops.ax: Matrix incompatible with vector");
@@ -42,7 +42,7 @@ pub fn outer_product(v1: &Vector, v2: &Vector) -> Matrix2D {
 mod tests {
     use assert_approx_eq::assert_approx_eq;
 
-    use crate::la::matrix::Matrix2D;
+    use crate::matrix::Matrix2D;
 
     use super::*;
 

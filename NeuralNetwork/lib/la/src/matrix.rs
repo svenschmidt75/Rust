@@ -1,7 +1,7 @@
 use std::ops::{Index, IndexMut};
 
-use crate::la::ops;
-use crate::la::vector::Vector;
+use crate::ops;
+use crate::vector::Vector;
 
 #[derive(Clone, Debug)]
 pub struct Matrix2D {

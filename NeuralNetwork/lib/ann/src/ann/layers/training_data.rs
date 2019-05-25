@@ -1,4 +1,4 @@
-use crate::la::vector::Vector;
+use linear_algebra::vector::Vector;
 
 pub struct TrainingData {
     pub input_activations: Vector,

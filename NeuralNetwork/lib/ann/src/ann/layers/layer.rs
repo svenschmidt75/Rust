@@ -1,9 +1,9 @@
 use rand::Rng;
 
 use crate::ann::activation::Activation;
-use crate::la::matrix::Matrix2D;
-use crate::la::ops;
-use crate::la::vector::Vector;
+use linear_algebra::matrix::Matrix2D;
+use linear_algebra::ops;
+use linear_algebra::vector::Vector;
 
 pub trait Layer {
     fn initialize(&mut self, prev_layer: &Layer);

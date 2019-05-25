@@ -9,9 +9,9 @@ use crate::ann::cost_function::QuadraticCost;
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
-use crate::la::matrix::Matrix2D;
-use crate::la::ops;
-use crate::la::vector::Vector;
+use linear_algebra::matrix::Matrix2D;
+use linear_algebra::ops;
+use linear_algebra::vector::Vector;
 
 pub struct Model {
     layers: Vec<Box<dyn Layer>>,
@@ -405,8 +405,8 @@ mod tests {
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::{CrossEntropyCost, QuadraticCost};
     use crate::ann::layers::layer::{FCLayer, InputLayer};
-    use crate::la::matrix::Matrix2D;
-    use crate::la::vector::Vector;
+    use linear_algebra::matrix::Matrix2D;
+    use linear_algebra::vector::Vector;
 
     use super::*;
 
