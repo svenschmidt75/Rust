@@ -1,7 +1,7 @@
 pub struct Image {
-    data: Vec<u8>,
-    width: usize,
-    height: usize,
+    pub data: Vec<u8>,
+    pub width: usize,
+    pub height: usize,
 }
 
 impl Image {}
