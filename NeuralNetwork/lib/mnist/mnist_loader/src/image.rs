@@ -3,5 +3,3 @@ pub struct Image {
     pub width: usize,
     pub height: usize,
 }
-
-impl Image {}

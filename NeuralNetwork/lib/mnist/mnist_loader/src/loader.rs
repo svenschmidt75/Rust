@@ -1,10 +1,12 @@
+use std::env;
 use std::fs::File;
 use std::io::{ErrorKind, Read, Result};
 use std::path::Path;
-use byteorder::{ByteOrder, BigEndian};
+
+use byteorder::{BigEndian, ByteOrder};
 
 use crate::image::Image;
-use std::env;
+use crate::labels::Label;
 
 const project_directory: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/mnist/mnist_loader/";
 
@@ -54,6 +56,11 @@ fn read_images(data: &[u8], num_images: usize, offset: usize, nrows: usize, ncol
     Some(images)
 }
 
+fn read_labels(data: &[u8], num_labels: usize, offset: usize) -> Option<Vec<Label>> {
+    let labels = (0..num_labels).map(|idx| Label { label: data[offset + idx] }).collect();
+    Some(labels)
+}
+
 fn parse_image_data(data: &Vec<u8>) -> Option<Vec<Image>> {
     let magic_number = read_u32(data, 0)?;
     assert_eq!(2051, magic_number);
@@ -64,13 +71,30 @@ fn parse_image_data(data: &Vec<u8>) -> Option<Vec<Image>> {
     Some(images)
 }
 
+fn parse_label_data(data: &Vec<u8>) -> Option<Vec<Label>> {
+    let magic_number = read_u32(data, 0)?;
+    assert_eq!(2049, magic_number);
+    let num_labels = read_u32(data, 4)? as usize;
+    let labels = read_labels(data, num_labels, 8)?;
+    Some(labels)
+}
+
 fn load_image_file(file_name: &str) -> Result<Vec<Image>> {
     let mut file = File::open(file_name)?;
     let mut buffer = Vec::new();
-    let n= file.read_to_end(&mut buffer)?;
+    let n = file.read_to_end(&mut buffer)?;
     assert!(n > 0);
     let images = parse_image_data(&buffer).ok_or(ErrorKind::InvalidData)?;
     Ok(images)
+}
+
+fn load_label_file(file_name: &str) -> Result<Vec<Label>> {
+    let mut file = File::open(file_name)?;
+    let mut buffer = Vec::new();
+    let n = file.read_to_end(&mut buffer)?;
+    assert!(n > 0);
+    let labels = parse_label_data(&buffer).ok_or(ErrorKind::InvalidData)?;
+    Ok(labels)
 }
 
 #[cfg(test)]
@@ -78,14 +102,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() -> Result<()> {
+    fn test_read_train_images() -> Result<()> {
         // Arrange / Act
         let images = load_image_file(&(project_directory.to_owned() + "../../../MNIST/train-images.idx3-ubyte"))?;
 
-        println!("{}", images.len());
-
         // Assert
         assert_eq!(images.len(), 60000);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_test_images() -> Result<()> {
+        // Arrange / Act
+        let images = load_image_file(&(project_directory.to_owned() + "../../../MNIST/t10k-images.idx3-ubyte"))?;
+
+        // Assert
+        assert_eq!(images.len(), 10000);
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_train_labes() -> Result<()> {
+        // Arrange / Act
+        let labels = load_label_file(&(project_directory.to_owned() + "../../../MNIST/train-labels.idx1-ubyte"))?;
+
+        // Assert
+        assert_eq!(labels.len(), 60000);
         Ok(())
     }
 }
