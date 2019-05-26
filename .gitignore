@@ -84,3 +84,5 @@ NeuralNetwork/MNIST/train-images50\.idx3-ubyte
 NeuralNetwork/MNIST/train-labels\.idx1-ubyte
 
 NeuralNetwork/MNIST/train-labels50\.idx1-ubyte
+
+NeuralNetwork/MNIST/data/

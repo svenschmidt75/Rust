@@ -8,23 +8,7 @@ use byteorder::{BigEndian, ByteOrder};
 use crate::image::Image;
 use crate::labels::Label;
 
-const project_directory: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/mnist/mnist_loader/";
-
-fn get_magic_number(data: &Vec<u8>) -> Option<u32> {
-    if data.len() < 4 {
-        return None;
-    }
-    let magic_number = BigEndian::read_u32(&data[0..4]);
-    Some(magic_number)
-}
-
-fn get_number_of_images(data: &Vec<u8>) -> Option<u32> {
-    if data.len() < 4 {
-        return None;
-    }
-    let value = BigEndian::read_u32(&data[4..8]);
-    Some(value)
-}
+const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/mnist/mnist_loader/";
 
 fn read_u32(data: &[u8], offset: usize) -> Option<u32> {
     let size = std::mem::align_of::<u32>();
@@ -40,7 +24,11 @@ fn read_image(data: &[u8], offset: usize, nrows: usize, ncols: usize) -> Option<
     if data.len() < offset + size {
         return None;
     }
-    let image = Image { data: Vec::from(&data[offset..offset + size]), width: ncols, height: nrows };
+    let image = Image {
+        data: Vec::from(&data[offset..offset + size]),
+        width: ncols,
+        height: nrows,
+    };
     Some(image)
 }
 
@@ -61,7 +49,7 @@ fn read_labels(data: &[u8], num_labels: usize, offset: usize) -> Option<Vec<Labe
     Some(labels)
 }
 
-fn parse_image_data(data: &Vec<u8>) -> Option<Vec<Image>> {
+fn parse_image_data(data: &[u8]) -> Option<Vec<Image>> {
     let magic_number = read_u32(data, 0)?;
     assert_eq!(2051, magic_number);
     let num_images = read_u32(data, 4)? as usize;
@@ -71,7 +59,7 @@ fn parse_image_data(data: &Vec<u8>) -> Option<Vec<Image>> {
     Some(images)
 }
 
-fn parse_label_data(data: &Vec<u8>) -> Option<Vec<Label>> {
+fn parse_label_data(data: &[u8]) -> Option<Vec<Label>> {
     let magic_number = read_u32(data, 0)?;
     assert_eq!(2049, magic_number);
     let num_labels = read_u32(data, 4)? as usize;
@@ -79,7 +67,7 @@ fn parse_label_data(data: &Vec<u8>) -> Option<Vec<Label>> {
     Some(labels)
 }
 
-fn load_image_file(file_name: &str) -> Result<Vec<Image>> {
+pub fn load_image_file(file_name: &str) -> Result<Vec<Image>> {
     let mut file = File::open(file_name)?;
     let mut buffer = Vec::new();
     let n = file.read_to_end(&mut buffer)?;
@@ -104,7 +92,7 @@ mod tests {
     #[test]
     fn test_read_train_images() -> Result<()> {
         // Arrange / Act
-        let images = load_image_file(&(project_directory.to_owned() + "../../../MNIST/train-images.idx3-ubyte"))?;
+        let images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../MNIST/train-images.idx3-ubyte"))?;
 
         // Assert
         assert_eq!(images.len(), 60000);
@@ -114,7 +102,7 @@ mod tests {
     #[test]
     fn test_read_test_images() -> Result<()> {
         // Arrange / Act
-        let images = load_image_file(&(project_directory.to_owned() + "../../../MNIST/t10k-images.idx3-ubyte"))?;
+        let images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../MNIST/t10k-images.idx3-ubyte"))?;
 
         // Assert
         assert_eq!(images.len(), 10000);
@@ -124,7 +112,7 @@ mod tests {
     #[test]
     fn test_read_train_labes() -> Result<()> {
         // Arrange / Act
-        let labels = load_label_file(&(project_directory.to_owned() + "../../../MNIST/train-labels.idx1-ubyte"))?;
+        let labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../MNIST/train-labels.idx1-ubyte"))?;
 
         // Assert
         assert_eq!(labels.len(), 60000);

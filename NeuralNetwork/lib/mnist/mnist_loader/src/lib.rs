@@ -1,3 +1,3 @@
-mod image;
-mod labels;
-mod loader;
+pub mod image;
+pub mod labels;
+pub mod loader;
