@@ -76,7 +76,7 @@ pub fn load_image_file(file_name: &str) -> Result<Vec<Image>> {
     Ok(images)
 }
 
-fn load_label_file(file_name: &str) -> Result<Vec<Label>> {
+pub fn load_label_file(file_name: &str) -> Result<Vec<Label>> {
     let mut file = File::open(file_name)?;
     let mut buffer = Vec::new();
     let n = file.read_to_end(&mut buffer)?;

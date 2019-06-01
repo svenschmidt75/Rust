@@ -38,7 +38,7 @@ impl CostFunction for QuadraticCost {
         let ntraining_samples = y.len() as f64;
 
         // SS: add effects of L2 regularization
-        let w2 = model.weightsSquaredSum();
+        let w2 = model.weights_squared_sum();
         total_cost = (total_cost + w2 * lambda) / 2.0 / ntraining_samples;
         total_cost
     }
@@ -91,7 +91,7 @@ impl CostFunction for CrossEntropyCost {
         let ntraining_samples = y.len() as f64;
 
         // SS: add effects of L2 regularization
-        let w2 = model.weightsSquaredSum();
+        let w2 = model.weights_squared_sum();
         total_cost = (total_cost + w2 * lambda / 2.0) / ntraining_samples;
         -total_cost
     }

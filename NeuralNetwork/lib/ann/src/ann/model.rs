@@ -297,7 +297,7 @@ impl Model {
 
     pub fn summary(&self) {}
 
-    pub fn weightsSquaredSum(&self) -> f64 {
+    pub fn weights_squared_sum(&self) -> f64 {
         // SS: skip  the input layer
         self.layers.iter().skip(1).fold(0.0, |accum, layer| accum + layer.weights_squared_sum())
     }
@@ -409,6 +409,21 @@ mod tests {
     use linear_algebra::vector::Vector;
 
     use super::*;
+    use mnist_loader::labels::Label;
+    use mnist_loader::loader::{load_image_file, load_label_file};
+
+    const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
+
+    #[test]
+    fn test() {
+        // Arrange
+        let images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-images.idx3-ubyte")).unwrap();
+        let labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-labels.idx1-ubyte")).unwrap();
+
+        // Act
+
+        // Assert
+    }
 
     #[test]
     fn test_deltas_1() {
