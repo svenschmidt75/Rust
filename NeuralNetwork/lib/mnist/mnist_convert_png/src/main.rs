@@ -27,9 +27,13 @@ fn main() -> Result<()> {
     let dest_folder = env::args().nth(2).unwrap();
     println!("Second argument: {}", dest_folder);
     let images: Vec<Image> = load_image_file(&image_file_name)?;
-    images.iter().enumerate().map(|p| {
-        println!("Writing image {}/{}", p.0 + 1, images.len());
-        write_png(p.1, p.0, &dest_folder)
-    }).collect::<Result<()>>()?;
+    images
+        .iter()
+        .enumerate()
+        .map(|p| {
+            println!("{}Writing image {}/{}", termion::cursor::Up(1), p.0 + 1, images.len());
+            write_png(p.1, p.0, &dest_folder)
+        })
+        .collect::<Result<()>>()?;
     Ok(())
 }

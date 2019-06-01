@@ -6,4 +6,6 @@ edition = "2018"
 
 [dependencies]
 png = "0.14.1"
+termion = "1.5.2"
+
 mnist_loader = { path = "../mnist_loader" }
