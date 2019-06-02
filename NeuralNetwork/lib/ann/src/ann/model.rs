@@ -446,9 +446,21 @@ mod tests {
         let cost_function = QuadraticCost;
 
         // Act
-        model.train(&partitioned_data, 50, 0.05, 0.0, 0.0001, 25, &cost_function);
+        model.train(&partitioned_data, 150, 2.5, 0.0, 0.00001, 25, &cost_function);
 
         // Assert
+        let mut mb = model.create_minibatch();
+        let training_sample = &data[0];
+        mb.a[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mb);
+
+        println!("Output activations should: {:?}", &data[0].output_activations);
+        println!("Output activations is: {:?}", mb.a[2]);
+
+
+
+
+
     }
 
     #[test]
