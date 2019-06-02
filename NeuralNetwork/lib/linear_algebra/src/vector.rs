@@ -30,14 +30,6 @@ impl Vector {
     pub fn hadamard(&self, v: &Vector) -> Vector {
         ops::hadamard(self, v)
     }
-
-    pub fn partition(&self, factor: f64) -> (Vector, Vector) {
-        assert!(factor >= 0.0 && factor <= 1.0);
-        let bag1_size = (self.data.len() as f64 * factor).ceil() as usize;
-        let bag1 = &self.data[0..bag1_size];
-        let bag2 = &self.data[bag1_size..];
-        (Vector::from(bag1.iter().map(|&x| x).collect::<Vec<_>>()), Vector::from(bag2.iter().map(|&x| x).collect::<Vec<_>>()))
-    }
 }
 
 pub struct Iter<'a> {
@@ -164,45 +156,6 @@ mod tests {
     use assert_approx_eq::assert_approx_eq;
 
     use super::*;
-
-    #[test]
-    fn Test_partition1() {
-        // Arrange
-        let vec: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
-
-        // Act
-        let (b1, b2) = vec.partition(0.2);
-
-        // Assert
-        assert_eq!(b1.dim(), 1);
-        assert_eq!(b2.dim(), 3);
-    }
-
-    #[test]
-    fn Test_partition2() {
-        // Arrange
-        let vec: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
-
-        // Act
-        let (b1, b2) = vec.partition(0.0);
-
-        // Assert
-        assert_eq!(b1.dim(), 0);
-        assert_eq!(b2.dim(), 4);
-    }
-
-    #[test]
-    fn Test_partition3() {
-        // Arrange
-        let vec: Vector = vec![1.0, 2.0, 3.0, 4.0].into();
-
-        // Act
-        let (b1, b2) = vec.partition(1.0);
-
-        // Assert
-        assert_eq!(b1.dim(), 4);
-        assert_eq!(b2.dim(), 0);
-    }
 
     #[test]
     fn test_index() {

@@ -125,8 +125,7 @@ impl Model {
             // #chunks = mb_size, plus remainder
             let chunks = trainingdata_indices.chunks(mb_size);
 
-            for chunk in chunks {
-                //                println!("{:?}", chunk);
+            for (chunk_index, chunk) in chunks.enumerate() {
                 for idx in 0..chunk.len() {
                     let mb = &mut mbs[idx];
                     let training_sample_idx = chunk[idx];
@@ -415,15 +414,39 @@ mod tests {
     const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
 
     #[test]
-    fn test() {
+    fn test_MNIST() {
+        use crate::ann::activation::Sigmoid;
+
         // Arrange
-        let images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-images.idx3-ubyte")).unwrap();
-        let labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-labels.idx1-ubyte")).unwrap();
+        let images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-images.idx3-ubyte"))
+            .unwrap()
+            .into_iter()
+            .take(1000)
+            .collect::<Vec<_>>();
+        let labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-labels.idx1-ubyte"))
+            .unwrap()
+            .into_iter()
+            .take(1000)
+            .collect::<Vec<_>>();
+        let data = images.iter().zip(labels.iter()).map(|data| TrainingData::from_mnist(&data.0.data, data.1.label)).collect::<Vec<_>>();
+        let partitioned_data = TrainingData::partition(&data, 0.8, 0.2);
+
+        // SS: set up model
+        let mut model = Model::new();
+
+        let input_layer = InputLayer::new(28 * 28);
+        model.add(Box::new(input_layer));
+
+        let hidden_layer = FCLayer::new(100, Box::new(Sigmoid {}));
+        model.add(Box::new(hidden_layer));
+
+        let output_layer = FCLayer::new(10, Box::new(Sigmoid {}));
+        model.add(Box::new(output_layer));
+
+        let cost_function = QuadraticCost;
 
         // Act
-
-
-        unimplemented!()
+        model.train(&partitioned_data, 50, 0.05, 0.0, 0.0001, 25, &cost_function);
 
         // Assert
     }

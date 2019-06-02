@@ -14,35 +14,20 @@ impl TrainingData {
         }
     }
 
-    pub fn partition(self, train: f64, test: f64) -> (TrainingData, TrainingData, TrainingData) {
+    pub fn partition(data: &[TrainingData], train: f64, test: f64) -> (&[TrainingData], &[TrainingData], &[TrainingData]) {
         assert!(train > 0.0 && train <= 1.0);
         assert!(test >= 0.0 && test < 1.0);
         let validate = 1.0 - train - test;
-        assert!(validate >= 0.0 && validate < 1.0);
+        //        assert!(validate >= 0.0 && validate < 1.0);
         assert_approx_eq!(train + test + validate, 1.0, 1E-8);
 
-        let validate_percent = validate / (1.0 - train);
+        let train_length = (data.len() as f64 * train) as usize;
+        let test_length = (data.len() as f64 * test) as usize;
+        let validate_length = data.len() - train_length - test_length;
 
-        let (training_input_data, remainder_input) = self.input_activations.partition(train);
-        let (validate_input_data, test_input_data) = remainder_input.partition(validate_percent);
-
-        let (training_output_data, remainder_output) = self.output_activations.partition(train);
-        let (validate_output_data, test_output_data) = remainder_output.partition(validate_percent);
-
-        (
-            TrainingData {
-                input_activations: training_input_data,
-                output_activations: training_output_data,
-            },
-            TrainingData {
-                input_activations: validate_input_data,
-                output_activations: validate_output_data,
-            },
-            TrainingData {
-                input_activations: test_input_data,
-                output_activations: test_output_data,
-            },
-        )
+        let validate_offset = train_length;
+        let test_offset = train_length + validate_length;
+        (&data[0..train_length], &data[validate_offset..validate_offset + validate_length], &data[test_offset..])
     }
 }
 
@@ -51,19 +36,40 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {
+    fn test_without_validation() {
         // Arrange
-        let data = TrainingData {
-            input_activations: Vector::from(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]),
-            output_activations: Vector::from(vec![1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5]),
-        };
+        let data = (0..100)
+            .map(|_| TrainingData {
+                input_activations: Vector::from(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]),
+                output_activations: Vector::from(vec![1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5]),
+            })
+            .collect::<Vec<_>>();
 
         // Act
-        let (train, validate, test) = data.partition(0.6, 0.2);
+        let (train, validate, test) = TrainingData::partition(&data, 0.8, 0.2);
 
         // Assert
-        assert_eq!(train.input_activations.dim(), 6);
-        assert_eq!(validate.input_activations.dim(), 2);
-        assert_eq!(test.input_activations.dim(), 2);
+        assert_eq!(train.len(), 80);
+        assert_eq!(validate.len(), 0);
+        assert_eq!(test.len(), 20);
+    }
+
+    #[test]
+    fn test_with_validation() {
+        // Arrange
+        let data = (0..100)
+            .map(|_| TrainingData {
+                input_activations: Vector::from(vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]),
+                output_activations: Vector::from(vec![1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5]),
+            })
+            .collect::<Vec<_>>();
+
+        // Act
+        let (train, validate, test) = TrainingData::partition(&data, 0.6, 0.2);
+
+        // Assert
+        assert_eq!(train.len(), 60);
+        assert_eq!(validate.len(), 20);
+        assert_eq!(test.len(), 20);
     }
 }
