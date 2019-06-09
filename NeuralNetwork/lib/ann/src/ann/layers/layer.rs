@@ -40,6 +40,31 @@ pub trait Layer {
     fn print_summary(&self);
 }
 
+use serde::{Deserialize, Deserializer};
+
+//trait Foo: erased_serde::Serialize + Debug {}
+//serialize_trait_object!(Foo);
+
+impl<'de> Deserialize<'de> for Layer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+    {
+        /* your implementation here */
+        unimplemented!()
+    }
+}
+
+impl<'de> Deserialize<'de> for Box<dyn Layer> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        /* your implementation here */
+        unimplemented!()
+    }
+}
+
 pub struct FCLayer {
     weights: Matrix2D,
     momentum_weights: Matrix2D,

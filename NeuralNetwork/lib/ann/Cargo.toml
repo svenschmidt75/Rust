@@ -7,5 +7,8 @@ edition = "2018"
 [dependencies]
 rand = "0.6.4"
 assert_approx_eq = "1.1.0"
+bincode = "1.1.4"
+serde = "1.0.92"
+serde_derive = "1.0.92"
 linear_algebra = { path = "../linear_algebra" }
 mnist_loader = { path = "../mnist/mnist_loader" }

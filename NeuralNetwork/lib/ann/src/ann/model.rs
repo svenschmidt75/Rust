@@ -9,10 +9,14 @@ use crate::ann::cost_function::QuadraticCost;
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
+use bincode::{deserialize, serialize};
 use linear_algebra::matrix::Matrix2D;
 use linear_algebra::ops;
 use linear_algebra::vector::Vector;
 
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
 pub struct Model {
     layers: Vec<Box<dyn Layer>>,
 }
@@ -440,18 +444,36 @@ mod tests {
         use crate::ann::activation::Sigmoid;
 
         // Arrange
-        let images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-images.idx3-ubyte"))
+        let training_images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-images.idx3-ubyte"))
             .unwrap()
             .into_iter()
-            .take(10000)
             .collect::<Vec<_>>();
-        let labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-labels.idx1-ubyte"))
+        let training_labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-labels.idx1-ubyte"))
             .unwrap()
             .into_iter()
-            .take(10000)
             .collect::<Vec<_>>();
-        let data = images.iter().zip(labels.iter()).map(|data| TrainingData::from_mnist(&data.0.data, data.1.label)).collect::<Vec<_>>();
-        let partitioned_data = TrainingData::partition(&data, 0.8, 0.2);
+
+        let test_images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/t10k-images.idx3-ubyte"))
+            .unwrap()
+            .into_iter()
+            .collect::<Vec<_>>();
+        let test_labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/t10k-labels.idx1-ubyte"))
+            .unwrap()
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        let training_data = training_images
+            .iter()
+            .zip(training_labels.iter())
+            .map(|data| TrainingData::from_mnist(&data.0.data, data.1.label))
+            .collect::<Vec<_>>();
+        let test_data = test_images
+            .iter()
+            .zip(test_labels.iter())
+            .map(|data| TrainingData::from_mnist(&data.0.data, data.1.label))
+            .collect::<Vec<_>>();
+        //        let partitioned_data = TrainingData::partition(&training_data, 0.8, 0.2);
+        let partitioned_data = (&training_data[..], &training_data[0..0], &test_data[..]);
 
         // SS: set up model
         let mut model = Model::new();
@@ -471,13 +493,13 @@ mod tests {
         model.train(&partitioned_data, 50, 2.5, 0.0, 0.00001, 25, &cost_function);
 
         // Assert
-        let mut mb = model.create_minibatch();
-        let training_sample = &data[0];
-        mb.a[0] = training_sample.input_activations.clone();
-        model.feedforward(&mut mb);
-
-        println!("Output activations should: {:?}", &data[0].output_activations);
-        println!("Output activations is: {:?}", mb.a[2]);
+        //        let mut mb = model.create_minibatch();
+        //        let training_sample = &data[0];
+        //        mb.a[0] = training_sample.input_activations.clone();
+        //        model.feedforward(&mut mb);
+        //
+        //        println!("Output activations should: {:?}", &data[0].output_activations);
+        //        println!("Output activations is: {:?}", mb.a[2]);
     }
 
     #[test]
