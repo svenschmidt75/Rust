@@ -141,21 +141,43 @@ impl Model {
             }
 
             // SS: epoch completed, print cost for all training samples, print accuracy
-            //            let accuracy = self.accuracy(training_data);
             let cost = cost_function.cost(self, training_data, lambda);
             let error = QuadraticCost {}.cost(self, training_data, lambda);
-            println!("Epoch {} - cost {} - error {}", epoch + 1, cost, error);
+            let accuracy = self.accuracy(data.2);
+            println!("Epoch {} - cost {} - error {} - acc {}", epoch + 1, cost, error, accuracy);
         }
     }
 
     fn accuracy(&mut self, xs: &[TrainingData]) -> f64 {
         let mut accuracy = 0.0;
+        let mut same = 0;
         let mut mb = self.create_minibatch();
+        let output_layer_index = self.output_layer_index();
         for x in xs {
             mb.a[0] = x.input_activations.clone();
             self.feedforward(&mut mb);
+            let output_activations = &mb.a[output_layer_index];
+            let expected_output_layer_activations = &x.output_activations;
+            let is_classification = Model::get_class(output_activations);
+            let expected_class = Model::get_class(expected_output_layer_activations);
+            if expected_class == is_classification {
+                same = same + 1;
+            }
         }
+        accuracy = same as f64 / xs.len() as f64;
         accuracy
+    }
+
+    fn get_class(data: &Vector) -> usize {
+        let mut index = 0;
+        let mut value = 0.0;
+        for (idx, v) in data.iter().enumerate() {
+            if *v > value {
+                value = *v;
+                index = idx;
+            }
+        }
+        index
     }
 
     pub fn initialize_layers(&mut self) {
@@ -421,12 +443,12 @@ mod tests {
         let images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-images.idx3-ubyte"))
             .unwrap()
             .into_iter()
-            .take(1000)
+            .take(10000)
             .collect::<Vec<_>>();
         let labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-labels.idx1-ubyte"))
             .unwrap()
             .into_iter()
-            .take(1000)
+            .take(10000)
             .collect::<Vec<_>>();
         let data = images.iter().zip(labels.iter()).map(|data| TrainingData::from_mnist(&data.0.data, data.1.label)).collect::<Vec<_>>();
         let partitioned_data = TrainingData::partition(&data, 0.8, 0.2);
@@ -446,7 +468,7 @@ mod tests {
         let cost_function = QuadraticCost;
 
         // Act
-        model.train(&partitioned_data, 150, 2.5, 0.0, 0.00001, 25, &cost_function);
+        model.train(&partitioned_data, 50, 2.5, 0.0, 0.00001, 25, &cost_function);
 
         // Assert
         let mut mb = model.create_minibatch();
@@ -456,11 +478,6 @@ mod tests {
 
         println!("Output activations should: {:?}", &data[0].output_activations);
         println!("Output activations is: {:?}", mb.a[2]);
-
-
-
-
-
     }
 
     #[test]
