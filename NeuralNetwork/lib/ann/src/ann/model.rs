@@ -1,3 +1,7 @@
+#![allow(unused_imports)]
+#![allow(non_snake_case)]
+#![allow(dead_code)]
+
 use std::cmp;
 
 use rand::seq::SliceRandom;
@@ -18,9 +22,9 @@ pub struct Model {
 }
 
 fn get_neighbors<U, T>(v: &mut Vec<T>, idx: usize) -> (&U, &mut U)
-where
-    T: Sized + AsRef<U> + AsMut<U>,
-    U: ?Sized,
+    where
+        T: Sized + AsRef<U> + AsMut<U>,
+        U: ?Sized,
 {
     let (l, r) = v.split_at_mut(idx);
     let item1 = l.last().unwrap().as_ref();
@@ -39,14 +43,6 @@ impl Model {
 
     pub fn get_layer(&self, idx: usize) -> &Layer {
         self.layers[idx].as_ref()
-    }
-
-    pub fn get_layer_mut(&mut self, idx: usize) -> &mut Layer {
-        self.layers[idx].as_mut()
-    }
-
-    pub fn nlayers(&self) -> usize {
-        self.layers.len()
     }
 
     pub fn output_layer_index(&self) -> usize {
@@ -93,7 +89,7 @@ impl Model {
         let mb_size = cmp::min(training_data.len(), minibatch_size);
         let mut mbs = (0..mb_size).map(|_| self.create_minibatch()).collect::<Vec<_>>();
 
-        let (n_minibatches, remainder) = Model::number_of_minibatches(trainingdata_indices.len(), mb_size);
+        let (n_minibatches, _remainder) = Model::number_of_minibatches(trainingdata_indices.len(), mb_size);
 
         println!("{:15} | {:15} | {:15}", "layer type", "shape", "param #");
         println!("{:->15} | {:->15} | {:->15}", "-", "-", "-");
@@ -125,7 +121,7 @@ impl Model {
             // #chunks = mb_size, plus remainder
             let chunks = trainingdata_indices.chunks(mb_size);
 
-            for (chunk_index, chunk) in chunks.enumerate() {
+            for (_chunk_index, chunk) in chunks.enumerate() {
                 for idx in 0..chunk.len() {
                     let mb = &mut mbs[idx];
                     let training_sample_idx = chunk[idx];
@@ -149,7 +145,7 @@ impl Model {
     }
 
     fn accuracy(&mut self, xs: &[TrainingData]) -> f64 {
-        let mut accuracy = 0.0;
+        let accuracy;
         let mut same = 0;
         let mut mb = self.create_minibatch();
         let output_layer_index = self.output_layer_index();
@@ -161,7 +157,7 @@ impl Model {
             let is_classification = Model::get_class(output_activations);
             let expected_class = Model::get_class(expected_output_layer_activations);
             if expected_class == is_classification {
-                same = same + 1;
+                same += same;
             }
         }
         accuracy = same as f64 / xs.len() as f64;
@@ -241,15 +237,14 @@ impl Model {
         let mut dbs = Vec::<Vector>::with_capacity(mbs.len());
 
         let output_layer_index = self.output_layer_index();
-        for layer_index in 1..output_layer_index + 1 {
+        for layer_index in 1..=output_layer_index {
             let nactivations = self.layers[layer_index].nactivations();
             let nactivations_prev = self.layers[layer_index - 1].nactivations();
 
             let mut dCdw = Matrix2D::new(nactivations, nactivations_prev);
             let mut dCdb = Vector::new(nactivations);
 
-            for mb_index in 0..mbs.len() {
-                let mb = &mbs[mb_index];
+            for mb in mbs {
                 let delta_i = &mb.error[layer_index];
                 let a_j = &mb.a[layer_index - 1];
 
@@ -274,17 +269,15 @@ impl Model {
         assert_eq!(output_layer_index, dws.len());
         assert_eq!(output_layer_index, dbs.len());
 
-        for layer_index in 1..output_layer_index + 1 {
+        for layer_index in 1..=output_layer_index {
             {
                 let momentum_weights = self.layers[layer_index].get_momentum_weights();
-                let weights = self.layers[layer_index].get_weights();
                 let dw = &dws[layer_index - 1];
                 let updates_momentum_weights = &(rho * momentum_weights) - &(eta * dw);
                 self.layers[layer_index].set_momentum_weights(updates_momentum_weights);
             }
             {
                 let momentum_biases = self.layers[layer_index].get_momentum_biases();
-                let biases = self.layers[layer_index].get_biases();
                 let db = &dbs[layer_index - 1];
                 let updated_momentum_biases = &(rho * momentum_biases) - &(eta * db);
                 self.layers[layer_index].set_momentum_biases(updated_momentum_biases);
@@ -300,7 +293,7 @@ impl Model {
         // Reason 2: for CNN, the weights matrix is sparse
 
         // SS: dws and dbs contain the layer 1 deltas at index 0!
-        for layer_index in 1..output_layer_index + 1 {
+        for layer_index in 1..=output_layer_index {
             {
                 let weights = self.layers[layer_index].get_weights();
                 let momentum_weights = self.layers[layer_index].get_momentum_weights();
@@ -381,15 +374,15 @@ impl Model {
 
     fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, cost: &CostFunction, lambda: f64) -> f64 {
         // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
-        let delta = 0.000001;
-        let mut biases = self.layers[layer_index].get_biases_mut();
+        let delta = 0.000_001;
+        let biases = self.layers[layer_index].get_biases_mut();
         let b = biases[la];
         biases[la] = b - delta;
         let c1 = cost.cost(self, training_samples, lambda);
-        let mut biases = self.layers[layer_index].get_biases_mut();
+        let biases = self.layers[layer_index].get_biases_mut();
         biases[la] = b + delta;
         let c2 = cost.cost(self, training_samples, lambda);
-        let mut biases = self.layers[layer_index].get_biases_mut();
+        let biases = self.layers[layer_index].get_biases_mut();
 
         //: important, restore original bias
         biases[la] = b;
@@ -400,15 +393,15 @@ impl Model {
     fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize, cost: &CostFunction, lambda: f64) -> f64 {
         // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
         // and pa is the neuron index in the previous layer.
-        let delta = 0.000001;
-        let mut weights = self.layers[layer_index].get_weights_mut();
+        let delta = 0.000_001;
+        let weights = self.layers[layer_index].get_weights_mut();
         let w = weights[(la, pa)];
         weights[(la, pa)] = w - delta;
         let c1 = cost.cost(self, training_samples, lambda);
-        let mut weights = self.layers[layer_index].get_weights_mut();
+        let weights = self.layers[layer_index].get_weights_mut();
         weights[(la, pa)] = w + delta;
         let c2 = cost.cost(self, training_samples, lambda);
-        let mut weights = self.layers[layer_index].get_weights_mut();
+        let weights = self.layers[layer_index].get_weights_mut();
 
         //: important, restore original weight
         weights[(la, pa)] = w;
@@ -1112,7 +1105,7 @@ mod tests {
         let mut mb = model.create_minibatch();
         let mut rng = rand::thread_rng();
         let result = (0..50_usize)
-            .map(|x| rng.gen::<usize>() % ntraining_samples)
+            .map(|_| rng.gen::<usize>() % ntraining_samples)
             .map(|idx| {
                 let td = &training_data[idx];
                 mb.a[0] = td.input_activations.clone();
@@ -1169,7 +1162,7 @@ mod tests {
         let mut mb = model.create_minibatch();
         let mut rng = rand::thread_rng();
         let result = (0..50_usize)
-            .map(|x| rng.gen::<usize>() % ntraining_samples)
+            .map(|_x| rng.gen::<usize>() % ntraining_samples)
             .map(|idx| {
                 let td = &training_data[idx];
                 mb.a[0] = td.input_activations.clone();
@@ -1290,8 +1283,6 @@ mod tests {
         let hidden_layer = FCLayer::new(2, Box::new(Sigmoid {}));
         model.add(Box::new(hidden_layer));
 
-        let weights2 = Matrix2D::new_from_data(1, 2, vec![0.3, 0.3]);
-        let biases2: Vector = vec![0.4].into();
         let output_layer = FCLayer::new(1, Box::new(Sigmoid {}));
         model.add(Box::new(output_layer));
 
@@ -1305,8 +1296,6 @@ mod tests {
         model.initialize_layers();
         model.feedforward(&mut mb);
         model.backprop(&mut mb, &QuadraticCost {}, &y);
-        let mbs: [Minibatch; 1] = [mb];
-        let (dws, dbs) = model.calculate_derivatives(&mbs, 0.0);
 
         // Act
         model.update_network();

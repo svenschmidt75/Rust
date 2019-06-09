@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use assert_approx_eq::assert_approx_eq;
 use linear_algebra::vector::Vector;
 
@@ -10,7 +12,7 @@ impl TrainingData {
     pub fn from_mnist(data: &[u8], label: u8) -> TrainingData {
         TrainingData {
             input_activations: Vector::from(data.iter().map(|&x| x as f64 / 255_f64).collect::<Vec<_>>()),
-            output_activations: Vector::from((0..10).map(|x| if x == label { 1__f64 } else { 0_f64 }).collect::<Vec<_>>()),
+            output_activations: Vector::from((0..10).map(|x| if x == label { 1_f64 } else { 0_f64 }).collect::<Vec<_>>()),
         }
     }
 

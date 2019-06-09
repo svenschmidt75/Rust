@@ -24,13 +24,6 @@ impl Matrix2D {
         Matrix2D { data, nrows, ncols }
     }
 
-    fn linear_index(&self, row: usize, col: usize) -> usize {
-        // row-major memory layout
-        let linear_index = row * self.ncols + col;
-        assert!(linear_index < self.data.len(), "Matrix.linear_index: Index too large");
-        linear_index
-    }
-
     pub fn ncols(&self) -> usize {
         self.ncols
     }
@@ -77,8 +70,8 @@ impl IndexMut<(usize, usize)> for Matrix2D {
 }
 
 fn binary_op<F>(lhs: &mut Matrix2D, rhs: &Matrix2D, f: F)
-where
-    F: Fn(f64, f64) -> f64,
+    where
+        F: Fn(f64, f64) -> f64,
 {
     assert_eq!(lhs.nrows(), rhs.nrows(), "Matrices must have same number of rows");
     assert_eq!(lhs.ncols(), rhs.ncols(), "Matrices must have same number of columns");
@@ -317,7 +310,7 @@ mod tests {
     fn test_addassign() {
         // Arrange
         let mut m1 = Matrix2D::new_from_data(3, 3, vec![1.0, 5.0, -1.0, 11.0, 3.0, 4.0, 1.0, -1.0, 3.0]);
-        let mut m2 = Matrix2D::new_from_data(3, 3, vec![7.0, 2.0, 9.0, 1.0, 2.0, 5.0, 0.0, 2.0, 4.0]);
+        let m2 = Matrix2D::new_from_data(3, 3, vec![7.0, 2.0, 9.0, 1.0, 2.0, 5.0, 0.0, 2.0, 4.0]);
 
         // Act
         m1 += &m2;
@@ -334,7 +327,7 @@ mod tests {
     fn test_subassign() {
         // Arrange
         let mut m1 = Matrix2D::new_from_data(3, 3, vec![1.0, 5.0, -1.0, 11.0, 3.0, 4.0, 1.0, -1.0, 3.0]);
-        let mut m2 = Matrix2D::new_from_data(3, 3, vec![7.0, 2.0, 9.0, 1.0, 2.0, 5.0, 0.0, 2.0, 4.0]);
+        let m2 = Matrix2D::new_from_data(3, 3, vec![7.0, 2.0, 9.0, 1.0, 2.0, 5.0, 0.0, 2.0, 4.0]);
 
         // Act
         m1 -= &m2;

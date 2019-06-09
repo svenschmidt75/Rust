@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use linear_algebra::ops;
 use linear_algebra::vector::Vector;
 

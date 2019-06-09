@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 use crate::ann::activation::Activation;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
