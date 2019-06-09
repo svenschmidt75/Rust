@@ -1,7 +1,7 @@
-use std::env;
+#![allow(dead_code)]
+
 use std::fs::File;
 use std::io::{ErrorKind, Read, Result};
-use std::path::Path;
 
 use byteorder::{BigEndian, ByteOrder};
 

@@ -1,4 +1,3 @@
-use std::iter::FromIterator;
 use std::ops::Index;
 use std::ops::IndexMut;
 
@@ -41,13 +40,12 @@ impl<'a> Iterator for Iter<'a> {
     type Item = &'a f64;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.pos <= self.v.dim() - 1 {
-            true => {
-                let value = &self.v[self.pos];
-                self.pos = self.pos + 1;
-                Some(value)
-            }
-            _ => None,
+        if self.pos <= self.v.dim() - 1 {
+            let value = &self.v[self.pos];
+            self.pos += 1;
+            Some(value)
+        } else {
+            None
         }
     }
 }
@@ -115,8 +113,8 @@ impl std::ops::DivAssign<usize> for Vector {
 }
 
 fn binary_op<F>(lhs: &mut Vector, rhs: &Vector, f: F)
-where
-    F: Fn(f64, f64) -> f64,
+    where
+        F: Fn(f64, f64) -> f64,
 {
     assert_eq!(lhs.dim(), rhs.dim(), "Vectors must have same number of elements");
     for idx in 0..lhs.data.len() {

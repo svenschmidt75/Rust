@@ -63,7 +63,7 @@ impl FCLayer {
         }
     }
 
-    fn initialize_parameters(&mut self, fan_in: usize, fan_out: usize) {
+    fn initialize_parameters(&mut self, fan_in: usize) {
         // SS: modified Xavier initialization
         //Stanford Neural networks, Lecture 6, https://www.youtube.com/watch?v=wEoyxE0GP2M&list=PL3FW7Lu3i5JvHM8ljYj-zLfQRF3EO8sYv&index=6
         let mut rng = rand::thread_rng();
@@ -87,7 +87,7 @@ impl Layer for FCLayer {
         self.momentum_weights = Matrix2D::new(self.nneurons, n);
         self.biases = Vector::new(self.nneurons);
         self.momentum_biases = Vector::new(self.nneurons);
-        self.initialize_parameters(n, self.nneurons);
+        self.initialize_parameters(n);
     }
 
     fn feedforward(&self, input: &Vector) -> (Vector, Vector) {

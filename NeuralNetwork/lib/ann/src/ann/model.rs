@@ -157,7 +157,7 @@ impl Model {
             let is_classification = Model::get_class(output_activations);
             let expected_class = Model::get_class(expected_output_layer_activations);
             if expected_class == is_classification {
-                same += same;
+                same += 1;
             }
         }
         accuracy = same as f64 / xs.len() as f64;
