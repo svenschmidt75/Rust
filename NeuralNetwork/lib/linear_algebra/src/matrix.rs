@@ -70,8 +70,8 @@ impl IndexMut<(usize, usize)> for Matrix2D {
 }
 
 fn binary_op<F>(lhs: &mut Matrix2D, rhs: &Matrix2D, f: F)
-    where
-        F: Fn(f64, f64) -> f64,
+where
+    F: Fn(f64, f64) -> f64,
 {
     assert_eq!(lhs.nrows(), rhs.nrows(), "Matrices must have same number of rows");
     assert_eq!(lhs.ncols(), rhs.ncols(), "Matrices must have same number of columns");

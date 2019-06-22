@@ -418,7 +418,7 @@ mod tests {
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::{CrossEntropyCost, QuadraticCost};
-    use crate::ann::layers::layer::{FCLayer, InputLayer};
+    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
     use linear_algebra::matrix::Matrix2D;
     use linear_algebra::vector::Vector;
 

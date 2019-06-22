@@ -108,7 +108,7 @@ impl CostFunction for CrossEntropyCost {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ann::layers::layer::{FCLayer, InputLayer};
+    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
 
     use assert_approx_eq::assert_approx_eq;
 

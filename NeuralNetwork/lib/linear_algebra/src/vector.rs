@@ -113,8 +113,8 @@ impl std::ops::DivAssign<usize> for Vector {
 }
 
 fn binary_op<F>(lhs: &mut Vector, rhs: &Vector, f: F)
-    where
-        F: Fn(f64, f64) -> f64,
+where
+    F: Fn(f64, f64) -> f64,
 {
     assert_eq!(lhs.dim(), rhs.dim(), "Vectors must have same number of elements");
     for idx in 0..lhs.data.len() {
