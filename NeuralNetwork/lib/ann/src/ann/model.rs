@@ -22,9 +22,9 @@ pub struct Model {
 }
 
 fn get_neighbors<U, T>(v: &mut Vec<T>, idx: usize) -> (&U, &mut U)
-    where
-        T: Sized + AsRef<U> + AsMut<U>,
-        U: ?Sized,
+where
+    T: Sized + AsRef<U> + AsMut<U>,
+    U: ?Sized,
 {
     let (l, r) = v.split_at_mut(idx);
     let item1 = l.last().unwrap().as_ref();
