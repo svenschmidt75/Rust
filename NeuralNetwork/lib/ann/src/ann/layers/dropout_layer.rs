@@ -5,20 +5,18 @@ use linear_algebra::vector::Vector;
 use rand::distributions::{Bernoulli, Distribution};
 
 pub struct DropoutLayer {
-    p: f64,
-    probability_vector: Vector,
+    pub p: f64,
+    pub probability_vector: Vector,
 }
 
-impl DropoutLayer {}
-
-impl Layer for DropoutLayer {
-    fn initialize(&mut self, prev_layer: &Layer) {
+impl DropoutLayer {
+    pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
         // generate vector with p and 0
         let distribution = Bernoulli::new(self.p);
         let mut rng = rand::thread_rng();
 
-        let previous_activations = prev_layer.nactivations();
-        let data = (0..previous_activations)
+        let n_prev_a = prev_layer.nactivations();
+        let data = (0..n_prev_a)
             .into_iter()
             .map(|_| match distribution.sample(&mut rng) {
                 true => 1.0 / self.p,
@@ -29,12 +27,9 @@ impl Layer for DropoutLayer {
         self.probability_vector = Vector::from(data);
     }
 
-    fn feedforward(&self, a: &Vector) -> (Vector, Vector) {
-        let z = a.hadamard(&self.probability_vector);
-
-        // the activation function is the identity
-        let a2 =  a.clone();
-        (z, a2)
+    pub(crate) fn feedforward(&self, prev_a: &Vector) -> (Vector, Vector) {
+        let a = prev_a.hadamard(&self.probability_vector);
+        (a, a.clone())
     }
 
     fn nactivations(&self) -> usize {
@@ -89,7 +84,7 @@ impl Layer for DropoutLayer {
         unimplemented!()
     }
 
-    fn print_summary(&self) {
+    pub(crate) fn print_summary(&self) {
         unimplemented!()
     }
 }

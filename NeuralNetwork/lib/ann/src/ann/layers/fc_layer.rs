@@ -5,13 +5,15 @@ use crate::ann::layers::layer::Layer;
 use linear_algebra::matrix::Matrix2D;
 use linear_algebra::ops;
 use linear_algebra::vector::Vector;
+use crate::ann::minibatch::Minibatch;
+use crate::ann::cost_function::CostFunction;
 
 pub struct FCLayer {
     weights: Matrix2D,
     momentum_weights: Matrix2D,
     biases: Vector,
     momentum_biases: Vector,
-    nneurons: usize,
+    pub nneurons: usize,
     activation: Box<dyn Activation>,
 }
 
@@ -42,10 +44,8 @@ impl FCLayer {
             self.biases[idx] = 0.0;
         }
     }
-}
 
-impl Layer for FCLayer {
-    fn initialize(&mut self, prev_layer: &Layer) {
+    pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
         let n = prev_layer.nactivations();
         self.weights = Matrix2D::new(self.nneurons, n);
         self.momentum_weights = Matrix2D::new(self.nneurons, n);
@@ -54,15 +54,22 @@ impl Layer for FCLayer {
         self.initialize_parameters(n);
     }
 
-    fn feedforward(&self, input: &Vector) -> (Vector, Vector) {
+    pub(crate) fn feedforward(&self, prev_a: &Vector) -> (Vector, Vector) {
         // SS: number of activations in this layer: self.weights.nrows()
-        let output = ops::ax(&self.weights, input);
+        let output = ops::ax(&self.weights, prev_a);
 
         // SS: alternatively, add another column to weights with the biases.
         // Add another row with all 0s, except for the bias column where we put 1.
         let z = &output + &self.biases;
         let a = self.activation.f(&z);
         (a, z)
+    }
+
+    pub fn calculate_outputlayer_error(&self, a: &Vector, z: &Vector, cost_function: &CostFunction, y: &Vector) -> Vector {
+        // SS: calculate delta_{L}, the error in the output layer
+        let sigma = self.get_activation();
+        let output_error = cost_function.output_error(a, z, y, sigma);
+        output_error
     }
 
     fn nactivations(&self) -> usize {
@@ -124,7 +131,7 @@ impl Layer for FCLayer {
         w2
     }
 
-    fn print_summary(&self) {
+    pub(crate) fn print_summary(&self) {
         let nparams = self.weights.ncols() * self.weights.nrows() + self.biases.dim();
         println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
     }

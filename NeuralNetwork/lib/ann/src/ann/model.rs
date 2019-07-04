@@ -7,18 +7,19 @@ use std::cmp;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
+use linear_algebra::matrix::Matrix2D;
+use linear_algebra::ops;
+use linear_algebra::vector::Vector;
+
 use crate::ann::activation::Activation;
 use crate::ann::cost_function::CostFunction;
 use crate::ann::cost_function::QuadraticCost;
 use crate::ann::layers::layer::Layer;
 use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
-use linear_algebra::matrix::Matrix2D;
-use linear_algebra::ops;
-use linear_algebra::vector::Vector;
 
 pub struct Model {
-    layers: Vec<Box<dyn Layer>>,
+    layers: Vec<Box<Layer>>,
 }
 
 fn get_neighbors<U, T>(v: &mut Vec<T>, idx: usize) -> (&U, &mut U)
@@ -37,7 +38,7 @@ impl Model {
         Model { layers: vec![] }
     }
 
-    pub fn add(&mut self, layer: Box<dyn Layer>) {
+    pub fn add(&mut self, layer: Box<Layer>) {
         self.layers.push(layer)
     }
 
@@ -49,13 +50,13 @@ impl Model {
         self.layers.len() - 1
     }
 
-    pub fn get_weights(&self, layer_index: usize) -> &Matrix2D {
-        &self.layers[layer_index].get_weights()
-    }
-
-    pub fn get_biases(&self, layer_index: usize) -> &Vector {
-        &self.layers[layer_index].get_biases()
-    }
+    //    pub fn get_weights(&self, layer_index: usize) -> &Matrix2D {
+    //        &self.layers[layer_index].get_weights()
+    //    }
+    //
+    //    pub fn get_biases(&self, layer_index: usize) -> &Vector {
+    //        &self.layers[layer_index].get_biases()
+    //    }
 
     fn number_of_minibatches(training_data_size: usize, minibatch_size: usize) -> (usize, usize) {
         let n_minibatches = training_data_size / minibatch_size;
@@ -193,24 +194,21 @@ impl Model {
         // and record all calculated activations for all layers
         // for backprop.
         let output_layer_index = self.output_layer_index();
-        for layer_index in 0..output_layer_index {
-            let layer = &self.layers[layer_index + 1];
-            let (a, z) = layer.feedforward(&mb.a[layer_index]);
-            mb.a[layer_index + 1] = a;
-            mb.z[layer_index + 1] = z;
+        for layer_index in 1..output_layer_index {
+            let layer = &self.layers[layer_index];
+            layer.feedforward(layer_index, &mut mb);
         }
     }
 
-    pub fn calculate_outputlayer_error(&self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
-        // SS: calculate delta_{L}, the error in the output layer
+    pub fn backprop(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
         let output_layer_index = self.output_layer_index();
-        let layer = &self.layers[output_layer_index];
-        let sigma = layer.get_activation();
-        let output_error = cost_function.output_error(&mb.a[output_layer_index], &mb.z[output_layer_index], y, sigma);
-        mb.error[output_layer_index] = output_error;
+        for layer_index in (0..output_layer_index).rev() {
+            let layer = &self.layers[layer_index];
+            layer.backprop(&mut mb);
+        }
     }
 
-    pub fn backprop(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
+    pub fn backprop2(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
         // SS: backprop delta_{L}
         // start at index l=L-1
         self.calculate_outputlayer_error(mb, cost_function, &y);
@@ -411,22 +409,24 @@ impl Model {
 
 #[cfg(test)]
 mod tests {
-    use assert_approx_eq::assert_approx_eq;
     use rand::Rng;
+
+    use assert_approx_eq::assert_approx_eq;
+    use linear_algebra::matrix::Matrix2D;
+    use linear_algebra::vector::Vector;
+    use mnist_loader::labels::Label;
+    use mnist_loader::loader::{load_image_file, load_label_file};
 
     use crate::ann::activation;
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::{CrossEntropyCost, QuadraticCost};
     use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
-    use linear_algebra::matrix::Matrix2D;
-    use linear_algebra::vector::Vector;
 
     use super::*;
-    use mnist_loader::labels::Label;
-    use mnist_loader::loader::{load_image_file, load_label_file};
 
     const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
+
     #[test]
     fn test_MNIST() {
         use crate::ann::activation::Sigmoid;

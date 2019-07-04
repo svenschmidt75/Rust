@@ -1,40 +1,87 @@
 #![allow(dead_code)]
 
 use crate::ann::activation::Activation;
+use crate::ann::cost_function::CostFunction;
+use crate::ann::layers::dropout_layer::DropoutLayer;
+use crate::ann::layers::fc_layer::FCLayer;
+use crate::ann::layers::input_layer::InputLayer;
+use crate::ann::layers::layer::Layer::FullyConnected;
+use crate::ann::minibatch::Minibatch;
 use linear_algebra::matrix::Matrix2D;
 use linear_algebra::vector::Vector;
 
-pub trait Layer {
-    fn initialize(&mut self, prev_layer: &Layer);
+pub enum Layer {
+    Input(InputLayer),
+    FullyConnected(FCLayer),
+    Dropout(DropoutLayer),
+}
 
-    //    fn on_start_new_epoch();
-    fn feedforward(&self, a: &Vector) -> (Vector, Vector);
+impl Layer {
+    pub(crate) fn nactivations(&self) -> usize {
+        match self {
+            Layer::Input(layer) => layer.nactivations,
+            Layer::FullyConnected(layer) => layer.nneurons,
+            Layer::Dropout(layer) => layer.probability_vector.dim(),
+        }
+    }
 
-    fn nactivations(&self) -> usize;
+    pub fn print_summary(&self) {
+        match self {
+            Layer::FullyConnected(layer) => {
+                layer.print_summary();
+            }
+            Layer::Dropout(layer) => {
+                layer.print_summary();
+            }
+            _ => {}
+        }
+    }
 
-    fn get_weights(&self) -> &Matrix2D;
+    pub fn initialize(&mut self, prev_layer: &Layer) {
+        match self {
+            Layer::FullyConnected(layer) => {
+                layer.initialize(&prev_layer);
+            }
+            Layer::Dropout(layer) => {
+                layer.initialize(&prev_layer);
+            }
+            _ => {}
+        }
+    }
 
-    fn set_weights(&mut self, weights: Matrix2D);
+    pub fn feedforward(&self, layer_index: usize, mb: &mut Minibatch) {
+        let prev_a = &mb.a[layer_index - 1];
+        match self {
+            Layer::FullyConnected(layer) => {
+                let (z, a) = layer.feedforward(&prev_a);
+                mb.z[layer_index] = z;
+                mb.a[layer_index] = a;
+            }
+            Layer::Dropout(layer) => {
+                let (z, a) = layer.feedforward(&prev_a);
+                mb.z[layer_index] = z;
+                mb.a[layer_index] = a;
+            }
+            _ => {}
+        }
+    }
 
-    fn get_weights_mut(&mut self) -> &mut Matrix2D;
+    pub fn calculate_outputlayer_error(&self, output_layer_index: usize, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
+        match self {
+            FullyConnected(layer) => {
+                let delta_L = layer.calculate_outputlayer_error(&mb.a[output_layer_index], &mb.z[output_layer_index], cost_function, y);
+                mb.error[output_layer_index] = delta_L;
+            }
+            _ => panic!("Output layer error only valid for fully-connected layers"),
+        }
+    }
 
-    fn get_momentum_weights(&self) -> &Matrix2D;
+    pub fn backprop(&self, mb: &mut Minibatch) {
+        match self {
+            Layer::Input(_) => {},
+            FullyConnected(_) => {},
+            Layer::Dropout(_) => {},
+        }
+    }
 
-    fn set_momentum_weights(&mut self, momentum_weights: Matrix2D);
-
-    fn get_biases(&self) -> &Vector;
-
-    fn get_biases_mut(&mut self) -> &mut Vector;
-
-    fn set_biases(&mut self, biases: Vector);
-
-    fn get_momentum_biases(&self) -> &Vector;
-
-    fn set_momentum_biases(&mut self, momentum_biases: Vector);
-
-    fn get_activation(&self) -> &Activation;
-
-    fn weights_squared_sum(&self) -> f64;
-
-    fn print_summary(&self);
 }
