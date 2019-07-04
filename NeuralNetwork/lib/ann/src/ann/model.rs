@@ -204,7 +204,8 @@ impl Model {
         let output_layer_index = self.output_layer_index();
         for layer_index in (0..output_layer_index).rev() {
             let layer = &self.layers[layer_index];
-            layer.backprop(&mut mb);
+            let next_layer = &self.layers[layer_index + 1];
+            layer.backprop(layer_index, output_layer_index, &next_layer, mb);
         }
     }
 

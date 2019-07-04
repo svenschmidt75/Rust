@@ -1,12 +1,12 @@
 use rand::Rng;
 
 use crate::ann::activation::Activation;
+use crate::ann::cost_function::CostFunction;
 use crate::ann::layers::layer::Layer;
+use crate::ann::minibatch::Minibatch;
 use linear_algebra::matrix::Matrix2D;
 use linear_algebra::ops;
 use linear_algebra::vector::Vector;
-use crate::ann::minibatch::Minibatch;
-use crate::ann::cost_function::CostFunction;
 
 pub struct FCLayer {
     weights: Matrix2D,
@@ -70,6 +70,24 @@ impl FCLayer {
         let sigma = self.get_activation();
         let output_error = cost_function.output_error(a, z, y, sigma);
         output_error
+    }
+
+    pub(crate) fn backprop_component(&self, layer_index: usize, mb: &mut Minibatch) -> Vector {
+        // calculate the part that are specific to this layer
+        let weights = &self.weights.transpose();
+        let delta = &mb.error[layer_index];
+        let result = weights.ax(delta);
+        result
+    }
+
+    pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
+        assert!(layer_index > 0 && layer_index < output_layer_index);
+        let delta_next = &mb.error[layer_index + 1];
+        let next_component = next_layer.backprop_component(layer_index + 1, mb);
+        let z = &mb.z[layer_index];
+        let sigma_prime = self.activation.df(z);
+        let delta_l = next_component.hadamard(&sigma_prime);
+        mb.error[layer_index] = delta_l;
     }
 
     fn nactivations(&self) -> usize {

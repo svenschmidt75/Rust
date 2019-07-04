@@ -3,6 +3,7 @@ use crate::ann::layers::layer::Layer;
 use linear_algebra::matrix::Matrix2D;
 use linear_algebra::vector::Vector;
 use rand::distributions::{Bernoulli, Distribution};
+use crate::ann::minibatch::Minibatch;
 
 pub struct DropoutLayer {
     pub p: f64,
@@ -19,6 +20,7 @@ impl DropoutLayer {
         let data = (0..n_prev_a)
             .into_iter()
             .map(|_| match distribution.sample(&mut rng) {
+                // inverted dropout
                 true => 1.0 / self.p,
                 _ => 0.0,
             })
@@ -34,6 +36,20 @@ impl DropoutLayer {
 
     fn nactivations(&self) -> usize {
         self.probability_vector.dim()
+    }
+
+    pub(crate) fn backprop_component(&self, layer_index: usize, mb: &mut Minibatch) -> Vector {
+        // calculate the part that are specific to this layer.
+        // For dropout layers, this is the identity vector
+        let result = (0..self.probability_vector.dim()).into_iter().map(|_| 1.0).collect::<Vec<_>>().into();
+        result
+    }
+
+    pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
+        assert!(layer_index > 0 && layer_index < output_layer_index);
+        let delta_next = &mb.error[layer_index + 1];
+        let delta_l = delta_next.hadamard(&self.probability_vector);
+        mb.error[layer_index] = delta_l;
     }
 
     fn get_weights(&self) -> &Matrix2D {

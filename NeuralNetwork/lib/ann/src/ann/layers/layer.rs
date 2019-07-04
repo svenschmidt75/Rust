@@ -76,12 +76,20 @@ impl Layer {
         }
     }
 
-    pub fn backprop(&self, mb: &mut Minibatch) {
+    pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
+        assert!(layer_index > 0 && layer_index < output_layer_index);
         match self {
-            Layer::Input(_) => {},
-            FullyConnected(_) => {},
-            Layer::Dropout(_) => {},
+            FullyConnected(layer) => layer.backprop(layer_index, output_layer_index, next_layer, mb),
+            Layer::Dropout(layer) => layer.backprop(layer_index, output_layer_index, next_layer, mb),
+            _ => panic!(),
         }
     }
 
+    pub(crate) fn backprop_component(&self, layer_index: usize, mb: &mut Minibatch) -> Vector {
+        match self {
+            FullyConnected(layer) => layer.backprop_component(layer_index, mb),
+            Layer::Dropout(layer) => layer.backprop_component(layer_index, mb),
+            _ => panic!(),
+        }
+    }
 }
