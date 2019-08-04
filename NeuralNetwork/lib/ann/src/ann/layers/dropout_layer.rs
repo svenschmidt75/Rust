@@ -1,9 +1,9 @@
 use crate::ann::activation::Activation;
 use crate::ann::layers::layer::Layer;
+use crate::ann::minibatch::Minibatch;
 use linear_algebra::matrix::Matrix2D;
 use linear_algebra::vector::Vector;
 use rand::distributions::{Bernoulli, Distribution};
-use crate::ann::minibatch::Minibatch;
 
 pub struct DropoutLayer {
     pub p: f64,

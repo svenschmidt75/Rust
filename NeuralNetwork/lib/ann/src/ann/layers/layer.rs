@@ -92,4 +92,26 @@ impl Layer {
             _ => panic!(),
         }
     }
+
+    pub fn update_network(&mut self, prev_layer: &Layer, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
+        match self {
+            Layer::FullyConnected(layer) => {
+                layer.update_network(prev_layer, layer_index, mbs, eta, rho, lambda)
+            }
+            Layer::Dropout(layer) => {
+            }
+            _ => {}
+        }
+    }
+
+    pub(crate) fn weights_squared_sum(&self) -> f64 {
+        match self {
+            Layer::FullyConnected(layer) => {
+                layer.weights_squared_sum()
+            },
+            Layer::Dropout(layer) => 0.0,
+            _ => 0.0
+        }
+    }
+
 }

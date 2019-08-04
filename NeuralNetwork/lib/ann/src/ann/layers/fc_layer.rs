@@ -138,7 +138,7 @@ impl FCLayer {
         &*self.activation
     }
 
-    fn weights_squared_sum(&self) -> f64 {
+    pub(crate) fn weights_squared_sum(&self) -> f64 {
         let mut w2 = 0.0;
         for col in 0..self.weights.ncols() {
             for row in 0..self.weights.nrows() {
@@ -153,6 +153,71 @@ impl FCLayer {
         let nparams = self.weights.ncols() * self.weights.nrows() + self.biases.dim();
         println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
     }
+
+    pub fn update_network(&mut self, prev_layer: &Layer, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
+        // calc. derivatives from all mini batches
+        let (dw, db) = self.calculate_derivatives(prev_layer, layer_index, mbs, lambda);
+
+        // calc. momentum
+        self.apply_momentum(eta, rho, dw, db);
+
+        // update weights and biases
+        self.update_parameters();
+    }
+
+    pub fn calculate_derivatives(&self, prev_layer: &Layer, layer_index: usize, mbs: &[Minibatch], lambda: f64) -> (Matrix2D, Vector) {
+        let nactivations = self.nactivations();
+        let nactivations_prev = prev_layer.nactivations();
+
+        // TODO SS: can get matrix dimension from delta_i and a_j...
+
+        let mut dw = Matrix2D::new(nactivations, nactivations_prev);
+        let mut db = Vector::new(nactivations);
+
+        for mb in mbs {
+            let delta_i = &mb.error[layer_index];
+            let a_j = &mb.a[layer_index - 1];
+
+            let dw_ij = ops::outer_product(delta_i, a_j);
+            dw += &dw_ij;
+
+            let db_i = delta_i;
+            db += &db_i;
+        }
+
+        let w = self.get_weights();
+        dw = &(&dw + &(lambda * w)) / (mbs.len() as f64);
+
+        db /= mbs.len();
+
+        (dw, db)
+    }
+
+    fn apply_momentum(&mut self, eta: f64, rho: f64, dw: Matrix2D, db: Vector) {
+            let momentum_weights = self.get_momentum_weights();
+            let updates_momentum_weights = &(rho * momentum_weights) - &(eta * &dw);
+            self.set_momentum_weights(updates_momentum_weights);
+
+            let momentum_biases = self.get_momentum_biases();
+            let updated_momentum_biases = &(rho * momentum_biases) - &(eta * &db);
+            self.set_momentum_biases(updated_momentum_biases);
+    }
+
+    fn update_parameters(&mut self) {
+        {
+            let weights = self.get_weights();
+            let momentum_weights = self.get_momentum_weights();
+            let updated_weights = weights + momentum_weights;
+            self.set_weights(updated_weights);
+        }
+        {
+            let biases = self.get_biases();
+            let momentum_biases = self.get_momentum_biases();
+            let updated_biases = biases + momentum_biases;
+            self.set_biases(updated_biases);
+        }
+    }
+
 }
 
 #[cfg(test)]
