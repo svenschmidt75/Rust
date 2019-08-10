@@ -38,66 +38,11 @@ impl DropoutLayer {
         a
     }
 
-    pub(crate) fn backprop_component(&self, layer_index: usize, mb: &mut Minibatch) -> Vector {
-        // calculate the part that are specific to this layer.
-        // For dropout layers, this is the identity vector
-        let result = (0..self.probability_vector.dim()).into_iter().map(|_| 1.0).collect::<Vec<_>>().into();
-        result
-    }
-
     pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
         assert!(layer_index > 0 && layer_index < output_layer_index);
         let delta_next = &mb.error[layer_index + 1];
-        let delta_l = delta_next.hadamard(&self.probability_vector);
-        mb.error[layer_index] = delta_l;
-    }
-
-    fn get_weights(&self) -> &Matrix2D {
-        unimplemented!()
-    }
-
-    fn set_weights(&mut self, weights: Matrix2D) {
-        unimplemented!()
-    }
-
-    fn get_weights_mut(&mut self) -> &mut Matrix2D {
-        unimplemented!()
-    }
-
-    fn get_momentum_weights(&self) -> &Matrix2D {
-        unimplemented!()
-    }
-
-    fn set_momentum_weights(&mut self, momentum_weights: Matrix2D) {
-        unimplemented!()
-    }
-
-    fn get_biases(&self) -> &Vector {
-        unimplemented!()
-    }
-
-    fn get_biases_mut(&mut self) -> &mut Vector {
-        unimplemented!()
-    }
-
-    fn set_biases(&mut self, biases: Vector) {
-        unimplemented!()
-    }
-
-    fn get_momentum_biases(&self) -> &Vector {
-        unimplemented!()
-    }
-
-    fn set_momentum_biases(&mut self, momentum_biases: Vector) {
-        unimplemented!()
-    }
-
-    fn get_activation(&self) -> &Activation {
-        unimplemented!()
-    }
-
-    fn weights_squared_sum(&self) -> f64 {
-        unimplemented!()
+        let delta = delta_next.hadamard(&self.probability_vector);
+        mb.error[layer_index] = delta;
     }
 
     pub(crate) fn print_summary(&self) {

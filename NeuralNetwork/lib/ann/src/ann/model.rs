@@ -205,6 +205,9 @@ impl Model {
 
     pub fn backprop(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
         let output_layer_index = self.output_layer_index();
+
+
+
         for layer_index in (0..output_layer_index).rev() {
             let layer = &self.layers[layer_index];
             let next_layer = &self.layers[layer_index + 1];
