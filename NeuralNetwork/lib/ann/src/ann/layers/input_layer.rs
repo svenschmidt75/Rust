@@ -7,7 +7,7 @@ impl InputLayer {
         InputLayer { nneurons }
     }
 
-    pub fn NumberOfNeurons(&self) -> usize {
+    pub fn number_of_neurons(&self) -> usize {
         self.nneurons
     }
 }

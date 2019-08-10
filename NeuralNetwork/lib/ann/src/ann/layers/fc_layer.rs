@@ -1,7 +1,5 @@
 use rand::Rng;
 
-use crate::ann::activation::Activation;
-use crate::ann::cost_function::CostFunction;
 use crate::ann::layers::layer::Layer;
 use crate::ann::minibatch::Minibatch;
 use linear_algebra::matrix::Matrix2D;
@@ -27,13 +25,13 @@ impl FCLayer {
         }
     }
 
-    pub fn NumberOfNeurons(&self) -> usize {
+    pub fn number_of_neurons(&self) -> usize {
         self.nneurons
     }
 
     pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
-        let ncols = prev_layer.NumberOfNeurons();
-        let nrows = self.NumberOfNeurons();
+        let ncols = prev_layer.number_of_neurons();
+        let nrows = self.number_of_neurons();
 
         self.weights = Matrix2D::new(nrows, ncols);
         self.biases = Vector::new(nrows);
@@ -70,27 +68,14 @@ impl FCLayer {
         z
     }
 
-    // TODO SS; does NOT belong here, move back to model
-    pub fn calculate_outputlayer_error(&self, a: &Vector, z: &Vector, cost_function: &CostFunction, y: &Vector) -> Vector {
-        // SS: calculate delta_{L}, the error in the output layer
-        let sigma = self.get_activation();
-        let output_error = cost_function.output_error(a, z, y, sigma);
-        output_error
-    }
+    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+        assert!(layer_index > 0);
 
-    // TODO SS: should the next error be passed in? and the current error be returned here?
-    pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
-        assert!(layer_index > 0 && layer_index < output_layer_index);
-
-        // SS: calculate dz{l}/da_{l-1}
+        // SS: calculate dz^{l}/da^{l-1}
         let weights = &self.weights.transpose();
         let delta_next = &mb.error[layer_index + 1];
         let delta = weights.ax(delta_next);
         mb.error[layer_index] = delta;
-    }
-
-    fn nactivations(&self) -> usize {
-        self.nneurons
     }
 
     fn get_weights(&self) -> &Matrix2D {
@@ -99,10 +84,6 @@ impl FCLayer {
 
     fn set_weights(&mut self, weights: Matrix2D) {
         self.weights = weights;
-    }
-
-    fn get_weights_mut(&mut self) -> &mut Matrix2D {
-        &mut self.weights
     }
 
     fn get_momentum_weights(&self) -> &Matrix2D {
@@ -117,10 +98,6 @@ impl FCLayer {
         &self.biases
     }
 
-    fn get_biases_mut(&mut self) -> &mut Vector {
-        &mut self.biases
-    }
-
     fn set_biases(&mut self, biases: Vector) {
         self.biases = biases;
     }
@@ -131,10 +108,6 @@ impl FCLayer {
 
     fn set_momentum_biases(&mut self, momentum_biases: Vector) {
         self.momentum_biases = momentum_biases;
-    }
-
-    fn get_activation(&self) -> &Activation {
-        &*self.activation
     }
 
     pub(crate) fn weights_squared_sum(&self) -> f64 {
@@ -153,9 +126,9 @@ impl FCLayer {
         println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
     }
 
-    pub fn update_network(&mut self, prev_layer: &Layer, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
+    pub fn update_network(&mut self, prev_layer_nneurons: usize, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
         // calc. derivatives from all mini batches
-        let (dw, db) = self.calculate_derivatives(prev_layer, layer_index, mbs, lambda);
+        let (dw, db) = self.calculate_derivatives(prev_layer_nneurons, layer_index, mbs, lambda);
 
         // calc. momentum
         self.apply_momentum(eta, rho, dw, db);
@@ -164,18 +137,15 @@ impl FCLayer {
         self.update_parameters();
     }
 
-    pub fn calculate_derivatives(&self, prev_layer: &Layer, layer_index: usize, mbs: &[Minibatch], lambda: f64) -> (Matrix2D, Vector) {
-        let nactivations = self.nactivations();
-        let nactivations_prev = prev_layer.nactivations();
+    pub fn calculate_derivatives(&self, prev_layer_nneurons: usize, layer_index: usize, mbs: &[Minibatch], lambda: f64) -> (Matrix2D, Vector) {
+        let nneurons = self.number_of_neurons();
 
-        // TODO SS: can get matrix dimension from delta_i and a_j...
-
-        let mut dw = Matrix2D::new(nactivations, nactivations_prev);
-        let mut db = Vector::new(nactivations);
+        let mut dw = Matrix2D::new(nneurons, prev_layer_nneurons);
+        let mut db = Vector::new(nneurons);
 
         for mb in mbs {
             let delta_i = &mb.error[layer_index];
-            let a_j = &mb.a[layer_index - 1];
+            let a_j = &mb.output[layer_index - 1];
 
             let dw_ij = ops::outer_product(delta_i, a_j);
             dw += &dw_ij;

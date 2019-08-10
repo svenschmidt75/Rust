@@ -88,7 +88,7 @@ impl Model {
 
         // SS: training samples per minibatch
         let mb_size = cmp::min(training_data.len(), minibatch_size);
-        let mut mbs = (0..mb_size).map(|_| self.create_minibatch()).collect::<Vec<_>>();
+        let mut mbs = (0..=mb_size).map(|_| self.create_minibatch()).collect::<Vec<_>>();
 
         let (n_minibatches, _remainder) = Model::number_of_minibatches(trainingdata_indices.len(), mb_size);
 
@@ -128,9 +128,9 @@ impl Model {
                     let training_sample_idx = chunk[idx];
                     let training_sample = &training_data[training_sample_idx];
                     let known_classification = &training_sample.output_activations;
-                    mb.a[0] = training_sample.input_activations.clone();
+                    mb.output[0] = training_sample.input_activations.clone();
                     self.feedforward(mb);
-                    self.backprop(mb, cost_function, known_classification);
+                    self.backprop(mb, known_classification, cost_function);
                 }
                 //                let (dws, dbs) = self.calculate_derivatives(&mbs[..], lambda);
                 //                self.apply_momentum(eta, rho, dws, dbs);
@@ -152,9 +152,9 @@ impl Model {
         let mut mb = self.create_minibatch();
         let output_layer_index = self.output_layer_index();
         for x in xs {
-            mb.a[0] = x.input_activations.clone();
+            mb.output[0] = x.input_activations.clone();
             self.feedforward(&mut mb);
-            let output_activations = &mb.a[output_layer_index];
+            let output_activations = &mb.output[output_layer_index];
             let expected_output_layer_activations = &x.output_activations;
             let is_classification = Model::get_class(output_activations);
             let expected_class = Model::get_class(expected_output_layer_activations);
@@ -186,7 +186,7 @@ impl Model {
     }
 
     pub fn create_minibatch(&self) -> Minibatch {
-        let nas: Vec<_> = self.layers.iter().map(|layer| layer.nactivations()).collect();
+        let nas: Vec<_> = self.layers.iter().map(|layer| layer.number_of_neurons()).collect();
         Minibatch::new(nas)
     }
 
@@ -203,58 +203,34 @@ impl Model {
         }
     }
 
-    pub fn backprop(&mut self, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
+     fn calculate_outputlayer_error(&self, mb: &mut Minibatch, y: &Vector, cost_function: &CostFunction) {
+         let output_layer_index = self.output_layer_index();
+         let aL = &mb.output[output_layer_index - 1];
+
+         // SS: calculate dC^{l}/da^{L}
+        let dCda = cost_function.output_error(aL, y);
+
+         mb.error[output_layer_index] = dCda;
+    }
+
+    pub fn backprop(&mut self, mb: &mut Minibatch, y: &Vector, cost_function: &CostFunction) {
         let output_layer_index = self.output_layer_index();
-
-
-
+        self.calculate_outputlayer_error(mb, y, cost_function);
         for layer_index in (0..output_layer_index).rev() {
             let layer = &self.layers[layer_index];
-            let next_layer = &self.layers[layer_index + 1];
-            layer.backprop(layer_index, output_layer_index, &next_layer, mb);
+            layer.backprop(layer_index, mb);
         }
     }
-    //
-    //    pub fn calculate_derivatives2(&self, mbs: &[Minibatch], lambda: f64) -> (Vec<Matrix2D>, Vec<Vector>) {
-    //        let mut dws = Vec::<Matrix2D>::with_capacity(mbs.len());
-    //        let mut dbs = Vec::<Vector>::with_capacity(mbs.len());
-    //
-    //        let output_layer_index = self.output_layer_index();
-    //        for layer_index in 1..=output_layer_index {
-    //            let nactivations = self.layers[layer_index].nactivations();
-    //            let nactivations_prev = self.layers[layer_index - 1].nactivations();
-    //
-    //            let mut dCdw = Matrix2D::new(nactivations, nactivations_prev);
-    //            let mut dCdb = Vector::new(nactivations);
-    //
-    //            for mb in mbs {
-    //                let delta_i = &mb.error[layer_index];
-    //                let a_j = &mb.a[layer_index - 1];
-    //
-    //                let dw_ij = ops::outer_product(delta_i, a_j);
-    //                dCdw += &dw_ij;
-    //
-    //                let db_i = delta_i;
-    //                dCdb += &db_i;
-    //            }
-    //            let w = self.get_layer(layer_index).get_weights();
-    //            dCdw = &(&dCdw + &(lambda * w)) / (mbs.len() as f64);
-    //            dws.push(dCdw);
-    //
-    //            dCdb /= mbs.len();
-    //            dbs.push(dCdb);
-    //        }
-    //        (dws, dbs)
-    //    }
 
     pub fn calculate_derivatives(&mut self, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
         let output_layer_index = self.output_layer_index();
         for layer_index in 1..=output_layer_index {
-            let next_layer = &self.layers[layer_index - 1];
+            let prev_layer_nneurons = self.layers[layer_index - 1].number_of_neurons();
             let current_layer = &mut self.layers[layer_index];
-            current_layer.update_network(next_layer, layer_index, mbs, eta, rho, lambda);
+            current_layer.update_network(prev_layer_nneurons, layer_index, mbs, eta, rho, lambda);
         }
     }
+
     //
     //    fn apply_momentum(&mut self, eta: f64, rho: f64, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {
     //        let output_layer_index = self.output_layer_index();
@@ -1194,7 +1170,7 @@ mod tests {
 
         let mut mb = model.create_minibatch();
         mb.a[0] = Vector::from(vec![0.0, 1.0]);
-        mb.input[0] = Vector::from(vec![0.0, 1.0]);
+        mb.output[0] = Vector::from(vec![0.0, 1.0]);
 
         model.initialize_layers();
 
@@ -1239,8 +1215,8 @@ mod tests {
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
-        mb.input[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
+        mb.output[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.output[0]);
 
         // expected output
         let y = Vector::from(vec![0.0]);
@@ -1292,8 +1268,8 @@ mod tests {
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
-        mb.input[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
+        mb.output[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.output[0]);
 
         // expected output
         let y = Vector::from(vec![0.0]);
@@ -1352,26 +1328,26 @@ mod tests {
         let mut mb = model.create_minibatch();
 
         // 0 && 0 == 0
-        mb.input[0] = Vector::from(vec![0.0, 0.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
+        mb.output[0] = Vector::from(vec![0.0, 0.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.output[0]);
         model.feedforward(&mut mb);
         assert_approx_eq!(0.0039629946533253175, &mb.a[2][0], 0.02);
 
         // 1 && 0 == 0
-        mb.input[0] = Vector::from(vec![1.0, 0.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
+        mb.output[0] = Vector::from(vec![1.0, 0.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.output[0]);
         model.feedforward(&mut mb);
         assert_approx_eq!(0.05007500459128223, &mb.a[2][0], 0.04);
 
         // 0 && 1 == 0
-        mb.input[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
+        mb.output[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.output[0]);
         model.feedforward(&mut mb);
         assert_approx_eq!(0.051638397516774716, &mb.a[2][0], 0.04);
 
         // 1 && 1 == 0
-        mb.input[0] = Vector::from(vec![1.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
+        mb.output[0] = Vector::from(vec![1.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.output[0]);
         model.feedforward(&mut mb);
         assert_approx_eq!(0.5838657521381514, &mb.a[2][0], 0.04);
     }

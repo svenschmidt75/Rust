@@ -11,7 +11,7 @@ use linear_algebra::vector::Vector;
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &[TrainingData], lambda: f64) -> f64;
 
-    fn output_error(&self, a: &Vector, z: &Vector, y: &Vector, f: &Activation) -> Vector;
+    fn output_error(&self, a: &Vector, y: &Vector) -> Vector;
 }
 
 pub struct QuadraticCost;
@@ -32,7 +32,7 @@ impl CostFunction for QuadraticCost {
         // SS: can use map and sum here...
         let mut mb = model.create_minibatch();
         for x in y {
-            mb.a[0] = x.input_activations.clone();
+            mb.output[0] = x.input_activations.clone();
             model.feedforward(&mut mb);
             let c = Self::single_cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
@@ -45,15 +45,11 @@ impl CostFunction for QuadraticCost {
         total_cost
     }
 
-    fn output_error(&self, a: &Vector, z: &Vector, y: &Vector, f: &Activation) -> Vector {
-        assert_eq!(a.dim(), z.dim(), "Vectors must have same dimension");
+    fn output_error(&self, a: &Vector, y: &Vector) -> Vector {
         assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
 
-        // delta_L = grad_a C x sigma_prime of z_L, x = Hadamard
         // Formula BP1a, http://neuralnetworksanddeeplearning.com/chap2.html
-        // grad_a C = a_L - y
-        // sigma_prime of z_L = f.df(z)
-        (a - y).hadamard(&f.df(z))
+        a - y
     }
 }
 
@@ -85,7 +81,7 @@ impl CostFunction for CrossEntropyCost {
         // SS: can use map and sum here...
         let mut mb = model.create_minibatch();
         for x in y {
-            mb.a[0] = x.input_activations.clone();
+            mb.output[0] = x.input_activations.clone();
             model.feedforward(&mut mb);
             let c = Self::single_cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
@@ -98,9 +94,7 @@ impl CostFunction for CrossEntropyCost {
         -total_cost
     }
 
-    fn output_error(&self, a: &Vector, _z: &Vector, y: &Vector, _f: &Activation) -> Vector {
-        // Note: This makes only sense when the sigmoid function is used in the output later!
-        // Otherwise, we still need to multiply by its derivative
+    fn output_error(&self, a: &Vector, y: &Vector) -> Vector {
         a - y
     }
 }
@@ -133,8 +127,8 @@ mod tests {
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
-        mb.input[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
+        mb.output[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.output[0]);
 
         // model an AND gate
         let training_data = vec![
@@ -189,11 +183,11 @@ mod tests {
 
         let z1 = Vector::from(vec![1.0, 2.0]);
         mb.a[0] = activation.f(&z1);
-        mb.input[0] = z1;
+        mb.output[0] = z1;
 
         let z2 = Vector::from(vec![3.0]);
         mb.a[1] = activation.f(&z2);
-        mb.input[1] = z2.clone();
+        mb.output[1] = z2.clone();
 
         let x = TrainingData {
             input_activations: Vector::from(vec![1.0, 2.0]),
@@ -201,7 +195,7 @@ mod tests {
         };
 
         // Act
-        let error = cost.output_error(&mb.a[1], &mb.input[1], &x.output_activations, &Sigmoid {});
+        let error = cost.output_error(&mb.a[1], &mb.output[1], &x.output_activations, &Sigmoid {});
 
         // Assert
         let d: Vector = &mb.a[1] - &x.output_activations;

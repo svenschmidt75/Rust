@@ -1,13 +1,11 @@
 #![allow(dead_code)]
 
-use crate::ann::cost_function::CostFunction;
 use crate::ann::layers::activation_layer::ActivationLayer;
 use crate::ann::layers::dropout_layer::DropoutLayer;
 use crate::ann::layers::fc_layer::FCLayer;
 use crate::ann::layers::input_layer::InputLayer;
 use crate::ann::layers::layer::Layer::FullyConnected;
 use crate::ann::minibatch::Minibatch;
-use linear_algebra::vector::Vector;
 
 pub enum Layer {
     Input(InputLayer),
@@ -17,12 +15,12 @@ pub enum Layer {
 }
 
 impl Layer {
-    pub(crate) fn NumberOfNeurons(&self) -> usize {
+    pub(crate) fn number_of_neurons(&self) -> usize {
         match self {
-            Layer::Input(layer) => layer.InputSize(),
-            Layer::FullyConnected(layer) => layer.NumberOfNeurons(),
-            Layer::Dropout(layer) => layer.InputSize(),
-            Layer::Activation(layer) => layer.NumberOfNeurons(),
+            Layer::Input(layer) => layer.number_of_neurons(),
+            Layer::FullyConnected(layer) => layer.number_of_neurons(),
+            Layer::Dropout(layer) => layer.number_of_neurons(),
+            Layer::Activation(layer) => layer.number_of_neurons(),
         }
     }
 
@@ -54,55 +52,38 @@ impl Layer {
     }
 
     pub fn feedforward(&self, layer_index: usize, mb: &mut Minibatch) {
-        let prev_a = &mb.a[layer_index - 1];
+        let input = &mb.output[layer_index - 1];
         match self {
             Layer::FullyConnected(layer) => {
-                let (a, z) = layer.feedforward(&prev_a);
-                mb.input[layer_index] = z;
-                mb.a[layer_index] = a;
+                let z= layer.feedforward(&input);
+                mb.output[layer_index] = z;
             }
             Layer::Dropout(layer) => {
                 // SS: dropout  layer only modifies a, not z
-                let a = layer.feedforward(&prev_a);
-                let z = mb.input[layer_index - 1].clone();
-                mb.input[layer_index] = z;
-                mb.a[layer_index] = a;
+                let a = layer.feedforward(&input);
+                mb.output[layer_index] = a;
+            }
+            Layer::Activation(layer) => {
+                let a = layer.feedforward(&input);
+                mb.output[layer_index] = a;
             }
             _ => {}
         }
     }
 
-    pub fn calculate_outputlayer_error(&self, output_layer_index: usize, mb: &mut Minibatch, cost_function: &CostFunction, y: &Vector) {
+    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+        assert!(layer_index > 0);
         match self {
-            FullyConnected(layer) => {
-                let delta_L = layer.calculate_outputlayer_error(&mb.a[output_layer_index], &mb.input[output_layer_index], cost_function, y);
-                mb.error[output_layer_index] = delta_L;
-            }
-            _ => panic!("Output layer error only valid for fully-connected layers"),
-        }
-    }
-
-    pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
-        assert!(layer_index > 0 && layer_index < output_layer_index);
-        match self {
-            FullyConnected(layer) => layer.backprop(layer_index, output_layer_index, next_layer, mb),
-            Layer::Dropout(layer) => layer.backprop(layer_index, output_layer_index, next_layer, mb),
+            FullyConnected(layer) => layer.backprop(layer_index, mb),
+            Layer::Dropout(layer) => layer.backprop(layer_index, mb),
+            Layer::Activation(layer) => layer.backprop(layer_index, mb),
             _ => panic!(),
         }
     }
 
-    pub(crate) fn backprop_component(&self, layer_index: usize, mb: &mut Minibatch) -> Vector {
+    pub fn update_network(&mut self, prev_layer_nneurons: usize, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
         match self {
-            FullyConnected(layer) => layer.backprop_component(layer_index, mb),
-            Layer::Dropout(layer) => layer.backprop_component(layer_index, mb),
-            _ => panic!(),
-        }
-    }
-
-    pub fn update_network(&mut self, prev_layer: &Layer, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
-        match self {
-            Layer::FullyConnected(layer) => layer.update_network(prev_layer, layer_index, mbs, eta, rho, lambda),
-            Layer::Dropout(layer) => {}
+            Layer::FullyConnected(layer) => layer.update_network(prev_layer_nneurons, layer_index, mbs, eta, rho, lambda),
             _ => {}
         }
     }
@@ -110,7 +91,6 @@ impl Layer {
     pub(crate) fn weights_squared_sum(&self) -> f64 {
         match self {
             Layer::FullyConnected(layer) => layer.weights_squared_sum(),
-            Layer::Dropout(layer) => 0.0,
             _ => 0.0,
         }
     }

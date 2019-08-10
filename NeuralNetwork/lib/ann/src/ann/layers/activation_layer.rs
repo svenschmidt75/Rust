@@ -1,7 +1,6 @@
 use crate::ann::activation::Activation;
 use linear_algebra::vector::Vector;
 use crate::ann::minibatch::Minibatch;
-use crate::ann::layers::layer::Layer;
 
 pub struct ActivationLayer {
     nneurons: usize,
@@ -13,7 +12,7 @@ impl ActivationLayer {
         ActivationLayer { nneurons, activation }
     }
 
-    pub fn NumberOfNeurons(&self) -> usize {
+    pub fn number_of_neurons(&self) -> usize {
         self.nneurons
     }
 
@@ -26,12 +25,12 @@ impl ActivationLayer {
         println!("summary");
     }
 
-    pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
-        assert!(layer_index > 0 && layer_index < output_layer_index);
+    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+        assert!(layer_index > 0);
 
-        // SS: calculate da{l+1}/dz_{l}
+        // SS: calculate da^{l+1}/dz^{l}
         let delta_next = &mb.error[layer_index + 1];
-        let z = &mb.input[layer_index];
+        let z = &mb.output[layer_index];
         let sigma_prime = self.activation.df(z);
         let delta = delta_next.hadamard(&sigma_prime);
         mb.error[layer_index] = delta;

@@ -1,7 +1,5 @@
-use crate::ann::activation::Activation;
 use crate::ann::layers::layer::Layer;
 use crate::ann::minibatch::Minibatch;
-use linear_algebra::matrix::Matrix2D;
 use linear_algebra::vector::Vector;
 use rand::distributions::{Bernoulli, Distribution};
 
@@ -16,7 +14,7 @@ impl DropoutLayer {
         let distribution = Bernoulli::new(self.p);
         let mut rng = rand::thread_rng();
 
-        let n_prev_a = prev_layer.NumberOfNeurons();
+        let n_prev_a = prev_layer.number_of_neurons();
         let data = (0..n_prev_a)
             .into_iter()
             .map(|_| match distribution.sample(&mut rng) {
@@ -29,7 +27,7 @@ impl DropoutLayer {
         self.probability_vector = Vector::from(data);
     }
 
-    pub fn NumberOfNeurons(&self) -> usize {
+    pub fn number_of_neurons(&self) -> usize {
         self.probability_vector.dim()
     }
 
@@ -38,8 +36,8 @@ impl DropoutLayer {
         a
     }
 
-    pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
-        assert!(layer_index > 0 && layer_index < output_layer_index);
+    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+        assert!(layer_index > 0);
         let delta_next = &mb.error[layer_index + 1];
         let delta = delta_next.hadamard(&self.probability_vector);
         mb.error[layer_index] = delta;
