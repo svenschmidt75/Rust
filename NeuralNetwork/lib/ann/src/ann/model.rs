@@ -15,8 +15,8 @@ use crate::ann::activation::Activation;
 use crate::ann::cost_function::CostFunction;
 use crate::ann::cost_function::QuadraticCost;
 use crate::ann::layers::layer::Layer;
-use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
+use crate::ann::training_data::TrainingData;
 
 pub struct Model {
     layers: Vec<Box<Layer>>,
@@ -132,9 +132,9 @@ impl Model {
                     self.feedforward(mb);
                     self.backprop(mb, cost_function, known_classification);
                 }
-//                let (dws, dbs) = self.calculate_derivatives(&mbs[..], lambda);
-//                self.apply_momentum(eta, rho, dws, dbs);
-//                self.update_network();
+                //                let (dws, dbs) = self.calculate_derivatives(&mbs[..], lambda);
+                //                self.apply_momentum(eta, rho, dws, dbs);
+                //                self.update_network();
                 self.calculate_derivatives(&mbs, eta, rho, lambda);
             }
 
@@ -195,9 +195,11 @@ impl Model {
         // and record all calculated activations for all layers
         // for backprop.
         let output_layer_index = self.output_layer_index();
+
+        // TODO SS: use iterator instead of loop
         for layer_index in 1..output_layer_index {
             let layer = &self.layers[layer_index];
-            layer.feedforward(layer_index, &mut mb);
+            layer.feedforward(layer_index, mb);
         }
     }
 
@@ -209,38 +211,38 @@ impl Model {
             layer.backprop(layer_index, output_layer_index, &next_layer, mb);
         }
     }
-//
-//    pub fn calculate_derivatives2(&self, mbs: &[Minibatch], lambda: f64) -> (Vec<Matrix2D>, Vec<Vector>) {
-//        let mut dws = Vec::<Matrix2D>::with_capacity(mbs.len());
-//        let mut dbs = Vec::<Vector>::with_capacity(mbs.len());
-//
-//        let output_layer_index = self.output_layer_index();
-//        for layer_index in 1..=output_layer_index {
-//            let nactivations = self.layers[layer_index].nactivations();
-//            let nactivations_prev = self.layers[layer_index - 1].nactivations();
-//
-//            let mut dCdw = Matrix2D::new(nactivations, nactivations_prev);
-//            let mut dCdb = Vector::new(nactivations);
-//
-//            for mb in mbs {
-//                let delta_i = &mb.error[layer_index];
-//                let a_j = &mb.a[layer_index - 1];
-//
-//                let dw_ij = ops::outer_product(delta_i, a_j);
-//                dCdw += &dw_ij;
-//
-//                let db_i = delta_i;
-//                dCdb += &db_i;
-//            }
-//            let w = self.get_layer(layer_index).get_weights();
-//            dCdw = &(&dCdw + &(lambda * w)) / (mbs.len() as f64);
-//            dws.push(dCdw);
-//
-//            dCdb /= mbs.len();
-//            dbs.push(dCdb);
-//        }
-//        (dws, dbs)
-//    }
+    //
+    //    pub fn calculate_derivatives2(&self, mbs: &[Minibatch], lambda: f64) -> (Vec<Matrix2D>, Vec<Vector>) {
+    //        let mut dws = Vec::<Matrix2D>::with_capacity(mbs.len());
+    //        let mut dbs = Vec::<Vector>::with_capacity(mbs.len());
+    //
+    //        let output_layer_index = self.output_layer_index();
+    //        for layer_index in 1..=output_layer_index {
+    //            let nactivations = self.layers[layer_index].nactivations();
+    //            let nactivations_prev = self.layers[layer_index - 1].nactivations();
+    //
+    //            let mut dCdw = Matrix2D::new(nactivations, nactivations_prev);
+    //            let mut dCdb = Vector::new(nactivations);
+    //
+    //            for mb in mbs {
+    //                let delta_i = &mb.error[layer_index];
+    //                let a_j = &mb.a[layer_index - 1];
+    //
+    //                let dw_ij = ops::outer_product(delta_i, a_j);
+    //                dCdw += &dw_ij;
+    //
+    //                let db_i = delta_i;
+    //                dCdb += &db_i;
+    //            }
+    //            let w = self.get_layer(layer_index).get_weights();
+    //            dCdw = &(&dCdw + &(lambda * w)) / (mbs.len() as f64);
+    //            dws.push(dCdw);
+    //
+    //            dCdb /= mbs.len();
+    //            dbs.push(dCdb);
+    //        }
+    //        (dws, dbs)
+    //    }
 
     pub fn calculate_derivatives(&mut self, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
         let output_layer_index = self.output_layer_index();
@@ -250,51 +252,51 @@ impl Model {
             current_layer.update_network(next_layer, layer_index, mbs, eta, rho, lambda);
         }
     }
-//
-//    fn apply_momentum(&mut self, eta: f64, rho: f64, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {
-//        let output_layer_index = self.output_layer_index();
-//        assert_eq!(output_layer_index, dws.len());
-//        assert_eq!(output_layer_index, dbs.len());
-//
-//        for layer_index in 1..=output_layer_index {
-//            {
-//                let momentum_weights = self.layers[layer_index].get_momentum_weights();
-//                let dw = &dws[layer_index - 1];
-//                let updates_momentum_weights = &(rho * momentum_weights) - &(eta * dw);
-//                self.layers[layer_index].set_momentum_weights(updates_momentum_weights);
-//            }
-//            {
-//                let momentum_biases = self.layers[layer_index].get_momentum_biases();
-//                let db = &dbs[layer_index - 1];
-//                let updated_momentum_biases = &(rho * momentum_biases) - &(eta * db);
-//                self.layers[layer_index].set_momentum_biases(updated_momentum_biases);
-//            }
-//        }
-//    }
-//
-//    fn update_network(&mut self) {
-//        let output_layer_index = self.output_layer_index();
-//
-//        // SS: move this into layer class?
-//        // Reason 1: get_weights() does not need to be mutable
-//        // Reason 2: for CNN, the weights matrix is sparse
-//
-//        // SS: dws and dbs contain the layer 1 deltas at index 0!
-//        for layer_index in 1..=output_layer_index {
-//            {
-//                let weights = self.layers[layer_index].get_weights();
-//                let momentum_weights = self.layers[layer_index].get_momentum_weights();
-//                let updated_weights = weights + momentum_weights;
-//                self.layers[layer_index].set_weights(updated_weights);
-//            }
-//            {
-//                let biases = self.layers[layer_index].get_biases();
-//                let momentum_biases = self.layers[layer_index].get_momentum_biases();
-//                let updated_biases = biases + momentum_biases;
-//                self.layers[layer_index].set_biases(updated_biases);
-//            }
-//        }
-//    }
+    //
+    //    fn apply_momentum(&mut self, eta: f64, rho: f64, dws: Vec<Matrix2D>, dbs: Vec<Vector>) {
+    //        let output_layer_index = self.output_layer_index();
+    //        assert_eq!(output_layer_index, dws.len());
+    //        assert_eq!(output_layer_index, dbs.len());
+    //
+    //        for layer_index in 1..=output_layer_index {
+    //            {
+    //                let momentum_weights = self.layers[layer_index].get_momentum_weights();
+    //                let dw = &dws[layer_index - 1];
+    //                let updates_momentum_weights = &(rho * momentum_weights) - &(eta * dw);
+    //                self.layers[layer_index].set_momentum_weights(updates_momentum_weights);
+    //            }
+    //            {
+    //                let momentum_biases = self.layers[layer_index].get_momentum_biases();
+    //                let db = &dbs[layer_index - 1];
+    //                let updated_momentum_biases = &(rho * momentum_biases) - &(eta * db);
+    //                self.layers[layer_index].set_momentum_biases(updated_momentum_biases);
+    //            }
+    //        }
+    //    }
+    //
+    //    fn update_network(&mut self) {
+    //        let output_layer_index = self.output_layer_index();
+    //
+    //        // SS: move this into layer class?
+    //        // Reason 1: get_weights() does not need to be mutable
+    //        // Reason 2: for CNN, the weights matrix is sparse
+    //
+    //        // SS: dws and dbs contain the layer 1 deltas at index 0!
+    //        for layer_index in 1..=output_layer_index {
+    //            {
+    //                let weights = self.layers[layer_index].get_weights();
+    //                let momentum_weights = self.layers[layer_index].get_momentum_weights();
+    //                let updated_weights = weights + momentum_weights;
+    //                self.layers[layer_index].set_weights(updated_weights);
+    //            }
+    //            {
+    //                let biases = self.layers[layer_index].get_biases();
+    //                let momentum_biases = self.layers[layer_index].get_momentum_biases();
+    //                let updated_biases = biases + momentum_biases;
+    //                self.layers[layer_index].set_biases(updated_biases);
+    //            }
+    //        }
+    //    }
 
     pub fn summary(&self) {}
 
@@ -302,98 +304,98 @@ impl Model {
         // SS: skip  the input layer
         self.layers.iter().skip(1).fold(0.0, |accum, layer| accum + layer.weights_squared_sum())
     }
-
-    fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, y: &Vector, cost: &CostFunction) -> Vector {
-        // SS: same as backprop, but here we are using recursion
-        let layer = self.get_layer(layer_index);
-        let output_layer_index = self.output_layer_index();
-        if layer_index == output_layer_index {
-            let activation = layer.get_activation();
-            let a = &mb.a[output_layer_index];
-            let z = &mb.z[output_layer_index];
-            return cost.output_error(a, z, y, activation);
-        }
-        let delta_next = self.calculate_delta(layer_index + 1, &mb, y, cost);
-        let w_tr = self.get_weights(layer_index + 1).transpose();
-        let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
-        w_tr.ax(&delta_next).hadamard(&sigma_prime)
-    }
-
-    fn grad_bias(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction) -> Vector {
-        // SS: same as calculate_derivatives, but here we are using recursion
-        assert!(layer_index > 0);
-        let layer = self.get_layer(layer_index);
-        let mut db = Vector::new(layer.nactivations());
-        let mut mb = self.create_minibatch();
-        for training_sample in xs {
-            let y = &training_sample.output_activations;
-            mb.a[0] = training_sample.input_activations.clone();
-            self.feedforward(&mut mb);
-            let delta = self.calculate_delta(layer_index, &mb, &y, cost);
-            db += &delta;
-        }
-        db /= xs.len();
-        db
-    }
-
-    fn grad_weight(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction, lambda: f64) -> Matrix2D {
-        // SS: same as calculate_derivatives, but here we are using recursion
-        assert!(layer_index > 0);
-        let prev_layer = self.get_layer(layer_index - 1);
-        let layer = self.get_layer(layer_index);
-        let mut dw = Matrix2D::new(layer.nactivations(), prev_layer.nactivations());
-        let mut mb = self.create_minibatch();
-        for training_sample in xs {
-            let y = &training_sample.output_activations;
-            mb.a[0] = training_sample.input_activations.clone();
-            self.feedforward(&mut mb);
-            let delta = self.calculate_delta(layer_index, &mb, &y, cost);
-            let tmp = ops::outer_product(&delta, &mb.a[layer_index - 1]);
-            dw += &tmp;
-        }
-        let ntraining_samples = xs.len() as f64;
-
-        let w = self.get_layer(layer_index).get_weights();
-        dw = &(&dw + &(lambda * w)) / ntraining_samples;
-
-        dw
-    }
-
-    fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, cost: &CostFunction, lambda: f64) -> f64 {
-        // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
-        let delta = 0.000_001;
-        let biases = self.layers[layer_index].get_biases_mut();
-        let b = biases[la];
-        biases[la] = b - delta;
-        let c1 = cost.cost(self, training_samples, lambda);
-        let biases = self.layers[layer_index].get_biases_mut();
-        biases[la] = b + delta;
-        let c2 = cost.cost(self, training_samples, lambda);
-        let biases = self.layers[layer_index].get_biases_mut();
-
-        //: important, restore original bias
-        biases[la] = b;
-        let dc = (c2 - c1) / delta / 2_f64;
-        dc
-    }
-
-    fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize, cost: &CostFunction, lambda: f64) -> f64 {
-        // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
-        // and pa is the neuron index in the previous layer.
-        let delta = 0.000_001;
-        let weights = self.layers[layer_index].get_weights_mut();
-        let w = weights[(la, pa)];
-        weights[(la, pa)] = w - delta;
-        let c1 = cost.cost(self, training_samples, lambda);
-        let weights = self.layers[layer_index].get_weights_mut();
-        weights[(la, pa)] = w + delta;
-        let c2 = cost.cost(self, training_samples, lambda);
-        let weights = self.layers[layer_index].get_weights_mut();
-
-        //: important, restore original weight
-        weights[(la, pa)] = w;
-        (c2 - c1) / delta / 2_f64
-    }
+    //
+    //    fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, y: &Vector, cost: &CostFunction) -> Vector {
+    //        // SS: same as backprop, but here we are using recursion
+    //        let layer = self.get_layer(layer_index);
+    //        let output_layer_index = self.output_layer_index();
+    //        if layer_index == output_layer_index {
+    //            let activation = layer.get_activation();
+    //            let a = &mb.a[output_layer_index];
+    //            let z = &mb.z[output_layer_index];
+    //            return cost.output_error(a, z, y, activation);
+    //        }
+    //        let delta_next = self.calculate_delta(layer_index + 1, &mb, y, cost);
+    //        let w_tr = self.get_weights(layer_index + 1).transpose();
+    //        let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
+    //        w_tr.ax(&delta_next).hadamard(&sigma_prime)
+    //    }
+    //
+    //    fn grad_bias(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction) -> Vector {
+    //        // SS: same as calculate_derivatives, but here we are using recursion
+    //        assert!(layer_index > 0);
+    //        let layer = self.get_layer(layer_index);
+    //        let mut db = Vector::new(layer.nactivations());
+    //        let mut mb = self.create_minibatch();
+    //        for training_sample in xs {
+    //            let y = &training_sample.output_activations;
+    //            mb.a[0] = training_sample.input_activations.clone();
+    //            self.feedforward(&mut mb);
+    //            let delta = self.calculate_delta(layer_index, &mb, &y, cost);
+    //            db += &delta;
+    //        }
+    //        db /= xs.len();
+    //        db
+    //    }
+    //
+    //    fn grad_weight(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction, lambda: f64) -> Matrix2D {
+    //        // SS: same as calculate_derivatives, but here we are using recursion
+    //        assert!(layer_index > 0);
+    //        let prev_layer = self.get_layer(layer_index - 1);
+    //        let layer = self.get_layer(layer_index);
+    //        let mut dw = Matrix2D::new(layer.nactivations(), prev_layer.nactivations());
+    //        let mut mb = self.create_minibatch();
+    //        for training_sample in xs {
+    //            let y = &training_sample.output_activations;
+    //            mb.a[0] = training_sample.input_activations.clone();
+    //            self.feedforward(&mut mb);
+    //            let delta = self.calculate_delta(layer_index, &mb, &y, cost);
+    //            let tmp = ops::outer_product(&delta, &mb.a[layer_index - 1]);
+    //            dw += &tmp;
+    //        }
+    //        let ntraining_samples = xs.len() as f64;
+    //
+    //        let w = self.get_layer(layer_index).get_weights();
+    //        dw = &(&dw + &(lambda * w)) / ntraining_samples;
+    //
+    //        dw
+    //    }
+    //
+    //    fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, cost: &CostFunction, lambda: f64) -> f64 {
+    //        // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
+    //        let delta = 0.000_001;
+    //        let biases = self.layers[layer_index].get_biases_mut();
+    //        let b = biases[la];
+    //        biases[la] = b - delta;
+    //        let c1 = cost.cost(self, training_samples, lambda);
+    //        let biases = self.layers[layer_index].get_biases_mut();
+    //        biases[la] = b + delta;
+    //        let c2 = cost.cost(self, training_samples, lambda);
+    //        let biases = self.layers[layer_index].get_biases_mut();
+    //
+    //        //: important, restore original bias
+    //        biases[la] = b;
+    //        let dc = (c2 - c1) / delta / 2_f64;
+    //        dc
+    //    }
+    //
+    //    fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize, cost: &CostFunction, lambda: f64) -> f64 {
+    //        // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
+    //        // and pa is the neuron index in the previous layer.
+    //        let delta = 0.000_001;
+    //        let weights = self.layers[layer_index].get_weights_mut();
+    //        let w = weights[(la, pa)];
+    //        weights[(la, pa)] = w - delta;
+    //        let c1 = cost.cost(self, training_samples, lambda);
+    //        let weights = self.layers[layer_index].get_weights_mut();
+    //        weights[(la, pa)] = w + delta;
+    //        let c2 = cost.cost(self, training_samples, lambda);
+    //        let weights = self.layers[layer_index].get_weights_mut();
+    //
+    //        //: important, restore original weight
+    //        weights[(la, pa)] = w;
+    //        (c2 - c1) / delta / 2_f64
+    //    }
 }
 
 #[cfg(test)]
@@ -413,6 +415,7 @@ mod tests {
     use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
 
     use super::*;
+    use crate::ann::layers::activation_layer::ActivationLayer;
 
     const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
 
@@ -1188,7 +1191,7 @@ mod tests {
 
         let mut mb = model.create_minibatch();
         mb.a[0] = Vector::from(vec![0.0, 1.0]);
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
+        mb.input[0] = Vector::from(vec![0.0, 1.0]);
 
         model.initialize_layers();
 
@@ -1233,8 +1236,8 @@ mod tests {
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.input[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
 
         // expected output
         let y = Vector::from(vec![0.0]);
@@ -1286,8 +1289,8 @@ mod tests {
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.input[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
 
         // expected output
         let y = Vector::from(vec![0.0]);
@@ -1346,26 +1349,26 @@ mod tests {
         let mut mb = model.create_minibatch();
 
         // 0 && 0 == 0
-        mb.z[0] = Vector::from(vec![0.0, 0.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.input[0] = Vector::from(vec![0.0, 0.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
         model.feedforward(&mut mb);
         assert_approx_eq!(0.0039629946533253175, &mb.a[2][0], 0.02);
 
         // 1 && 0 == 0
-        mb.z[0] = Vector::from(vec![1.0, 0.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.input[0] = Vector::from(vec![1.0, 0.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
         model.feedforward(&mut mb);
         assert_approx_eq!(0.05007500459128223, &mb.a[2][0], 0.04);
 
         // 0 && 1 == 0
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.input[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
         model.feedforward(&mut mb);
         assert_approx_eq!(0.051638397516774716, &mb.a[2][0], 0.04);
 
         // 1 && 1 == 0
-        mb.z[0] = Vector::from(vec![1.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.input[0] = Vector::from(vec![1.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
         model.feedforward(&mut mb);
         assert_approx_eq!(0.5838657521381514, &mb.a[2][0], 0.04);
     }
@@ -1495,13 +1498,19 @@ mod tests {
         let mut model = Model::new();
 
         let input_layer = InputLayer::new(1);
-        model.add(Box::new(input_layer));
+        model.add(Box::new(Layer(input_layer)));
 
-        let hidden_layer = FCLayer::new(2, Box::new(Id {}));
-        model.add(Box::new(hidden_layer));
+        let hidden_layer = FCLayer::new(2);
+        model.add(Box::new(Layer(hidden_layer)));
 
-        let output_layer = FCLayer::new(1, Box::new(Id {}));
-        model.add(Box::new(output_layer));
+        let activation_layer = ActivationLayer::new(2, Box::new(Id {}));
+        model.add(Box::new(Layer(activation_layer)));
+
+        let output_layer = FCLayer::new(1);
+        model.add(Box::new(Layer(output_layer)));
+
+        let activation_layer2 = ActivationLayer::new(1, Box::new(Id {}));
+        model.add(Box::new(Layer(activation_layer2)));
 
         // SS: restrict input to (-pi/2, pi/2) because of periodicity
         let u1 = 1.8;

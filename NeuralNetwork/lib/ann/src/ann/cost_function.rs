@@ -1,9 +1,9 @@
 #![allow(unused_imports)]
 
 use crate::ann::activation::Activation;
-use crate::ann::layers::training_data::TrainingData;
 use crate::ann::minibatch::Minibatch;
 use crate::ann::model::Model;
+use crate::ann::training_data::TrainingData;
 use linear_algebra::matrix::Matrix2D;
 use linear_algebra::ops;
 use linear_algebra::vector::Vector;
@@ -114,7 +114,7 @@ mod tests {
 
     use crate::ann::activation::Id;
     use crate::ann::activation::Sigmoid;
-    use crate::ann::layers::training_data::TrainingData;
+    use crate::ann::training_data::TrainingData;
     use linear_algebra::matrix::Matrix2D;
     use linear_algebra::vector::Vector;
 
@@ -133,8 +133,8 @@ mod tests {
         model.add(Box::new(output_layer));
 
         let mut mb = model.create_minibatch();
-        mb.z[0] = Vector::from(vec![0.0, 1.0]);
-        mb.a[0] = Sigmoid {}.f(&mb.z[0]);
+        mb.input[0] = Vector::from(vec![0.0, 1.0]);
+        mb.a[0] = Sigmoid {}.f(&mb.input[0]);
 
         // model an AND gate
         let training_data = vec![
@@ -189,11 +189,11 @@ mod tests {
 
         let z1 = Vector::from(vec![1.0, 2.0]);
         mb.a[0] = activation.f(&z1);
-        mb.z[0] = z1;
+        mb.input[0] = z1;
 
         let z2 = Vector::from(vec![3.0]);
         mb.a[1] = activation.f(&z2);
-        mb.z[1] = z2.clone();
+        mb.input[1] = z2.clone();
 
         let x = TrainingData {
             input_activations: Vector::from(vec![1.0, 2.0]),
@@ -201,7 +201,7 @@ mod tests {
         };
 
         // Act
-        let error = cost.output_error(&mb.a[1], &mb.z[1], &x.output_activations, &Sigmoid {});
+        let error = cost.output_error(&mb.a[1], &mb.input[1], &x.output_activations, &Sigmoid {});
 
         // Assert
         let d: Vector = &mb.a[1] - &x.output_activations;

@@ -1,14 +1,13 @@
-use crate::ann::activation::Activation;
-use crate::ann::layers::layer::Layer;
-use linear_algebra::matrix::Matrix2D;
-use linear_algebra::vector::Vector;
-
 pub struct InputLayer {
-    pub nactivations: usize,
+    nneurons: usize,
 }
 
 impl InputLayer {
-    pub fn new(nactivations: usize) -> InputLayer {
-        InputLayer { nactivations }
+    pub fn new(nneurons: usize) -> InputLayer {
+        InputLayer { nneurons }
+    }
+
+    pub fn NumberOfNeurons(&self) -> usize {
+        self.nneurons
     }
 }

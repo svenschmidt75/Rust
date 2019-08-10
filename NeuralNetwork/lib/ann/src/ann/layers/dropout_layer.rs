@@ -6,8 +6,8 @@ use linear_algebra::vector::Vector;
 use rand::distributions::{Bernoulli, Distribution};
 
 pub struct DropoutLayer {
-    pub p: f64,
-    pub probability_vector: Vector,
+    p: f64,
+    probability_vector: Vector,
 }
 
 impl DropoutLayer {
@@ -16,7 +16,7 @@ impl DropoutLayer {
         let distribution = Bernoulli::new(self.p);
         let mut rng = rand::thread_rng();
 
-        let n_prev_a = prev_layer.nactivations();
+        let n_prev_a = prev_layer.NumberOfNeurons();
         let data = (0..n_prev_a)
             .into_iter()
             .map(|_| match distribution.sample(&mut rng) {
@@ -29,13 +29,13 @@ impl DropoutLayer {
         self.probability_vector = Vector::from(data);
     }
 
-    pub(crate) fn feedforward(&self, prev_a: &Vector) -> (Vector, Vector) {
-        let a = prev_a.hadamard(&self.probability_vector);
-        (a, a.clone())
+    pub fn NumberOfNeurons(&self) -> usize {
+        self.probability_vector.dim()
     }
 
-    fn nactivations(&self) -> usize {
-        self.probability_vector.dim()
+    pub(crate) fn feedforward(&self, prev_a: &Vector) -> Vector {
+        let a = prev_a.hadamard(&self.probability_vector);
+        a
     }
 
     pub(crate) fn backprop_component(&self, layer_index: usize, mb: &mut Minibatch) -> Vector {

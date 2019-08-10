@@ -13,20 +13,35 @@ pub struct FCLayer {
     momentum_weights: Matrix2D,
     biases: Vector,
     momentum_biases: Vector,
-    pub nneurons: usize,
-    activation: Box<dyn Activation>,
+    nneurons: usize,
 }
 
 impl FCLayer {
-    pub fn new(nneurons: usize, activation: Box<dyn Activation>) -> FCLayer {
+    pub fn new(input_size: usize) -> FCLayer {
         FCLayer {
             weights: Matrix2D::new(0, 0),
             momentum_weights: Matrix2D::new(0, 0),
             biases: Vector::new(0),
             momentum_biases: Vector::new(0),
-            activation,
-            nneurons,
+            nneurons: input_size,
         }
+    }
+
+    pub fn NumberOfNeurons(&self) -> usize {
+        self.nneurons
+    }
+
+    pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
+        let ncols = prev_layer.NumberOfNeurons();
+        let nrows = self.NumberOfNeurons();
+
+        self.weights = Matrix2D::new(nrows, ncols);
+        self.biases = Vector::new(nrows);
+
+        self.momentum_weights = Matrix2D::new(nrows, ncols);
+        self.momentum_biases = Vector::new(nrows);
+
+        self.initialize_parameters(ncols);
     }
 
     fn initialize_parameters(&mut self, fan_in: usize) {
@@ -45,26 +60,17 @@ impl FCLayer {
         }
     }
 
-    pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
-        let n = prev_layer.nactivations();
-        self.weights = Matrix2D::new(self.nneurons, n);
-        self.momentum_weights = Matrix2D::new(self.nneurons, n);
-        self.biases = Vector::new(self.nneurons);
-        self.momentum_biases = Vector::new(self.nneurons);
-        self.initialize_parameters(n);
-    }
-
-    pub(crate) fn feedforward(&self, prev_a: &Vector) -> (Vector, Vector) {
+    pub(crate) fn feedforward(&self, prev_a: &Vector) -> Vector {
         // SS: number of activations in this layer: self.weights.nrows()
-        let output = ops::ax(&self.weights, prev_a);
+        let output = self.weights.ax(prev_a);
 
         // SS: alternatively, add another column to weights with the biases.
         // Add another row with all 0s, except for the bias column where we put 1.
         let z = &output + &self.biases;
-        let a = self.activation.f(&z);
-        (a, z)
+        z
     }
 
+    // TODO SS; does NOT belong here, move back to model
     pub fn calculate_outputlayer_error(&self, a: &Vector, z: &Vector, cost_function: &CostFunction, y: &Vector) -> Vector {
         // SS: calculate delta_{L}, the error in the output layer
         let sigma = self.get_activation();
@@ -72,22 +78,15 @@ impl FCLayer {
         output_error
     }
 
-    pub(crate) fn backprop_component(&self, layer_index: usize, mb: &mut Minibatch) -> Vector {
-        // calculate the part that are specific to this layer
-        let weights = &self.weights.transpose();
-        let delta = &mb.error[layer_index];
-        let result = weights.ax(delta);
-        result
-    }
-
+    // TODO SS: should the next error be passed in? and the current error be returned here?
     pub fn backprop(&self, layer_index: usize, output_layer_index: usize, next_layer: &Layer, mb: &mut Minibatch) {
         assert!(layer_index > 0 && layer_index < output_layer_index);
+
+        // SS: calculate dz{l}/da_{l-1}
+        let weights = &self.weights.transpose();
         let delta_next = &mb.error[layer_index + 1];
-        let next_component = next_layer.backprop_component(layer_index + 1, mb);
-        let z = &mb.z[layer_index];
-        let sigma_prime = self.activation.df(z);
-        let delta_l = next_component.hadamard(&sigma_prime);
-        mb.error[layer_index] = delta_l;
+        let delta = weights.ax(delta_next);
+        mb.error[layer_index] = delta;
     }
 
     fn nactivations(&self) -> usize {
@@ -194,13 +193,13 @@ impl FCLayer {
     }
 
     fn apply_momentum(&mut self, eta: f64, rho: f64, dw: Matrix2D, db: Vector) {
-            let momentum_weights = self.get_momentum_weights();
-            let updates_momentum_weights = &(rho * momentum_weights) - &(eta * &dw);
-            self.set_momentum_weights(updates_momentum_weights);
+        let momentum_weights = self.get_momentum_weights();
+        let updates_momentum_weights = &(rho * momentum_weights) - &(eta * &dw);
+        self.set_momentum_weights(updates_momentum_weights);
 
-            let momentum_biases = self.get_momentum_biases();
-            let updated_momentum_biases = &(rho * momentum_biases) - &(eta * &db);
-            self.set_momentum_biases(updated_momentum_biases);
+        let momentum_biases = self.get_momentum_biases();
+        let updated_momentum_biases = &(rho * momentum_biases) - &(eta * &db);
+        self.set_momentum_biases(updated_momentum_biases);
     }
 
     fn update_parameters(&mut self) {
@@ -217,7 +216,6 @@ impl FCLayer {
             self.set_biases(updated_biases);
         }
     }
-
 }
 
 #[cfg(test)]
