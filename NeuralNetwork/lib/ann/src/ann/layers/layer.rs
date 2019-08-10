@@ -14,6 +14,30 @@ pub enum Layer {
     Activation(ActivationLayer),
 }
 
+impl From<InputLayer> for Layer {
+    fn from(l: InputLayer) -> Self {
+        Layer::Input(l)
+    }
+}
+
+impl From<FCLayer> for Layer {
+    fn from(l: FCLayer) -> Self {
+        Layer::FullyConnected(l)
+    }
+}
+
+impl From<DropoutLayer> for Layer {
+    fn from(l: DropoutLayer) -> Self {
+        Layer::Dropout(l)
+    }
+}
+
+impl From<ActivationLayer> for Layer {
+    fn from(l: ActivationLayer) -> Self {
+        Layer::Activation(l)
+    }
+}
+
 impl Layer {
     pub(crate) fn number_of_neurons(&self) -> usize {
         match self {
@@ -55,7 +79,7 @@ impl Layer {
         let input = &mb.output[layer_index - 1];
         match self {
             Layer::FullyConnected(layer) => {
-                let z= layer.feedforward(&input);
+                let z = layer.feedforward(&input);
                 mb.output[layer_index] = z;
             }
             Layer::Dropout(layer) => {

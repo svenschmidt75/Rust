@@ -1,6 +1,6 @@
 use crate::ann::activation::Activation;
-use linear_algebra::vector::Vector;
 use crate::ann::minibatch::Minibatch;
+use linear_algebra::vector::Vector;
 
 pub struct ActivationLayer {
     nneurons: usize,
@@ -35,7 +35,4 @@ impl ActivationLayer {
         let delta = delta_next.hadamard(&sigma_prime);
         mb.error[layer_index] = delta;
     }
-
-
-
 }

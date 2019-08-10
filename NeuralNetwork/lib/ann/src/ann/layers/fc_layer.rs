@@ -193,17 +193,17 @@ mod tests {
     use crate::ann::activation::Id;
 
     use super::*;
-//
-//    #[test]
-//    fn test_initialize() {
-//        // Arrange
-//        let layer1 = FCLayer::new(2, Box::new(Id {}));
-//        let mut layer2 = FCLayer::new(2, Box::new(Id {}));
-//
-//        // Act
-//        layer2.initialize(&layer1);
-//
-//        // Assert
-//        assert!(layer2.get_weights()[(0, 0)] <= 1.0 / 100.0);
-//    }
+    //
+    //    #[test]
+    //    fn test_initialize() {
+    //        // Arrange
+    //        let layer1 = FCLayer::new(2, Box::new(Id {}));
+    //        let mut layer2 = FCLayer::new(2, Box::new(Id {}));
+    //
+    //        // Act
+    //        layer2.initialize(&layer1);
+    //
+    //        // Assert
+    //        assert!(layer2.get_weights()[(0, 0)] <= 1.0 / 100.0);
+    //    }
 }

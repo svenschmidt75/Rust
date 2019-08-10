@@ -16,5 +16,4 @@ impl Minibatch {
         // SS: -2 because -1 is the error dCda
         &self.output[self.output.len() - 2]
     }
-
 }
