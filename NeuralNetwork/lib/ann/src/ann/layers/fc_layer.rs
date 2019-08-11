@@ -142,13 +142,13 @@ impl FCLayer {
         let mut db = Vector::new(self.weights.nrows());
 
         for mb in mbs {
-            let delta_i = &mb.error[layer_index];
+            let delta_next = &mb.error[layer_index + 1];
             let a_j = &mb.output[layer_index - 1];
 
-            let dw_ij = ops::outer_product(delta_i, a_j);
+            let dw_ij = ops::outer_product(delta_next, a_j);
             dw += &dw_ij;
 
-            let db_i = delta_i;
+            let db_i = delta_next;
             db += &db_i;
         }
 
