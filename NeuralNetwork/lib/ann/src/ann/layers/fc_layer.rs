@@ -126,9 +126,9 @@ impl FCLayer {
         println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
     }
 
-    pub fn update_network(&mut self, prev_layer_nneurons: usize, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
+    pub fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
         // calc. derivatives from all mini batches
-        let (dw, db) = self.calculate_derivatives(prev_layer_nneurons, layer_index, mbs, lambda);
+        let (dw, db) = self.calculate_derivatives(layer_index, mbs, lambda);
 
         // calc. momentum
         self.apply_momentum(eta, rho, dw, db);
@@ -137,11 +137,9 @@ impl FCLayer {
         self.update_parameters();
     }
 
-    pub fn calculate_derivatives(&self, prev_layer_nneurons: usize, layer_index: usize, mbs: &[Minibatch], lambda: f64) -> (Matrix2D, Vector) {
-        let nneurons = self.number_of_neurons();
-
-        let mut dw = Matrix2D::new(nneurons, prev_layer_nneurons);
-        let mut db = Vector::new(nneurons);
+    pub fn calculate_derivatives(&self, layer_index: usize, mbs: &[Minibatch], lambda: f64) -> (Matrix2D, Vector) {
+        let mut dw = Matrix2D::new(self.weights.nrows(), self.weights.ncols());
+        let mut db = Vector::new(self.weights.nrows());
 
         for mb in mbs {
             let delta_i = &mb.error[layer_index];

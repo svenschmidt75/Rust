@@ -107,7 +107,7 @@ impl Layer {
 
     pub fn update_network(&mut self, prev_layer_nneurons: usize, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
         match self {
-            Layer::FullyConnected(layer) => layer.update_network(prev_layer_nneurons, layer_index, mbs, eta, rho, lambda),
+            Layer::FullyConnected(layer) => layer.update_network(layer_index, mbs, eta, rho, lambda),
             _ => {}
         }
     }

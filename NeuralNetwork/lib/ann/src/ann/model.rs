@@ -80,7 +80,7 @@ impl Model {
 
         // SS: training samples per minibatch
         let mb_size = cmp::min(training_data.len(), minibatch_size);
-        let mut mbs = (0..=mb_size).map(|_| self.create_minibatch()).collect::<Vec<_>>();
+        let mut mbs = (0..mb_size).map(|_| self.create_minibatch()).collect::<Vec<_>>();
 
         let (n_minibatches, _remainder) = Model::number_of_minibatches(trainingdata_indices.len(), mb_size);
 
@@ -177,7 +177,10 @@ impl Model {
     pub fn create_minibatch(&self) -> Minibatch {
         let mut nas: Vec<_> = self.layers.iter().map(|layer| layer.number_of_neurons()).collect();
 
-        // SS: add "hidden" layer for dC\dA_L
+        // SS: add one "hidden" layer
+        // We are only going to use its error property,
+        // which gets initialized with the initial
+        // // error of the cost function, i.e. dC\dA_L.
         nas.push(self.layers.iter().last().unwrap().number_of_neurons());
         Minibatch::new(nas)
     }
@@ -199,7 +202,7 @@ impl Model {
         let output_layer_index = self.output_layer_index();
         let aL = &mb.output[output_layer_index];
 
-        // SS: calculate dC^{l}/da^{L}
+        // SS: calculate dC/da^{L}
         let dCda = cost_function.output_error(aL, y);
 
         mb.error[output_layer_index + 1] = dCda;
@@ -208,7 +211,7 @@ impl Model {
     pub fn backprop(&mut self, mb: &mut Minibatch, y: &Vector, cost_function: &CostFunction) {
         let output_layer_index = self.output_layer_index();
         self.calculate_outputlayer_error(mb, y, cost_function);
-        for layer_index in (0..output_layer_index).rev() {
+        for layer_index in (1..=output_layer_index).rev() {
             let layer = &self.layers[layer_index];
             layer.backprop(layer_index, mb);
         }

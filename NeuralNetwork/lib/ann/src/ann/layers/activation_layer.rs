@@ -30,7 +30,7 @@ impl ActivationLayer {
 
         // SS: calculate da^{l+1}/dz^{l}
         let delta_next = &mb.error[layer_index + 1];
-        let z = &mb.output[layer_index];
+        let z = &mb.output[layer_index - 1];
         let sigma_prime = self.activation.df(z);
         let delta = delta_next.hadamard(&sigma_prime);
         mb.error[layer_index] = delta;
