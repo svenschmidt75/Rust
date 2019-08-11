@@ -175,7 +175,10 @@ impl Model {
     }
 
     pub fn create_minibatch(&self) -> Minibatch {
-        let nas: Vec<_> = self.layers.iter().map(|layer| layer.number_of_neurons()).collect();
+        let mut nas: Vec<_> = self.layers.iter().map(|layer| layer.number_of_neurons()).collect();
+
+        // SS: add "hidden" layer for dC\dA_L
+        nas.push(self.layers.iter().last().unwrap().number_of_neurons());
         Minibatch::new(nas)
     }
 
@@ -186,7 +189,7 @@ impl Model {
         let output_layer_index = self.output_layer_index();
 
         // TODO SS: use iterator instead of loop
-        for layer_index in 1..output_layer_index {
+        for layer_index in 1..=output_layer_index {
             let layer = &self.layers[layer_index];
             layer.feedforward(layer_index, mb);
         }
@@ -194,12 +197,12 @@ impl Model {
 
     fn calculate_outputlayer_error(&self, mb: &mut Minibatch, y: &Vector, cost_function: &CostFunction) {
         let output_layer_index = self.output_layer_index();
-        let aL = &mb.output[output_layer_index - 1];
+        let aL = &mb.output[output_layer_index];
 
         // SS: calculate dC^{l}/da^{L}
         let dCda = cost_function.output_error(aL, y);
 
-        mb.error[output_layer_index] = dCda;
+        mb.error[output_layer_index + 1] = dCda;
     }
 
     pub fn backprop(&mut self, mb: &mut Minibatch, y: &Vector, cost_function: &CostFunction) {
