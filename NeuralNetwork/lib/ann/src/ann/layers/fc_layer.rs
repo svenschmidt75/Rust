@@ -78,7 +78,7 @@ impl FCLayer {
         mb.error[layer_index] = delta;
     }
 
-    fn get_weights(&self) -> &Matrix2D {
+    pub(crate) fn get_weights(&self) -> &Matrix2D {
         &self.weights
     }
 
@@ -94,7 +94,7 @@ impl FCLayer {
         self.momentum_weights = momentum_weights;
     }
 
-    fn get_biases(&self) -> &Vector {
+    pub(crate) fn get_biases(&self) -> &Vector {
         &self.biases
     }
 
