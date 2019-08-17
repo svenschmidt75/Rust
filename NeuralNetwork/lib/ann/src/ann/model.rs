@@ -1286,7 +1286,7 @@ mod tests {
         let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
 
         // Act
-        model.train(&data, 2000, 50.0, 0.0, 0.00001, 4, &cost_function);
+        model.train(&data, 1000, 50.0, 0.0, 0.00001, 4, &cost_function);
 
         // Assert
         let mut mb = model.create_minibatch();
@@ -1294,22 +1294,22 @@ mod tests {
         // 0 && 0 == 0
         mb.output[0] = Vector::from(vec![0.0, 0.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.0039629946533253175, &mb.output[4][0], 0.02);
+        assert_approx_eq!(0.0003339, &mb.output[4][0], 0.001);
 
         // 1 && 0 == 0
         mb.output[0] = Vector::from(vec![1.0, 0.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.006813833110503741, &mb.output[4][0], 0.04);
+        assert_approx_eq!(0.00656, &mb.output[4][0], 0.01);
 
         // 0 && 1 == 0
         mb.output[0] = Vector::from(vec![0.0, 1.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.005284975257848634, &mb.output[4][0], 0.04);
+        assert_approx_eq!(0.005284975257848634, &mb.output[4][0], 0.01);
 
         // 1 && 1 == 0
         mb.output[0] = Vector::from(vec![1.0, 1.0]);
         model.feedforward(&mut mb);
-        assert_approx_eq!(0.9887443090898671, &mb.output[4][0], 0.04);
+        assert_approx_eq!(0.9887443090898671, &mb.output[4][0], 0.01);
     }
 
     //    #[test]
