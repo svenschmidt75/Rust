@@ -108,34 +108,25 @@ mod tests {
 
     use crate::ann::activation::Id;
     use crate::ann::activation::Sigmoid;
+    use crate::ann::layers::activation_layer::ActivationLayer;
+    use crate::ann::layers::layer::Layer;
     use crate::ann::training_data::TrainingData;
     use linear_algebra::matrix::Matrix2D;
     use linear_algebra::vector::Vector;
-    use crate::ann::layers::activation_layer::ActivationLayer;
-    use crate::ann::layers::layer::Layer;
 
     #[test]
     fn test_network_cost() {
         // Arrange
         let mut model = Model::new();
 
-        let input_layer = InputLayer::new(2);
-        model.add(Box::new(Layer::from(input_layer)));
-
-        let hidden_layer1 = FCLayer::new(2);
-        model.add(Box::new(Layer::from(hidden_layer1)));
-
-        let activation_layer1 = ActivationLayer::new(2, Box::new(Sigmoid {}));
-        model.add(Box::new(Layer::from(activation_layer1)));
-
-        let hidden_layer2 = FCLayer::new(1);
-        model.add(Box::new(Layer::from(hidden_layer2)));
-
-        let activation_layer2 = ActivationLayer::new(1, Box::new(Sigmoid {}));
-        model.add(Box::new(Layer::from(activation_layer2)));
+        model.addInputLayer(InputLayer::new(2));
+        model.addFullyConnectedLayer(FCLayer::new(2));
+        model.addActivationLayer(ActivationLayer::new(2, Box::new(Sigmoid {})));
+        model.addFullyConnectedLayer(FCLayer::new(1));
+        model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
 
         let mut mb = model.create_minibatch();
-        let z= Vector::from(vec![0.0, 1.0]);
+        let z = Vector::from(vec![0.0, 1.0]);
         mb.output[0] = Sigmoid {}.f(&z);
 
         // model an AND gate
@@ -169,45 +160,42 @@ mod tests {
         assert_approx_eq!(0.00008300650113936091, c, 1E-4);
     }
 
-    //    #[test]
-    //    fn test_cost() {
-    //        // Arrange
-    //        let a = vec![1.0, 2.0].into();
-    //        let y = vec![3.0, 4.0].into();
-    //
-    //        // Act
-    //        let c = QuadraticCost::single_cost(&a, &y);
-    //
-    //        // Assert
-    //        assert_eq!(8.0, c)
-    //    }
-    //
-    //    #[test]
-    //    fn test_quadratic_cost_output_layer() {
-    //        // Arrange
-    //        let cost = QuadraticCost;
-    //        let activation = &Sigmoid {};
-    //        let mut mb = Minibatch::new(vec![2, 1]);
-    //
-    //        let z1 = Vector::from(vec![1.0, 2.0]);
-    //        mb.a[0] = activation.f(&z1);
-    //        mb.output[0] = z1;
-    //
-    //        let z2 = Vector::from(vec![3.0]);
-    //        mb.a[1] = activation.f(&z2);
-    //        mb.output[1] = z2.clone();
-    //
-    //        let x = TrainingData {
-    //            input_activations: Vector::from(vec![1.0, 2.0]),
-    //            output_activations: Vector::from(vec![1.0]),
-    //        };
-    //
-    //        // Act
-    //        let error = cost.output_error(&mb.a[1], &mb.output[1], &x.output_activations, &Sigmoid {});
-    //
-    //        // Assert
-    //        let d: Vector = &mb.a[1] - &x.output_activations;
-    //        let df = &Sigmoid {}.df(&z2);
-    //        assert_approx_eq!(d[0] * df[0], error[0], 1e-3f64);
-    //    }
+    #[test]
+    fn test_quadratic_cost() {
+        // Arrange
+        let a = vec![1.0, 2.0].into();
+        let y = vec![3.0, 4.0].into();
+
+        // Act
+        let c = QuadraticCost::single_cost(&a, &y);
+
+        // Assert
+        assert_eq!(8.0, c)
+    }
+
+    #[test]
+    fn test_quadratic_cost_output_layer() {
+        // Arrange
+        let cost = QuadraticCost;
+        let activation = &Sigmoid {};
+        let mut mb = Minibatch::new(vec![2, 1]);
+
+        let z1 = Vector::from(vec![1.0, 2.0]);
+        mb.output[0] = activation.f(&z1);
+
+        let z2 = Vector::from(vec![3.0]);
+        mb.output[1] = activation.f(&z2);
+
+        let x = TrainingData {
+            input_activations: Vector::from(vec![1.0, 2.0]),
+            output_activations: Vector::from(vec![1.0]),
+        };
+
+        // Act
+        let error = cost.output_error(&mb.output[1], &x.output_activations);
+
+        // Assert
+        let d: Vector = &mb.output[1] - &x.output_activations;
+        assert_approx_eq!(d[0], error[0], 1e-3f64);
+    }
 }
