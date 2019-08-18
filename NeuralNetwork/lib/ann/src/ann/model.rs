@@ -219,7 +219,7 @@ impl Model {
         mb.error[output_layer_index + 1] = dCda;
     }
 
-    pub fn backprop(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
+    fn backprop(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
         let output_layer_index = self.output_layer_index();
         self.calculate_outputlayer_error(mb, y, cost_function);
         for layer_index in (1..=output_layer_index).rev() {
@@ -228,7 +228,7 @@ impl Model {
         }
     }
 
-    pub fn update_network(&mut self, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
+    fn update_network(&mut self, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
         let output_layer_index = self.output_layer_index();
         for layer_index in 1..=output_layer_index {
             let current_layer = &mut self.layers[layer_index];
@@ -238,7 +238,7 @@ impl Model {
 
     pub fn summary(&self) {}
 
-    pub fn weights_squared_sum(&self) -> f64 {
+    pub(crate) fn weights_squared_sum(&self) -> f64 {
         // SS: skip  the input layer
         self.layers.iter().skip(1).fold(0.0, |accum, layer| accum + layer.weights_squared_sum())
     }
