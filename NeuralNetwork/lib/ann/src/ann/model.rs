@@ -1013,64 +1013,61 @@ mod tests {
     //        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
     //        assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     //    }
-    //
-    //    #[test]
-    //    fn test_train_1() {
-    //        use crate::ann::activation::{Id, Sin};
-    //
-    //        /* Train f(x) = u1 * sin(x) + u2 * sin(x) + b2 where x is the input activation and
-    //         * sin is the activation function of the hidden layer. Id is the activation function
-    //         * for the output layer.
-    //         * Basically, z^{2}_{0} = sigma2(w2_0 * sigma1(x) + w2_1 * sigma1(x)) + b2, where w=1 and b=0.
-    //         */
-    //
-    //        // Arrange
-    //        let mut model = Model::new();
-    //
-    //        let input_layer = InputLayer::new(1);
-    //        model.add(Box::new(input_layer));
-    //
-    //        let hidden_layer = FCLayer::new(2, Box::new(Sin {}));
-    //        model.add(Box::new(hidden_layer));
-    //
-    //        let output_layer = FCLayer::new(1, Box::new(Id {}));
-    //        model.add(Box::new(output_layer));
-    //
-    //        // SS: restrict input to (-pi/2, pi/2) because of periodicity
-    //        let w2_0 = 1.2;
-    //        let w2_1 = 0.87;
-    //        let b2 = -1.1;
-    //        let ntraining_samples = 1000;
-    //        let step = std::f64::consts::PI / ntraining_samples as f64;
-    //        let training_data = (0..ntraining_samples)
-    //            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
-    //            .map(|x| TrainingData {
-    //                input_activations: Vector::from(vec![x]),
-    //                output_activations: Vector::from(vec![w2_0 * x.sin() + w2_1 * x.sin() + b2]),
-    //            })
-    //            .collect::<Vec<_>>();
-    //        let tmp: [TrainingData; 0] = [];
-    //        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-    //
-    //        // Act
-    //        model.train(&data, 100, 0.02, 0.0, 0.0, 25, &QuadraticCost {});
-    //
-    //        // Assert
-    //        let output_layer_index = 2;
-    //        let mut mb = model.create_minibatch();
-    //        let mut rng = rand::thread_rng();
-    //        let result = (0..50_usize)
-    //            .map(|_| rng.gen::<usize>() % ntraining_samples)
-    //            .map(|idx| {
-    //                let td = &training_data[idx];
-    //                mb.a[0] = td.input_activations.clone();
-    //                model.feedforward(&mut mb);
-    //                (&mb.a[output_layer_index][0] - td.output_activations[0]).abs()
-    //            })
-    //            .fold(true, |acc, len| acc && len < 0.1);
-    //        assert!(result);
-    //    }
-    //
+
+        #[test]
+        fn test_train_1() {
+            use crate::ann::activation::{Id, Sin};
+
+            /* Train f(x) = u1 * sin(x) + u2 * sin(x) + b2 where x is the input activation and
+             * sin is the activation function of the hidden layer. Id is the activation function
+             * for the output layer.
+             * Basically, z^{2}_{0} = sigma2(w2_0 * sigma1(x) + w2_1 * sigma1(x)) + b2, where w=1 and b=0.
+             */
+
+            // Arrange
+            let mut model = Model::new();
+
+            model.addInputLayer(InputLayer::new(1));
+            model.addFullyConnectedLayer(FCLayer::new(2));
+            model.addActivationLayer(ActivationLayer::new(2, Box::new(Sin {})));
+            model.addFullyConnectedLayer(FCLayer::new(1));
+            model.addActivationLayer(ActivationLayer::new(1, Box::new(Id {})));
+
+            // SS: restrict input to (-pi/2, pi/2) because of periodicity
+            let w2_0 = 1.2;
+            let w2_1 = 0.87;
+            let b2 = -1.1;
+            let ntraining_samples = 1000;
+            let step = std::f64::consts::PI / ntraining_samples as f64;
+            let training_data = (0..ntraining_samples)
+                .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+                .map(|x| TrainingData {
+                    input_activations: Vector::from(vec![x]),
+                    output_activations: Vector::from(vec![w2_0 * x.sin() + w2_1 * x.sin() + b2]),
+                })
+                .collect::<Vec<_>>();
+            let tmp: [TrainingData; 0] = [];
+            let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+
+            // Act
+            model.train(&data, 100, 0.02, 0.0, 0.0, 25, &QuadraticCost {});
+
+            // Assert
+            let output_layer_index = 4;
+            let mut mb = model.create_minibatch();
+            let mut rng = rand::thread_rng();
+            let result = (0..50_usize)
+                .map(|_| rng.gen::<usize>() % ntraining_samples)
+                .map(|idx| {
+                    let td = &training_data[idx];
+                    mb.output[0] = td.input_activations.clone();
+                    model.feedforward(&mut mb);
+                    (&mb.output[output_layer_index][0] - td.output_activations[0]).abs()
+                })
+                .fold(true, |acc, len| acc && len < 0.1);
+            assert!(result);
+        }
+
     //    #[test]
     //    fn test_train_2() {
     //        use crate::ann::activation::{Id, Sin};

@@ -191,17 +191,18 @@ mod tests {
     use crate::ann::activation::Id;
 
     use super::*;
-    //
-    //    #[test]
-    //    fn test_initialize() {
-    //        // Arrange
-    //        let layer1 = FCLayer::new(2, Box::new(Id {}));
-    //        let mut layer2 = FCLayer::new(2, Box::new(Id {}));
-    //
-    //        // Act
-    //        layer2.initialize(&layer1);
-    //
-    //        // Assert
-    //        assert!(layer2.get_weights()[(0, 0)] <= 1.0 / 100.0);
-    //    }
+    use crate::ann::layers::layer::Layer::FullyConnected;
+
+    #[test]
+    fn test_initialize() {
+        // Arrange
+        let layer1 = FullyConnected(FCLayer::new(2));
+        let mut layer2 = FCLayer::new(2);
+
+        // Act
+        layer2.initialize(&layer1);
+
+        // Assert
+        assert!(layer2.get_weights()[(0, 0)] <= 1.0);
+    }
 }
