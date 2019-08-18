@@ -250,6 +250,13 @@ impl Model {
         }
     }
 
+    pub(crate) fn set_weights(&mut self, layer_index: usize, weights: Matrix2D) {
+        match &mut *self.layers[layer_index] {
+            Layer::FullyConnected(layer) => layer.set_weights(weights),
+            _ => panic!("get_weights: layer does not have weights"),
+        }
+    }
+
     pub(crate) fn get_biases(&self, layer_index: usize) -> &Vector {
         match &*self.layers[layer_index] {
             Layer::FullyConnected(layer) => layer.get_biases(),
@@ -257,98 +264,56 @@ impl Model {
         }
     }
 
-    //
-    //    fn calculate_delta(&self, layer_index: usize, mb: &Minibatch, y: &Vector, cost: &CostFunction) -> Vector {
-    //        // SS: same as backprop, but here we are using recursion
-    //        let layer = self.get_layer(layer_index);
-    //        let output_layer_index = self.output_layer_index();
-    //        if layer_index == output_layer_index {
-    //            let activation = layer.get_activation();
-    //            let a = &mb.a[output_layer_index];
-    //            let z = &mb.z[output_layer_index];
-    //            return cost.output_error(a, z, y, activation);
-    //        }
-    //        let delta_next = self.calculate_delta(layer_index + 1, &mb, y, cost);
-    //        let w_tr = self.get_weights(layer_index + 1).transpose();
-    //        let sigma_prime = layer.get_activation().df(&mb.z[layer_index]);
-    //        w_tr.ax(&delta_next).hadamard(&sigma_prime)
-    //    }
-    //
-    //    fn grad_bias(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction) -> Vector {
-    //        // SS: same as calculate_derivatives, but here we are using recursion
-    //        assert!(layer_index > 0);
-    //        let layer = self.get_layer(layer_index);
-    //        let mut db = Vector::new(layer.nactivations());
-    //        let mut mb = self.create_minibatch();
-    //        for training_sample in xs {
-    //            let y = &training_sample.output_activations;
-    //            mb.a[0] = training_sample.input_activations.clone();
-    //            self.feedforward(&mut mb);
-    //            let delta = self.calculate_delta(layer_index, &mb, &y, cost);
-    //            db += &delta;
-    //        }
-    //        db /= xs.len();
-    //        db
-    //    }
-    //
-    //    fn grad_weight(&self, layer_index: usize, xs: &[TrainingData], cost: &CostFunction, lambda: f64) -> Matrix2D {
-    //        // SS: same as calculate_derivatives, but here we are using recursion
-    //        assert!(layer_index > 0);
-    //        let prev_layer = self.get_layer(layer_index - 1);
-    //        let layer = self.get_layer(layer_index);
-    //        let mut dw = Matrix2D::new(layer.nactivations(), prev_layer.nactivations());
-    //        let mut mb = self.create_minibatch();
-    //        for training_sample in xs {
-    //            let y = &training_sample.output_activations;
-    //            mb.a[0] = training_sample.input_activations.clone();
-    //            self.feedforward(&mut mb);
-    //            let delta = self.calculate_delta(layer_index, &mb, &y, cost);
-    //            let tmp = ops::outer_product(&delta, &mb.a[layer_index - 1]);
-    //            dw += &tmp;
-    //        }
-    //        let ntraining_samples = xs.len() as f64;
-    //
-    //        let w = self.get_layer(layer_index).get_weights();
-    //        dw = &(&dw + &(lambda * w)) / ntraining_samples;
-    //
-    //        dw
-    //    }
-    //
-    //    fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, cost: &CostFunction, lambda: f64) -> f64 {
-    //        // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
-    //        let delta = 0.000_001;
-    //        let biases = self.layers[layer_index].get_biases_mut();
-    //        let b = biases[la];
-    //        biases[la] = b - delta;
-    //        let c1 = cost.cost(self, training_samples, lambda);
-    //        let biases = self.layers[layer_index].get_biases_mut();
-    //        biases[la] = b + delta;
-    //        let c2 = cost.cost(self, training_samples, lambda);
-    //        let biases = self.layers[layer_index].get_biases_mut();
-    //
-    //        //: important, restore original bias
-    //        biases[la] = b;
-    //        let dc = (c2 - c1) / delta / 2_f64;
-    //        dc
-    //    }
-    //
-    //    fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize, cost: &CostFunction, lambda: f64) -> f64 {
-    //        // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
-    //        // and pa is the neuron index in the previous layer.
-    //        let delta = 0.000_001;
-    //        let weights = self.layers[layer_index].get_weights_mut();
-    //        let w = weights[(la, pa)];
-    //        weights[(la, pa)] = w - delta;
-    //        let c1 = cost.cost(self, training_samples, lambda);
-    //        let weights = self.layers[layer_index].get_weights_mut();
-    //        weights[(la, pa)] = w + delta;
-    //        let c2 = cost.cost(self, training_samples, lambda);
-    //        let weights = self.layers[layer_index].get_weights_mut();
-    //
-    //        //: important, restore original weight
-    //        weights[(la, pa)] = w;
-    //        (c2 - c1) / delta / 2_f64
-    //    }
+    pub(crate) fn set_biases(&mut self, layer_index: usize, biases: Vector) {
+        match &mut *self.layers[layer_index] {
+            Layer::FullyConnected(layer) => layer.set_biases(biases),
+            _ => panic!("get_weights: layer does not have biases"),
+        }
+    }
+
+    fn numerical_derivative_bias(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, cost: &dyn CostFunction, lambda: f64) -> f64 {
+        // SS: numerically calculate b^{layer_index}_{la}, where la is the neuron index in layer_index.
+        let delta = 0.000_001;
+
+        let mut biases = self.get_biases(layer_index).clone();
+        let b = biases[la];
+        biases[la] = b - delta;
+        self.set_biases(layer_index, biases);
+        let c1 = cost.cost(self, training_samples, lambda);
+
+        let mut biases = self.get_biases(layer_index).clone();
+        biases[la] = b + delta;
+        self.set_biases(layer_index, biases);
+        let c2 = cost.cost(self, training_samples, lambda);
+
+        let mut biases = self.get_biases(layer_index).clone();
+        biases[la] = b;
+        self.set_biases(layer_index, biases);
+
+        //: important, restore original bias
+        let dc = (c2 - c1) / delta / 2_f64;
+        dc
+    }
+
+    fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize, cost: &dyn CostFunction, lambda: f64) -> f64 {
+        // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
+        // and pa is the neuron index in the previous layer.
+        let delta = 0.000_001;
+
+        let mut weights = self.get_weights(layer_index).clone();
+        let w = weights[(la, pa)];
+        weights[(la, pa)] = w - delta;
+        self.set_weights(layer_index, weights);
+        let c1 = cost.cost(self, training_samples, lambda);
+
+        let mut weights = self.get_weights(layer_index).clone();
+        weights[(la, pa)] = w + delta;
+        self.set_weights(layer_index, weights);
+        let c2 = cost.cost(self, training_samples, lambda);
+
+        //: important, restore original weight
+        (c2 - c1) / delta / 2_f64
+    }
 }
 
 #[cfg(test)]
@@ -490,79 +455,97 @@ mod tests {
     //        assert_approx_eq!(delta_numeric[0], delta_analytic[0], 1E-8);
     //        assert_approx_eq!(delta_numeric[1], delta_analytic[1], 1E-8);
     //    }
-    //
-    //    #[test]
-    //    fn test_derivative_1() {
-    //        use crate::ann::activation::Id;
-    //
-    //        // Model used: f(x) = a * x + b * x + c
-    //        // w^{1}_{00} = a = 1.8
-    //        // w^{1}_{10} = b = 0.5
-    //        // Activation function  for hidden layer: Id
-    //        // w^{2}_{00} = 1
-    //        // w^{2}_{01} = 1
-    //        // Activation function  for output layer: Id
-    //        // b^{1}_{0} + b^{1}_{1} + b^{2}_{0} = c = -1.2
-    //
-    //        // Arrange
-    //        let cost_function = QuadraticCost;
-    //
-    //        let mut model = Model::new();
-    //
-    //        let input_layer = InputLayer::new(1);
-    //        model.add(Box::new(input_layer));
-    //
-    //        let hidden_layer = FCLayer::new(2, Box::new(Id {}));
-    //        model.add(Box::new(hidden_layer));
-    //
-    //        let output_layer = FCLayer::new(1, Box::new(Id {}));
-    //        model.add(Box::new(output_layer));
-    //
-    //        // SS: restrict input to (-pi/2, pi/2) because of periodicity
-    //        let u1 = 1.8;
-    //        let u2 = 0.5;
-    //        let c = -1.2;
-    //        let ntraining_samples = 1000;
-    //        let step = std::f64::consts::PI / ntraining_samples as f64;
-    //        let training_data = (0..ntraining_samples)
-    //            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
-    //            .map(|x| TrainingData {
-    //                input_activations: Vector::from(vec![x]),
-    //                output_activations: Vector::from(vec![u1 * x + u2 * x + c]),
-    //            })
-    //            .collect::<Vec<_>>();
-    //        let tmp: [TrainingData; 0] = [];
-    //        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-    //        model.train(&data, 5, 0.005, 0.0, 0.0, 25, &cost_function);
-    //
-    //        // Act
-    //        // Assert
-    //
-    //        // layer 2 - output layer
-    //        let db_numeric = model.numerical_derivative_bias(&training_data[..], 2, 0, &cost_function, 0.0);
-    //        let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
-    //        assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
-    //
-    //        let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
-    //        let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 2, 0, 1, &cost_function, 0.0);
-    //        let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
-    //        assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
-    //        assert_approx_eq!(dw_numeric_2, dw_analytic[(0, 1)], 1E-8);
-    //
-    //        // layer 1 - hidden layer
-    //        let db_numeric_1 = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
-    //        let db_numeric_2 = model.numerical_derivative_bias(&training_data[..], 1, 1, &cost_function, 0.0);
-    //        let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
-    //        assert_approx_eq!(db_numeric_1, db_analytic[0], 1E-8);
-    //        assert_approx_eq!(db_numeric_2, db_analytic[1], 1E-8);
-    //
-    //        let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
-    //        let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 1, 1, 0, &cost_function, 0.0);
-    //        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
-    //        assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
-    //        assert_approx_eq!(dw_numeric_2, dw_analytic[(1, 0)], 1E-8);
-    //    }
-    //
+
+        #[test]
+        fn test_derivative_1() {
+            use crate::ann::activation::Id;
+
+            // Model used: f(x) = a * x + b * x + c
+            // w^{1}_{00} = a = 1.8
+            // w^{1}_{10} = b = 0.5
+            // Activation function  for hidden layer: Id
+            // w^{2}_{00} = 1
+            // w^{2}_{01} = 1
+            // Activation function  for output layer: Id
+            // b^{1}_{0} + b^{1}_{1} + b^{2}_{0} = c = -1.2
+
+            // Arrange
+            let cost_function = QuadraticCost;
+
+            let mut model = Model::new();
+
+            model.addInputLayer(InputLayer::new(1));
+            model.addFullyConnectedLayer(FCLayer::new(2));
+            model.addActivationLayer(ActivationLayer::new(2, Box::new(Id {})));
+            model.addFullyConnectedLayer(FCLayer::new(1));
+            model.addActivationLayer(ActivationLayer::new(1, Box::new(Id {})));
+
+            // SS: restrict input to (-pi/2, pi/2) because of periodicity
+            let u1 = 1.8;
+            let u2 = 0.5;
+            let c = -1.2;
+            let ntraining_samples = 1000;
+            let step = std::f64::consts::PI / ntraining_samples as f64;
+            let training_data = (0..ntraining_samples)
+                .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+                .map(|x| TrainingData {
+                    input_activations: Vector::from(vec![x]),
+                    output_activations: Vector::from(vec![u1 * x + u2 * x + c]),
+                })
+                .collect::<Vec<_>>();
+            let tmp: [TrainingData; 0] = [];
+            let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+            model.train(&data, 5, 0.005, 0.0, 0.0, 25, &cost_function);
+
+            // Act
+            // Assert
+
+            // layer 3 - fully-connected layer
+            let db_numeric = model.numerical_derivative_bias(&training_data[..], 3, 0, &cost_function, 0.0);
+
+            let mut mb = model.create_minibatch();
+            let training_sample = &training_data[0];
+            mb.output[0] = training_sample.input_activations.clone();
+            model.feedforward(&mut mb);
+            let known_classification = &training_sample.output_activations;
+            model.backprop(&mut mb, known_classification, &cost_function);
+
+            let fc_layer = if let Layer::FullyConnected(layer) = &*model.layers[3] {
+                layer
+            } else {
+                panic!()
+            };
+            let mbs: [Minibatch; 1] = [mb];
+            let (dw, db) = fc_layer.calculate_derivatives(3, &mbs[..], 0.0);
+
+
+
+
+//
+//
+//            let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
+//            assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
+//
+//            let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
+//            let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 2, 0, 1, &cost_function, 0.0);
+//            let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
+//            assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
+//            assert_approx_eq!(dw_numeric_2, dw_analytic[(0, 1)], 1E-8);
+//
+//            // layer 1 - hidden layer
+//            let db_numeric_1 = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
+//            let db_numeric_2 = model.numerical_derivative_bias(&training_data[..], 1, 1, &cost_function, 0.0);
+//            let db_analytic = model.grad_bias(1, &training_data[..], &cost_function);
+//            assert_approx_eq!(db_numeric_1, db_analytic[0], 1E-8);
+//            assert_approx_eq!(db_numeric_2, db_analytic[1], 1E-8);
+//
+//            let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
+//            let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 1, 1, 0, &cost_function, 0.0);
+//            let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
+//            assert_approx_eq!(dw_numeric_1, dw_analytic[(0, 0)], 1E-8);
+//            assert_approx_eq!(dw_numeric_2, dw_analytic[(1, 0)], 1E-8);
+        }
+
     //    #[test]
     //    fn test_deltas_2() {
     //        use crate::ann::activation::{Id, Sin};

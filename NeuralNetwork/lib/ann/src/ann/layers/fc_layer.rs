@@ -82,7 +82,7 @@ impl FCLayer {
         &self.weights
     }
 
-    fn set_weights(&mut self, weights: Matrix2D) {
+    pub(crate) fn set_weights(&mut self, weights: Matrix2D) {
         self.weights = weights;
     }
 
@@ -98,7 +98,7 @@ impl FCLayer {
         &self.biases
     }
 
-    fn set_biases(&mut self, biases: Vector) {
+    pub(crate) fn set_biases(&mut self, biases: Vector) {
         self.biases = biases;
     }
 
@@ -188,8 +188,6 @@ impl FCLayer {
 
 #[cfg(test)]
 mod tests {
-    use crate::ann::activation::Id;
-
     use super::*;
     use crate::ann::layers::layer::Layer::FullyConnected;
 
