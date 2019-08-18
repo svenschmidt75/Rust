@@ -295,6 +295,24 @@ impl Model {
         dc
     }
 
+    fn grad_bias(&mut self, layer_index: usize, xs: &[TrainingData], cost: &dyn CostFunction) -> Vector {
+        // SS: same as calculate_derivatives, but here we are using recursion
+        assert!(layer_index > 0);
+        let layer = self.get_layer(layer_index);
+        let mut db = Vector::new(layer.number_of_neurons());
+        let mut mb = self.create_minibatch();
+        for training_sample in xs {
+            let y = &training_sample.output_activations;
+            mb.output[0] = training_sample.input_activations.clone();
+            self.feedforward(&mut mb);
+            self.backprop(&mut mb, y, cost);
+            let delta = &mb.error[layer_index + 1];
+            db += &delta;
+        }
+        db /= xs.len();
+        db
+    }
+
     fn numerical_derivative_weight(&mut self, training_samples: &[TrainingData], layer_index: usize, la: usize, pa: usize, cost: &dyn CostFunction, lambda: f64) -> f64 {
         // SS: numerically calculate w^{layer_index}_{la, pa}, where la is the neuron index in layer_index
         // and pa is the neuron index in the previous layer.
@@ -502,30 +520,9 @@ mod tests {
 
             // layer 3 - fully-connected layer
             let db_numeric = model.numerical_derivative_bias(&training_data[..], 3, 0, &cost_function, 0.0);
+            let db_analytic = model.grad_bias(3, &training_data[..], &cost_function);
+            assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
-            let mut mb = model.create_minibatch();
-            let training_sample = &training_data[0];
-            mb.output[0] = training_sample.input_activations.clone();
-            model.feedforward(&mut mb);
-            let known_classification = &training_sample.output_activations;
-            model.backprop(&mut mb, known_classification, &cost_function);
-
-            let fc_layer = if let Layer::FullyConnected(layer) = &*model.layers[3] {
-                layer
-            } else {
-                panic!()
-            };
-            let mbs: [Minibatch; 1] = [mb];
-            let (dw, db) = fc_layer.calculate_derivatives(3, &mbs[..], 0.0);
-
-
-
-
-//
-//
-//            let db_analytic = model.grad_bias(2, &training_data[..], &cost_function);
-//            assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
-//
 //            let dw_numeric_1 = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
 //            let dw_numeric_2 = model.numerical_derivative_weight(&training_data[..], 2, 0, 1, &cost_function, 0.0);
 //            let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
