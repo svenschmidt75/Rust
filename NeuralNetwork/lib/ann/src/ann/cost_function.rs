@@ -74,7 +74,6 @@ pub struct CrossEntropyCost;
 // SS: This implements categorical cross-entropy.
 
 impl CrossEntropyCost {
-
     fn single_cost_i(aj: f64, yj: f64) -> f64 {
         // SS: a are the output layer activations
         let tmp1 = yj * aj.ln();
@@ -87,11 +86,7 @@ impl CrossEntropyCost {
     fn single_cost(a: &Vector, y: &Vector) -> f64 {
         // SS: a are the output layer activations
         assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
-        let mut cost = 0.0;
-        for idx in 0..a.dim() {
-            let tmp = CrossEntropyCost::single_cost_i(a[idx], y[idx]);
-            cost += tmp;
-        }
+        let cost = (0..a.dim()).into_iter().map(|idx| CrossEntropyCost::single_cost_i(a[idx], y[idx])).sum();
         cost
     }
 
@@ -140,7 +135,7 @@ impl CostFunction for CrossEntropyCost {
             let ai = a[i];
             let yi = y[i];
             let t1 = (1.0 - yi) / (1.0 - ai);
-            let t2 = - yi / ai;
+            let t2 = -yi / ai;
             let t3 = t1 + t2;
             dCda[i] = t3;
         }
