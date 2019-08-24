@@ -39,7 +39,6 @@ impl QuadraticCost {
         let dc = (c2 - c1) / delta / 2_f64;
         dc
     }
-
 }
 
 impl CostFunction for QuadraticCost {
@@ -75,19 +74,40 @@ pub struct CrossEntropyCost;
 // SS: This implements categorical cross-entropy.
 
 impl CrossEntropyCost {
+
+    fn single_cost_i(aj: f64, yj: f64) -> f64 {
+        // SS: a are the output layer activations
+        let tmp1 = yj * aj.ln();
+        let tmp2 = (1.0 - yj) * (1.0 - aj).ln();
+        let tmp3 = tmp1 + tmp2;
+        let cost = -tmp3;
+        cost
+    }
+
     fn single_cost(a: &Vector, y: &Vector) -> f64 {
         // SS: a are the output layer activations
         assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
         let mut cost = 0.0;
         for idx in 0..a.dim() {
-            let a_j = a[idx];
-            let y_j = y[idx];
-            let tmp1 = y_j * a_j.log10();
-            let tmp2 = (1.0 - y_j) * (1.0 - a_j).log10();
-            let tmp3 = tmp1 + tmp2;
-            cost += tmp3;
+            let tmp = CrossEntropyCost::single_cost_i(a[idx], y[idx]);
+            cost += tmp;
         }
         cost
+    }
+
+    fn numerical_derivative(a: &Vector, index: usize, y: &Vector) -> f64 {
+        // SS: numerically calculate dC/da_{index}^{L}
+        let delta = 0.000_001;
+
+        let mut a_mut = a.clone();
+        a_mut[index] = a[index] - delta;
+        let c1 = CrossEntropyCost::single_cost(&a_mut, y);
+
+        a_mut[index] = a[index] + delta;
+        let c2 = CrossEntropyCost::single_cost(&a_mut, y);
+
+        let dc = (c2 - c1) / delta / 2_f64;
+        dc
     }
 }
 
@@ -108,7 +128,7 @@ impl CostFunction for CrossEntropyCost {
         // SS: add effects of L2 regularization
         let w2 = model.weights_squared_sum();
         total_cost = (total_cost + w2 * lambda / 2.0) / ntraining_samples;
-        -total_cost
+        total_cost
     }
 
     fn output_error(&self, a: &Vector, y: &Vector) -> Vector {
@@ -117,10 +137,10 @@ impl CostFunction for CrossEntropyCost {
         // SS: dC/d_a^{L}
         let mut dCda = Vector::new(a.dim());
         for i in 0..a.dim() {
-            let ai =  a[i];
+            let ai = a[i];
             let yi = y[i];
             let t1 = (1.0 - yi) / (1.0 - ai);
-            let t2 =  - yi / ai;
+            let t2 = - yi / ai;
             let t3 = t1 + t2;
             dCda[i] = t3;
         }
@@ -213,10 +233,10 @@ mod tests {
         let dc_numeric2 = QuadraticCost::numerical_derivative(&a, 1, &y);
 
         // Assert
-        let dc_analytical = QuadraticCost{}.output_error(&a, &y);
+        let dc_analytical = QuadraticCost {}.output_error(&a, &y);
         assert_approx_eq!(dc_analytical[0], dc_numeric1, 1E-4);
         assert_approx_eq!(dc_analytical[1], dc_numeric2, 1E-4);
-   }
+    }
 
     #[test]
     fn test_quadratic_cost_output_layer() {
@@ -243,4 +263,21 @@ mod tests {
         let d: Vector = &mb.output[1] - &x.output_activations;
         assert_approx_eq!(d[0], error[0], 1e-3f64);
     }
+
+    #[test]
+    fn test_cross_entropy_cost_derivative() {
+        // Arrange
+        let a = vec![0.512, 0.7465].into();
+        let y = vec![0.3664, 0.4352].into();
+
+        // Act
+        let dc_numeric1 = CrossEntropyCost::numerical_derivative(&a, 0, &y);
+        let dc_numeric2 = CrossEntropyCost::numerical_derivative(&a, 1, &y);
+
+        // Assert
+        let dc_analytical = CrossEntropyCost {}.output_error(&a, &y);
+        assert_approx_eq!(dc_analytical[0], dc_numeric1, 1E-4);
+        assert_approx_eq!(dc_analytical[1], dc_numeric2, 1E-4);
+    }
+
 }
