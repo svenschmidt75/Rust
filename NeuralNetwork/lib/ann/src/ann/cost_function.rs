@@ -1,4 +1,5 @@
 #![allow(unused_imports)]
+#![allow(non_snake_case)]
 
 use crate::ann::activation::Activation;
 use crate::ann::minibatch::Minibatch;
@@ -21,8 +22,24 @@ impl QuadraticCost {
         // SS: a are the output layer activations
         let diff = y - a;
         let diff2 = ops::hadamard(&diff, &diff);
-        diff2.iter().sum()
+        diff2.iter().sum() as f64 / 2.0
     }
+
+    fn numerical_derivative(a: &Vector, index: usize, y: &Vector) -> f64 {
+        // SS: numerically calculate dC/da_{index}^{L}
+        let delta = 0.000_001;
+
+        let mut a_mut = a.clone();
+        a_mut[index] = a[index] - delta;
+        let c1 = QuadraticCost::single_cost(&a_mut, y);
+
+        a_mut[index] = a[index] + delta;
+        let c2 = QuadraticCost::single_cost(&a_mut, y);
+
+        let dc = (c2 - c1) / delta / 2_f64;
+        dc
+    }
+
 }
 
 impl CostFunction for QuadraticCost {
@@ -107,7 +124,7 @@ impl CostFunction for CrossEntropyCost {
             let t3 = t1 + t2;
             dCda[i] = t3;
         }
-        dCda /
+        dCda
     }
 }
 
@@ -183,6 +200,20 @@ mod tests {
 
         // Assert
         assert_eq!(8.0, c)
+    }
+
+    #[test]
+    fn test_quadratic_cost_derivative() {
+        // Arrange
+        let a = vec![1.0, 2.0].into();
+        let y = vec![3.0, 4.0].into();
+
+        // Act
+        let dc_numeric = QuadraticCost::numerical_derivative(&a, 0, &y);
+        let dc_analytical = QuadraticCost{}.output_error(&a, &y);
+
+        // Assert
+        assert_approx_eq!(dc_analytical[0], dc_numeric, 1E-4);
     }
 
     #[test]
