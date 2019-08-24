@@ -634,67 +634,67 @@ mod tests {
         assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
     }
 
-        #[test]
-        fn test_derivative_3_with_l2_regularization() {
-            /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
-             * sin is the activation function of the hidden layer. Id is the activation function
-             * for the output layer.
-             */
+    #[test]
+    fn test_derivative_3_with_l2_regularization() {
+        /* Train f(x) = u1 * sin(u0 * x + b0) + b1 where x is the input activation and
+         * sin is the activation function of the hidden layer. Id is the activation function
+         * for the output layer.
+         */
 
-            // Arrange
-            let cost_function = QuadraticCost;
+        // Arrange
+        let cost_function = QuadraticCost;
 
-            let mut model = Model::new();
-            model.addInputLayer(InputLayer::new(1));
-            model.addFullyConnectedLayer(FCLayer::new(1));
-            model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
-            model.addFullyConnectedLayer(FCLayer::new(1));
-            model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
+        let mut model = Model::new();
+        model.addInputLayer(InputLayer::new(1));
+        model.addFullyConnectedLayer(FCLayer::new(1));
+        model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
+        model.addFullyConnectedLayer(FCLayer::new(1));
+        model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
 
-            // SS: restrict input to (-pi/2, pi/2) because of periodicity
-            let w1_0 = 2.345;
-            let w2_0 = -8.354;
-            let b1 = -0.63;
-            let b2 = 1.932;
-            let ntraining_samples = 1000;
-            let step = std::f64::consts::PI / ntraining_samples as f64;
-            let training_data = (0..ntraining_samples)
-                .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
-                .map(|x| TrainingData {
-                    input_activations: Vector::from(vec![x]),
-                    output_activations: Vector::from(vec![activation::sigmoid(w2_0 * activation::sigmoid(w1_0 * x + b1) + b2)]),
-                })
-                .collect::<Vec<_>>();
-            let tmp: [TrainingData; 0] = [];
-            let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-            model.train(&data, 10, 0.05, 0.0, 1.0, 25, &cost_function);
+        // SS: restrict input to (-pi/2, pi/2) because of periodicity
+        let w1_0 = 2.345;
+        let w2_0 = -8.354;
+        let b1 = -0.63;
+        let b2 = 1.932;
+        let ntraining_samples = 1000;
+        let step = std::f64::consts::PI / ntraining_samples as f64;
+        let training_data = (0..ntraining_samples)
+            .map(|x| ((x as f64 - ntraining_samples as f64 / 2.0) * step))
+            .map(|x| TrainingData {
+                input_activations: Vector::from(vec![x]),
+                output_activations: Vector::from(vec![activation::sigmoid(w2_0 * activation::sigmoid(w1_0 * x + b1) + b2)]),
+            })
+            .collect::<Vec<_>>();
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+        model.train(&data, 10, 0.05, 0.0, 1.0, 25, &cost_function);
 
-            // Act
-            let mut mb = model.create_minibatch();
-            let training_sample = &training_data[0];
-            mb.a[0] = training_sample.input_activations.clone();
-            model.feedforward(&mut mb);
+        // Act
+        let mut mb = model.create_minibatch();
+        let training_sample = &training_data[0];
+        mb.output[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mb);
 
-            // Assert
+        // Assert
 
-            // layer 3 - fully-connected layer
-            let db_numeric = model.numerical_derivative_bias(&training_data[..], 3, 0, &cost_function, 0.0);
-            let db_analytic = model.grad_bias(3, &training_data[..], &cost_function, 0.0);
-            assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
+        // layer 3 - fully-connected layer
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 3, 0, &cost_function, 0.0);
+        let db_analytic = model.grad_bias(3, &training_data[..], &cost_function, 0.0);
+        assert_approx_eq!(db_numeric, db_analytic[0], 1E-6);
 
-            let dw_numeric = model.numerical_derivative_weight(&training_data[..], 2, 0, 0, &cost_function, 0.0);
-            let dw_analytic = model.grad_weight(2, &training_data[..], &cost_function, 0.0);
-            assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 3, 0, 0, &cost_function, 0.0);
+        let dw_analytic = model.grad_weight(3, &training_data[..], &cost_function, 0.0);
+        assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-6);
 
-            // layer 1 - hidden layer
-            let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
-            let db_analytic = model.grad_bias(1, &training_data[..], &cost_function, 0.0);
-            assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
+        // layer 1 - fully-connected layer
+        let db_numeric = model.numerical_derivative_bias(&training_data[..], 1, 0, &cost_function, 0.0);
+        let db_analytic = model.grad_bias(1, &training_data[..], &cost_function, 0.0);
+        assert_approx_eq!(db_numeric, db_analytic[0], 1E-4);
 
-            let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
-            let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
-            assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
-        }
+        let dw_numeric = model.numerical_derivative_weight(&training_data[..], 1, 0, 0, &cost_function, 0.0);
+        let dw_analytic = model.grad_weight(1, &training_data[..], &cost_function, 0.0);
+        assert_approx_eq!(dw_numeric, dw_analytic[(0, 0)], 1E-4);
+    }
 
     //    #[test]
     //    fn test_deltas_crossentropy_1() {
@@ -863,70 +863,69 @@ mod tests {
         let a20 = activation::relu(weights2[(0, 0)] * mb.output[2][0] + weights2[(0, 1)] * mb.output[2][1] + weights2[(0, 2)] * mb.output[2][2] + biases2[0]);
         assert_eq!(a20, mb.output[4][0]);
     }
-
-    //
-    //        #[test]
-    //        fn test_train_model_l2_regularization() {
-    //            // Arrange
-    //
-    //            let cost_function = CrossEntropyCost;
-    //
-    //            let mut model = Model::new();
-    //
-    //            model.addInputLayer(InputLayer::new(2));
-    //            model.addFullyConnectedLayer(FCLayer::new(10));
-    //            model.addActivationLayer(ActivationLayer::new(10, Box::new(Sigmoid {})));
-    //            model.addFullyConnectedLayer(FCLayer::new(1));
-    //            model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
-    //
-    //            // model an AND gate
-    //            let training_data = vec![
-    //                TrainingData {
-    //                    input_activations: Vector::from(vec![0.0, 0.0]),
-    //                    output_activations: Vector::from(vec![0.0]),
-    //                },
-    //                TrainingData {
-    //                    input_activations: Vector::from(vec![0.0, 1.0]),
-    //                    output_activations: Vector::from(vec![0.0]),
-    //                },
-    //                TrainingData {
-    //                    input_activations: Vector::from(vec![1.0, 0.0]),
-    //                    output_activations: Vector::from(vec![0.0]),
-    //                },
-    //                TrainingData {
-    //                    input_activations: Vector::from(vec![1.0, 1.0]),
-    //                    output_activations: Vector::from(vec![1.0]),
-    //                },
-    //            ];
-    //            let tmp: [TrainingData; 0] = [];
-    //            let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-    //
-    //            // Act
-    //            model.train(&data, 1000, 7.0, 0.0, 0.000001, 4, &cost_function);
-    //
-    //            // Assert
-    //            let output_layer_index = 4;
-    //            let mut mb = model.create_minibatch();
-    //            mb.output[0] = Vector::from(vec![0.0, 0.0]);
-    //            model.feedforward(&mut mb);
-    //            assert_approx_eq!(0.000000008600374481948007, &mb.output[output_layer_index][0], 1E-6);
-    //            println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
-    //
-    //            mb.output[0] = Vector::from(vec![1.0, 0.0]);
-    //            model.feedforward(&mut mb);
-    //            assert_approx_eq!(0.0002504695377738481, &mb.output[2][0], 1E-3);
-    //            println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
-    //
-    //            mb.output[0] = Vector::from(vec![0.0, 1.0]);
-    //            model.feedforward(&mut mb);
-    //            assert_approx_eq!(0.00023494173889617028, &mb.output[2][0], 1E-3);
-    //            println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
-    //
-    //            mb.output[0] = Vector::from(vec![1.0, 1.0]);
-    //            model.feedforward(&mut mb);
-    //            assert_approx_eq!(0.9992958721912137, &mb.output[2][0], 1E-3);
-    //            println!("expected: {}   is: {}", 1.0, &mb.output[output_layer_index][0]);
-    //        }
+//
+//    #[test]
+//    fn test_train_model_l2_regularization() {
+//        // Arrange
+//
+//        let cost_function = CrossEntropyCost;
+//
+//        let mut model = Model::new();
+//
+//        model.addInputLayer(InputLayer::new(2));
+//        model.addFullyConnectedLayer(FCLayer::new(10));
+//        model.addActivationLayer(ActivationLayer::new(10, Box::new(Sigmoid {})));
+//        model.addFullyConnectedLayer(FCLayer::new(1));
+//        model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
+//
+//        // model an AND gate
+//        let training_data = vec![
+//            TrainingData {
+//                input_activations: Vector::from(vec![0.0, 0.0]),
+//                output_activations: Vector::from(vec![0.0]),
+//            },
+//            TrainingData {
+//                input_activations: Vector::from(vec![0.0, 1.0]),
+//                output_activations: Vector::from(vec![0.0]),
+//            },
+//            TrainingData {
+//                input_activations: Vector::from(vec![1.0, 0.0]),
+//                output_activations: Vector::from(vec![0.0]),
+//            },
+//            TrainingData {
+//                input_activations: Vector::from(vec![1.0, 1.0]),
+//                output_activations: Vector::from(vec![1.0]),
+//            },
+//        ];
+//        let tmp: [TrainingData; 0] = [];
+//        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+//
+//        // Act
+//        model.train(&data, 1000, 7.0, 0.0, 0.000001, 4, &cost_function);
+//
+//        // Assert
+//        let output_layer_index = 4;
+//        let mut mb = model.create_minibatch();
+//        mb.output[0] = Vector::from(vec![0.0, 0.0]);
+//        model.feedforward(&mut mb);
+//        assert_approx_eq!(0.000000008600374481948007, &mb.output[output_layer_index][0], 1E-6);
+//        println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
+//
+//        mb.output[0] = Vector::from(vec![1.0, 0.0]);
+//        model.feedforward(&mut mb);
+//        assert_approx_eq!(0.0002504695377738481, &mb.output[2][0], 1E-3);
+//        println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
+//
+//        mb.output[0] = Vector::from(vec![0.0, 1.0]);
+//        model.feedforward(&mut mb);
+//        assert_approx_eq!(0.00023494173889617028, &mb.output[2][0], 1E-3);
+//        println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
+//
+//        mb.output[0] = Vector::from(vec![1.0, 1.0]);
+//        model.feedforward(&mut mb);
+//        assert_approx_eq!(0.9992958721912137, &mb.output[2][0], 1E-3);
+//        println!("expected: {}   is: {}", 1.0, &mb.output[output_layer_index][0]);
+//    }
 
     #[test]
     fn test_train_sin_x() {

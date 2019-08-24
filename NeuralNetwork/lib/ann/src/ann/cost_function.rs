@@ -95,7 +95,19 @@ impl CostFunction for CrossEntropyCost {
     }
 
     fn output_error(&self, a: &Vector, y: &Vector) -> Vector {
-        a - y
+        assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
+
+        // SS: dC/d_a^{L}
+        let mut dCda = Vector::new(a.dim());
+        for i in 0..a.dim() {
+            let ai =  a[i];
+            let yi = y[i];
+            let t1 = (1.0 - yi) / (1.0 - ai);
+            let t2 =  - yi / ai;
+            let t3 = t1 + t2;
+            dCda[i] = t3;
+        }
+        dCda /
     }
 }
 
