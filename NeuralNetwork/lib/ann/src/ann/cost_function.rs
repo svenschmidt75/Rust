@@ -22,7 +22,7 @@ impl QuadraticCost {
         // SS: a are the output layer activations
         let diff = y - a;
         let diff2 = ops::hadamard(&diff, &diff);
-        diff2.iter().sum() as f64 / 2.0
+        diff2.iter().sum::<f64>() / 2.0
     }
 
     fn numerical_derivative(a: &Vector, index: usize, y: &Vector) -> f64 {
@@ -58,7 +58,7 @@ impl CostFunction for QuadraticCost {
 
         // SS: add effects of L2 regularization
         let w2 = model.weights_squared_sum();
-        total_cost = (total_cost + w2 * lambda) / 2.0 / ntraining_samples;
+        total_cost = (total_cost + w2 * lambda) / ntraining_samples;
         total_cost
     }
 
@@ -205,16 +205,18 @@ mod tests {
     #[test]
     fn test_quadratic_cost_derivative() {
         // Arrange
-        let a = vec![1.0, 2.0].into();
-        let y = vec![3.0, 4.0].into();
+        let a = vec![1.5, 2.7465].into();
+        let y = vec![3.3664, 4.4352].into();
 
         // Act
-        let dc_numeric = QuadraticCost::numerical_derivative(&a, 0, &y);
-        let dc_analytical = QuadraticCost{}.output_error(&a, &y);
+        let dc_numeric1 = QuadraticCost::numerical_derivative(&a, 0, &y);
+        let dc_numeric2 = QuadraticCost::numerical_derivative(&a, 1, &y);
 
         // Assert
-        assert_approx_eq!(dc_analytical[0], dc_numeric, 1E-4);
-    }
+        let dc_analytical = QuadraticCost{}.output_error(&a, &y);
+        assert_approx_eq!(dc_analytical[0], dc_numeric1, 1E-4);
+        assert_approx_eq!(dc_analytical[1], dc_numeric2, 1E-4);
+   }
 
     #[test]
     fn test_quadratic_cost_output_layer() {
