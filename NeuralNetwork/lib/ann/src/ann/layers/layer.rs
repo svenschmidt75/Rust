@@ -5,6 +5,7 @@ use crate::ann::layers::dropout_layer::DropoutLayer;
 use crate::ann::layers::fc_layer::FCLayer;
 use crate::ann::layers::input_layer::InputLayer;
 use crate::ann::layers::layer::Layer::FullyConnected;
+use crate::ann::layers::softmax_layer::SoftMaxLayer;
 use crate::ann::minibatch::Minibatch;
 
 pub enum Layer {
@@ -12,6 +13,7 @@ pub enum Layer {
     FullyConnected(FCLayer),
     Dropout(DropoutLayer),
     Activation(ActivationLayer),
+    SoftMax(SoftMaxLayer),
 }
 
 impl From<InputLayer> for Layer {
@@ -38,6 +40,12 @@ impl From<ActivationLayer> for Layer {
     }
 }
 
+impl From<SoftMaxLayer> for Layer {
+    fn from(l: SoftMaxLayer) -> Self {
+        Layer::SoftMax(l)
+    }
+}
+
 impl Layer {
     pub(crate) fn number_of_neurons(&self) -> usize {
         match self {
@@ -45,6 +53,7 @@ impl Layer {
             Layer::FullyConnected(layer) => layer.number_of_neurons(),
             Layer::Dropout(layer) => layer.number_of_neurons(),
             Layer::Activation(layer) => layer.number_of_neurons(),
+            Layer::SoftMax(layer) => layer.number_of_neurons(),
         }
     }
 
@@ -57,6 +66,9 @@ impl Layer {
                 layer.print_summary();
             }
             Layer::Activation(layer) => {
+                layer.print_summary();
+            }
+            Layer::SoftMax(layer) => {
                 layer.print_summary();
             }
             _ => {}

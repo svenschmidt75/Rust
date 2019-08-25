@@ -18,6 +18,7 @@ use crate::ann::layers::activation_layer::ActivationLayer;
 use crate::ann::layers::fc_layer::FCLayer;
 use crate::ann::layers::input_layer::InputLayer;
 use crate::ann::layers::layer::Layer;
+use crate::ann::layers::softmax_layer::SoftMaxLayer;
 use crate::ann::minibatch::Minibatch;
 use crate::ann::training_data::TrainingData;
 
@@ -50,6 +51,10 @@ impl Model {
     }
 
     pub fn addActivationLayer(&mut self, layer: ActivationLayer) {
+        self.layers.push(Box::new(Layer::from(layer)))
+    }
+
+    pub fn addSoftMaxLayer(&mut self, layer: SoftMaxLayer) {
         self.layers.push(Box::new(Layer::from(layer)))
     }
 
@@ -374,14 +379,14 @@ mod tests {
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::{CrossEntropyCost, QuadraticCost};
-    use crate::ann::layers::activation_layer::ActivationLayer;
     use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
+    use crate::ann::layers::activation_layer::ActivationLayer;
 
     use super::*;
 
     const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
 
-//    #[test]
+    //    #[test]
     fn test_MNIST() {
         use crate::ann::activation::Sigmoid;
 

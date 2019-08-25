@@ -137,9 +137,9 @@ impl CostFunction for CrossEntropyCost {
         for i in 0..a.dim() {
             let ai = a[i];
             let yi = y[i];
-            let t1 = (1.0 - yi) / (1.0 - ai);
 
-            // SS: note that for small ai, this can introduce numerical issues...
+            // SS: note that for ai -> 0 and ai -> 1, this can introduce numerical issues...
+            let t1 = (1.0 - yi) / (1.0 - ai);
             let t2 = -yi / ai;
             let t3 = t1 + t2;
             dCda[i] = t3;
@@ -156,9 +156,9 @@ mod tests {
 
     use crate::ann::activation::Id;
     use crate::ann::activation::Sigmoid;
+    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
     use crate::ann::layers::activation_layer::ActivationLayer;
     use crate::ann::layers::layer::Layer;
-    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
     use crate::ann::training_data::TrainingData;
 
     use super::*;
