@@ -1,13 +1,14 @@
 #![allow(unused_imports)]
 #![allow(non_snake_case)]
 
+use linear_algebra::matrix::Matrix2D;
+use linear_algebra::ops;
+use linear_algebra::vector::Vector;
+
 use crate::ann::activation::Activation;
 use crate::ann::minibatch::Minibatch;
 use crate::ann::model::Model;
 use crate::ann::training_data::TrainingData;
-use linear_algebra::matrix::Matrix2D;
-use linear_algebra::ops;
-use linear_algebra::vector::Vector;
 
 pub trait CostFunction {
     fn cost(&self, model: &mut Model, y: &[TrainingData], lambda: f64) -> f64;
@@ -145,64 +146,18 @@ impl CostFunction for CrossEntropyCost {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
-
     use assert_approx_eq::assert_approx_eq;
-
-    use crate::ann::activation::Id;
-    use crate::ann::activation::Sigmoid;
-    use crate::ann::layers::activation_layer::ActivationLayer;
-    use crate::ann::layers::layer::Layer;
-    use crate::ann::training_data::TrainingData;
     use linear_algebra::matrix::Matrix2D;
     use linear_algebra::vector::Vector;
 
-    #[test]
-    fn test_network_cost() {
-        // Arrange
-        let mut model = Model::new();
+    use crate::ann::activation::Id;
+    use crate::ann::activation::Sigmoid;
+    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
+    use crate::ann::layers::activation_layer::ActivationLayer;
+    use crate::ann::layers::layer::Layer;
+    use crate::ann::training_data::TrainingData;
 
-        model.addInputLayer(InputLayer::new(2));
-        model.addFullyConnectedLayer(FCLayer::new(2));
-        model.addActivationLayer(ActivationLayer::new(2, Box::new(Sigmoid {})));
-        model.addFullyConnectedLayer(FCLayer::new(1));
-        model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
-
-        let mut mb = model.create_minibatch();
-        let z = Vector::from(vec![0.0, 1.0]);
-        mb.output[0] = Sigmoid {}.f(&z);
-
-        // model an AND gate
-        let training_data = vec![
-            TrainingData {
-                input_activations: Vector::from(vec![0.0, 0.0]),
-                output_activations: Vector::from(vec![0.0]),
-            },
-            TrainingData {
-                input_activations: Vector::from(vec![0.0, 1.0]),
-                output_activations: Vector::from(vec![0.0]),
-            },
-            TrainingData {
-                input_activations: Vector::from(vec![1.0, 0.0]),
-                output_activations: Vector::from(vec![0.0]),
-            },
-            TrainingData {
-                input_activations: Vector::from(vec![1.0, 1.0]),
-                output_activations: Vector::from(vec![1.0]),
-            },
-        ];
-        let tmp: [TrainingData; 0] = [];
-        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-        model.train(&data, 1000, 15.5, 0.0, 0.0, 4, &QuadraticCost {});
-
-        // Act
-        let cost = QuadraticCost {};
-        let c = cost.cost(&mut model, &training_data, 0.0);
-
-        // Assert
-        assert_approx_eq!(0.00008300650113936091, c, 1E-4);
-    }
+    use super::*;
 
     #[test]
     fn test_quadratic_cost() {

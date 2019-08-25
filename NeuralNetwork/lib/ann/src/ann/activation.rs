@@ -9,13 +9,14 @@ pub trait Activation {
     fn df(&self, v: &Vector) -> Vector;
 }
 
+
 pub struct Sigmoid;
 
-pub fn sigmoid(z: f64) -> f64 {
+pub(crate) fn sigmoid(z: f64) -> f64 {
     1.0 / (1.0 + (-z).exp())
 }
 
-pub fn sigmoid_prime(z: f64) -> f64 {
+pub(crate) fn sigmoid_prime(z: f64) -> f64 {
     sigmoid(z) * (1.0 - sigmoid(z))
 }
 
@@ -29,13 +30,14 @@ impl Activation for Sigmoid {
     }
 }
 
+
 pub struct ReLU;
 
-pub fn relu(z: f64) -> f64 {
+pub(crate) fn relu(z: f64) -> f64 {
     z.max(0.0)
 }
 
-pub fn relu_prime(z: f64) -> f64 {
+pub(crate) fn relu_prime(z: f64) -> f64 {
     if z < 0.0 {
         0.0
     } else {
@@ -54,9 +56,10 @@ impl Activation for ReLU {
     }
 }
 
+
 pub struct LeakyReLU;
 
-pub fn leaky_relu(z: f64) -> f64 {
+pub(crate) fn leaky_relu(z: f64) -> f64 {
     if z <= 0.0 {
         0.01 * z
     } else {
@@ -64,7 +67,7 @@ pub fn leaky_relu(z: f64) -> f64 {
     }
 }
 
-pub fn leaky_relu_prime(z: f64) -> f64 {
+pub(crate) fn leaky_relu_prime(z: f64) -> f64 {
     if z <= 0.0 {
         0.01
     } else {
@@ -82,13 +85,14 @@ impl Activation for LeakyReLU {
     }
 }
 
+
 pub struct Tanh;
 
-pub fn tanh(z: f64) -> f64 {
+pub(crate) fn tanh(z: f64) -> f64 {
     2.0 / (1.0 + (-2.0 * z).exp()) - 1.0
 }
 
-pub fn tanh_prime(z: f64) -> f64 {
+pub(crate) fn tanh_prime(z: f64) -> f64 {
     let tanh = tanh(z);
     1.0 - tanh * tanh
 }
@@ -102,6 +106,7 @@ impl Activation for Tanh {
         ops::f(v, &tanh_prime)
     }
 }
+
 
 pub struct SoftMax;
 
@@ -119,6 +124,7 @@ impl Activation for SoftMax {
     }
 }
 
+
 pub struct Id;
 
 impl Activation for Id {
@@ -131,13 +137,14 @@ impl Activation for Id {
     }
 }
 
+
 pub struct Sin;
 
-pub fn sin(z: f64) -> f64 {
+pub(crate) fn sin(z: f64) -> f64 {
     z.sin()
 }
 
-pub fn cos(z: f64) -> f64 {
+pub(crate) fn cos(z: f64) -> f64 {
     z.cos()
 }
 
@@ -156,7 +163,6 @@ impl Activation for Sin {
 #[cfg(test)]
 mod tests {
     use assert_approx_eq::assert_approx_eq;
-
     use linear_algebra::vector::Vector;
 
     use super::*;

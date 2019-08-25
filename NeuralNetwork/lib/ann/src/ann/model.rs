@@ -381,9 +381,9 @@ mod tests {
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::{CrossEntropyCost, QuadraticCost};
     use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
+    use crate::ann::layers::activation_layer::ActivationLayer;
 
     use super::*;
-    use crate::ann::layers::activation_layer::ActivationLayer;
 
     const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
 
@@ -425,7 +425,6 @@ mod tests {
 
         // SS: set up model
         let mut model = Model::new();
-
         model.addInputLayer(InputLayer::new(28 * 28));
         model.addFullyConnectedLayer(FCLayer::new(100));
         model.addActivationLayer(ActivationLayer::new(100, Box::new(Sigmoid {})));
@@ -763,7 +762,6 @@ mod tests {
     fn test_feedforward() {
         // Arrange
         let mut model = Model::new();
-
         model.addInputLayer(InputLayer::new(2));
         model.addFullyConnectedLayer(FCLayer::new(3));
         model.addActivationLayer(ActivationLayer::new(3, Box::new(Sigmoid {})));
@@ -800,69 +798,64 @@ mod tests {
         let a20 = activation::relu(weights2[(0, 0)] * mb.output[2][0] + weights2[(0, 1)] * mb.output[2][1] + weights2[(0, 2)] * mb.output[2][2] + biases2[0]);
         assert_eq!(a20, mb.output[4][0]);
     }
-    //
-    //    #[test]
-    //    fn test_train_model_l2_regularization() {
-    //        // Arrange
-    //
-    //        let cost_function = CrossEntropyCost;
-    //
-    //        let mut model = Model::new();
-    //
-    //        model.addInputLayer(InputLayer::new(2));
-    //        model.addFullyConnectedLayer(FCLayer::new(10));
-    //        model.addActivationLayer(ActivationLayer::new(10, Box::new(Sigmoid {})));
-    //        model.addFullyConnectedLayer(FCLayer::new(1));
-    //        model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
-    //
-    //        // model an AND gate
-    //        let training_data = vec![
-    //            TrainingData {
-    //                input_activations: Vector::from(vec![0.0, 0.0]),
-    //                output_activations: Vector::from(vec![0.0]),
-    //            },
-    //            TrainingData {
-    //                input_activations: Vector::from(vec![0.0, 1.0]),
-    //                output_activations: Vector::from(vec![0.0]),
-    //            },
-    //            TrainingData {
-    //                input_activations: Vector::from(vec![1.0, 0.0]),
-    //                output_activations: Vector::from(vec![0.0]),
-    //            },
-    //            TrainingData {
-    //                input_activations: Vector::from(vec![1.0, 1.0]),
-    //                output_activations: Vector::from(vec![1.0]),
-    //            },
-    //        ];
-    //        let tmp: [TrainingData; 0] = [];
-    //        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
-    //
-    //        // Act
-    //        model.train(&data, 1000, 7.0, 0.0, 0.000001, 4, &cost_function);
-    //
-    //        // Assert
-    //        let output_layer_index = 4;
-    //        let mut mb = model.create_minibatch();
-    //        mb.output[0] = Vector::from(vec![0.0, 0.0]);
-    //        model.feedforward(&mut mb);
-    //        assert_approx_eq!(0.000000008600374481948007, &mb.output[output_layer_index][0], 1E-6);
-    //        println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
-    //
-    //        mb.output[0] = Vector::from(vec![1.0, 0.0]);
-    //        model.feedforward(&mut mb);
-    //        assert_approx_eq!(0.0002504695377738481, &mb.output[2][0], 1E-3);
-    //        println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
-    //
-    //        mb.output[0] = Vector::from(vec![0.0, 1.0]);
-    //        model.feedforward(&mut mb);
-    //        assert_approx_eq!(0.00023494173889617028, &mb.output[2][0], 1E-3);
-    //        println!("expected: {}   is: {}", 0.0, &mb.output[output_layer_index][0]);
-    //
-    //        mb.output[0] = Vector::from(vec![1.0, 1.0]);
-    //        model.feedforward(&mut mb);
-    //        assert_approx_eq!(0.9992958721912137, &mb.output[2][0], 1E-3);
-    //        println!("expected: {}   is: {}", 1.0, &mb.output[output_layer_index][0]);
-    //    }
+
+    #[test]
+    fn test_train_model_l2_regularization() {
+        // Arrange
+
+        let cost_function = CrossEntropyCost;
+
+        let mut model = Model::new();
+        model.addInputLayer(InputLayer::new(2));
+        model.addFullyConnectedLayer(FCLayer::new(10));
+        model.addActivationLayer(ActivationLayer::new(10, Box::new(Sigmoid {})));
+        model.addFullyConnectedLayer(FCLayer::new(1));
+        model.addActivationLayer(ActivationLayer::new(1, Box::new(Sigmoid {})));
+
+        // model an AND gate
+        let training_data = vec![
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![0.0, 1.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 0.0]),
+                output_activations: Vector::from(vec![0.0]),
+            },
+            TrainingData {
+                input_activations: Vector::from(vec![1.0, 1.0]),
+                output_activations: Vector::from(vec![1.0]),
+            },
+        ];
+        let tmp: [TrainingData; 0] = [];
+        let data = (&training_data[..], &tmp as &[TrainingData], &tmp as &[TrainingData]);
+
+        // Act
+        model.train(&data, 1000, 7.0, 0.0, 0.000001, 4, &cost_function);
+
+        // Assert
+        let output_layer_index = 4;
+        let mut mb = model.create_minibatch();
+        mb.output[0] = Vector::from(vec![0.0, 0.0]);
+        model.feedforward(&mut mb);
+        assert_approx_eq!(0.000000008600374481948007, &mb.output[output_layer_index][0], 1E-6);
+
+        mb.output[0] = Vector::from(vec![1.0, 0.0]);
+        model.feedforward(&mut mb);
+        assert_approx_eq!(0.0002504695377738481, &mb.output[output_layer_index][0], 1E-3);
+
+        mb.output[0] = Vector::from(vec![0.0, 1.0]);
+        model.feedforward(&mut mb);
+        assert_approx_eq!(0.00023494173889617028, &mb.output[output_layer_index][0], 1E-3);
+
+        mb.output[0] = Vector::from(vec![1.0, 1.0]);
+        model.feedforward(&mut mb);
+        assert_approx_eq!(0.9992958721912137, &mb.output[output_layer_index][0], 1E-3);
+    }
 
     #[test]
     fn test_train_sin_x() {
@@ -875,7 +868,6 @@ mod tests {
 
         // Arrange
         let mut model = Model::new();
-
         model.addInputLayer(InputLayer::new(1));
         model.addFullyConnectedLayer(FCLayer::new(1));
         model.addActivationLayer(ActivationLayer::new(1, Box::new(Sin {})));
@@ -919,7 +911,6 @@ mod tests {
 
         // Arrange
         let mut model = Model::new();
-
         model.addInputLayer(InputLayer::new(1));
         model.addFullyConnectedLayer(FCLayer::new(2));
         model.addActivationLayer(ActivationLayer::new(2, Box::new(Id {})));
