@@ -9,7 +9,6 @@ pub trait Activation {
     fn df(&self, v: &Vector) -> Vector;
 }
 
-
 pub struct Sigmoid;
 
 pub(crate) fn sigmoid(z: f64) -> f64 {
@@ -29,7 +28,6 @@ impl Activation for Sigmoid {
         ops::f(v, &sigmoid_prime)
     }
 }
-
 
 pub struct ReLU;
 
@@ -55,7 +53,6 @@ impl Activation for ReLU {
         ops::f(v, &relu_prime)
     }
 }
-
 
 pub struct LeakyReLU;
 
@@ -85,7 +82,6 @@ impl Activation for LeakyReLU {
     }
 }
 
-
 pub struct Tanh;
 
 pub(crate) fn tanh(z: f64) -> f64 {
@@ -107,7 +103,6 @@ impl Activation for Tanh {
     }
 }
 
-
 pub struct SoftMax;
 
 impl Activation for SoftMax {
@@ -119,11 +114,10 @@ impl Activation for SoftMax {
 
     fn df(&self, v: &Vector) -> Vector {
         let f1 = <Self as Activation>::f(self, v);
-        let result: Vector = f1.iter().map(|x| 1.0 - x).collect::<Vec<_>>().into();
+        let result: Vector = f1.iter().map(|x| 1.0 - *x).collect::<Vec<_>>().into();
         ops::hadamard(&f1, &result)
     }
 }
-
 
 pub struct Id;
 
@@ -136,7 +130,6 @@ impl Activation for Id {
         Vector::from(vec![1.0; v.dim()])
     }
 }
-
 
 pub struct Sin;
 

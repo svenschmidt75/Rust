@@ -200,13 +200,7 @@ impl Model {
         // SS: feed forward one instance of a training data sample
         // and record all calculated activations for all layers
         // for backprop.
-        let output_layer_index = self.output_layer_index();
-
-        // TODO SS: use iterator instead of loop
-        for layer_index in 1..=output_layer_index {
-            let layer = &self.layers[layer_index];
-            layer.feedforward(layer_index, mb);
-        }
+        self.layers.iter().enumerate().skip(1).for_each(|(layer_index, layer)| layer.feedforward(layer_index, mb));
     }
 
     fn calculate_outputlayer_error(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
@@ -380,14 +374,14 @@ mod tests {
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::{CrossEntropyCost, QuadraticCost};
-    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
     use crate::ann::layers::activation_layer::ActivationLayer;
+    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
 
     use super::*;
 
     const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
 
-    #[test]
+//    #[test]
     fn test_MNIST() {
         use crate::ann::activation::Sigmoid;
 

@@ -152,9 +152,9 @@ mod tests {
 
     use crate::ann::activation::Id;
     use crate::ann::activation::Sigmoid;
-    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
     use crate::ann::layers::activation_layer::ActivationLayer;
     use crate::ann::layers::layer::Layer;
+    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
     use crate::ann::training_data::TrainingData;
 
     use super::*;
@@ -169,7 +169,7 @@ mod tests {
         let c = QuadraticCost::single_cost(&a, &y);
 
         // Assert
-        assert_eq!(8.0, c)
+        assert_eq!(4.0, c)
     }
 
     #[test]
