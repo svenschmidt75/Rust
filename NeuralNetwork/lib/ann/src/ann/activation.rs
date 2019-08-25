@@ -105,6 +105,24 @@ impl Activation for Tanh {
 
 pub struct SoftMax;
 
+impl SoftMax {
+
+    fn derivative(&self, v: &Vector, idx: usize) -> f64 {
+        let delta = 0.000_001;
+
+        let mut v_mut = v.clone();
+        v_mut[idx] = v[idx] - delta;
+        let c1 = self.f(&v_mut);
+
+        v_mut[idx] = v[idx] + delta;
+        let c2 = self.f(&v_mut);
+
+        let df = (c2[idx] - c1[idx]) / delta / 2_f64;
+        df
+    }
+
+}
+
 impl Activation for SoftMax {
     fn f(&self, v: &Vector) -> Vector {
         let denominator: f64 = v.iter().map(|x| x.exp()).sum();
@@ -319,22 +337,20 @@ mod tests {
     }
 
     #[test]
-    fn test_softmax_prime() {
+    fn t() {
         // Arrange
-        let values = vec![2.0, 1.0, 0.1];
-        let h = 0.1;
+        let values: Vector = vec![2.0, 1.0, 0.1].into();
+
+        let df1 = SoftMax{}.derivative(&values, 0);
+        let df2 = SoftMax{}.derivative(&values, 1);
+        let df3 = SoftMax{}.derivative(&values, 2);
 
         // Act
-        let z1 = Vector::from(values.iter().map(|&x| x + h).collect::<Vec<_>>());
-        let f1 = SoftMax {}.f(&z1);
-        let z2 = Vector::from(values);
-        let f2 = SoftMax {}.f(&z2);
-        let df = &(&f1 - &f2) / h;
+        let df_analytic = SoftMax{}.df(&values);
 
         // Assert
-        let df_num = SoftMax {}.df(&z2);
-        assert_approx_eq!(df_num[0], df[0], 1e-3f64);
-        assert_approx_eq!(df_num[1], df[1], 1e-3f64);
-        assert_approx_eq!(df_num[2], df[2], 1e-3f64);
+        assert_approx_eq!(df1, df_analytic[0], 1e-3f64);
+        assert_approx_eq!(df2, df_analytic[1], 1e-3f64);
+        assert_approx_eq!(df3, df_analytic[2], 1e-3f64);
     }
 }

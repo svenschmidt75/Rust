@@ -78,6 +78,8 @@ impl CrossEntropyCost {
     fn single_cost_i(aj: f64, yj: f64) -> f64 {
         // SS: a are the output layer activations
         let tmp1 = yj * aj.ln();
+
+        // SS: note aj < 1.0, otherwise cross-entropy cost function not defined
         let tmp2 = (1.0 - yj) * (1.0 - aj).ln();
         let tmp3 = tmp1 + tmp2;
         let cost = -tmp3;
@@ -136,6 +138,8 @@ impl CostFunction for CrossEntropyCost {
             let ai = a[i];
             let yi = y[i];
             let t1 = (1.0 - yi) / (1.0 - ai);
+
+            // SS: note that for small ai, this can introduce numerical issues...
             let t2 = -yi / ai;
             let t3 = t1 + t2;
             dCda[i] = t3;
