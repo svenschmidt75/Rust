@@ -91,8 +91,9 @@ mod tests {
         layer.backprop(1, &mut mb);
 
         // Assert
-        let dCdz0 = - 3.0 * a0.cos() * a0 * (1.0 - a0) + 5.0 * a1.sin() * a1 * a0;
-        let dCdz1 = 3.0 * a0.cos() * a0 * a1 - 5.0 * a1.sin() * a1 * (1.0 - a1);
+        // dCdz0 = dCda0 * da0dz0 + dCda1 * da1dz0
+        let dCdz0 = dCda0 * a0 * (1.0 - a0) - dCda1 * a1 * a0;
+        let dCdz1 = - dCda0 * a0 * a1 + dCda1 * a1 * (1.0 - a1);
         assert_approx_eq!(dCdz0, mb.error[1][0], 1E-12);
         assert_approx_eq!(dCdz1, mb.error[1][1], 1E-12);
     }
