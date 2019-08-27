@@ -21,7 +21,6 @@ fn derivative(v: &Vector, idx: usize) -> f64 {
     df
 }
 
-
 //impl Activation for SoftMax {
 //    fn f(&self, v: &Vector) -> Vector {
 //        let denominator: f64 = v.iter().map(|x| x.exp()).sum();
@@ -40,7 +39,6 @@ fn derivative(v: &Vector, idx: usize) -> f64 {
 //
 //    }
 //}
-
 
 #[cfg(test)]
 mod tests {
@@ -73,11 +71,11 @@ mod tests {
         let df3 = derivative(&values, 2);
 
         // Act
-//        let df_analytic = SoftMax {}.df(&values);
-//
-//        // Assert
-//        assert_approx_eq!(df1, df_analytic[0], 1e-3f64);
-//        assert_approx_eq!(df2, df_analytic[1], 1e-3f64);
-//        assert_approx_eq!(df3, df_analytic[2], 1e-3f64);
+        //        let df_analytic = SoftMax {}.df(&values);
+        //
+        //        // Assert
+        //        assert_approx_eq!(df1, df_analytic[0], 1e-3f64);
+        //        assert_approx_eq!(df2, df_analytic[1], 1e-3f64);
+        //        assert_approx_eq!(df3, df_analytic[2], 1e-3f64);
     }
 }

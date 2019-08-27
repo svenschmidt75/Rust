@@ -379,8 +379,8 @@ mod tests {
     use crate::ann::activation::ReLU;
     use crate::ann::activation::Sigmoid;
     use crate::ann::cost_function::{CrossEntropyCost, QuadraticCost};
-    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
     use crate::ann::layers::activation_layer::ActivationLayer;
+    use crate::ann::layers::{fc_layer::FCLayer, input_layer::InputLayer};
 
     use super::*;
 
