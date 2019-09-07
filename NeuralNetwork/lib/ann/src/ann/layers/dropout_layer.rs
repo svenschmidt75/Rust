@@ -1,34 +1,40 @@
 use crate::ann::layers::layer::Layer;
 use crate::ann::minibatch::Minibatch;
 use linear_algebra::vector::Vector;
-use rand::distributions::{Bernoulli, Distribution};
+use rand::distributions::{Distribution, Uniform};
+use rand::prelude::ThreadRng;
 
 pub struct DropoutLayer {
+    nneurons: usize,
     p: f64,
     probability_vector: Vector,
+    rng: ThreadRng,
 }
 
 impl DropoutLayer {
+    pub fn new(nneurons: usize, p: f64) -> DropoutLayer {
+        DropoutLayer {
+            nneurons,
+            p,
+            probability_vector: Vector::new(nneurons),
+            rng: rand::thread_rng(),
+        }
+    }
+
     pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
-        // generate vector with p and 0
-        let distribution = Bernoulli::new(self.p);
-        let mut rng = rand::thread_rng();
-
-        let n_prev_a = prev_layer.number_of_neurons();
-        let data = (0..n_prev_a)
-            .into_iter()
-            .map(|_| match distribution.sample(&mut rng) {
-                // inverted dropout
-                true => 1.0 / self.p,
-                _ => 0.0,
-            })
-            .collect::<Vec<_>>();
-
-        self.probability_vector = Vector::from(data);
+        assert_eq!(self.nneurons, prev_layer.number_of_neurons());
     }
 
     pub fn number_of_neurons(&self) -> usize {
-        self.probability_vector.dim()
+        self.nneurons
+    }
+
+    pub(crate) fn next_training_sample(&mut self) {
+        let distribution = Uniform::new(0.0, 1.0);
+        for idx in 0..self.probability_vector.dim() {
+            let v = distribution.sample(&mut self.rng);
+            self.probability_vector[idx] = 1.0 / v;
+        }
     }
 
     pub(crate) fn feedforward(&self, prev_a: &Vector) -> Vector {

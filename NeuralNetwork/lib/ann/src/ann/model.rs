@@ -132,6 +132,9 @@ impl Model {
 
             for (_chunk_index, chunk) in chunks.enumerate() {
                 for idx in 0..chunk.len() {
+                    // SS: tell dropout layers to change
+                    self.next_training_sample();
+
                     let mb = &mut mbs[idx];
                     let training_sample_idx = chunk[idx];
                     let training_sample = &training_data[training_sample_idx];
@@ -183,7 +186,11 @@ impl Model {
         index
     }
 
-    pub fn initialize_layers(&mut self) {
+    fn next_training_sample(&mut self) {
+        self.layers.iter_mut().for_each(|layer| layer.next_training_sample());
+    }
+
+    fn initialize_layers(&mut self) {
         for idx in 1..self.layers.len() {
             let (prev, current) = get_neighbors(&mut self.layers, idx);
             current.initialize(prev);

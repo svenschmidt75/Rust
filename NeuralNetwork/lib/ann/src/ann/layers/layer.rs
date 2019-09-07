@@ -75,6 +75,15 @@ impl Layer {
         }
     }
 
+    pub(crate) fn next_training_sample(&mut self) {
+        match self {
+            Layer::Dropout(layer) => {
+                layer.next_training_sample();
+            }
+            _ => {}
+        }
+    }
+
     pub fn initialize(&mut self, prev_layer: &Layer) {
         match self {
             Layer::FullyConnected(layer) => {
