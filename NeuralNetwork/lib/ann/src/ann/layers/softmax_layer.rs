@@ -66,7 +66,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_softmax() {
+    fn test_softmax_backprop1() {
         // Arrange
         let layer = SoftMaxLayer { nneurons: 2 };
         let mut mb = Minibatch::new(vec![2, 2, 2]);
@@ -81,8 +81,9 @@ mod tests {
         let a0 = mb.output[1][0];
         let a1 = mb.output[1][1];
 
-        // set dC/da
         // C(a0, a1) = -3 * sin(a0) + 5 * cos(a1)
+
+        // set dC/da
         let dCda0 = -3.0 * a0.cos();
         let dCda1 = -5.0 * a1.sin();
         mb.error[2] = Vector::from(vec![dCda0, dCda1]);
