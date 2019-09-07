@@ -32,8 +32,16 @@ impl DropoutLayer {
     pub(crate) fn next_training_sample(&mut self) {
         let distribution = Uniform::new(0.0, 1.0);
         for idx in 0..self.probability_vector.dim() {
-            let v = distribution.sample(&mut self.rng);
-            self.probability_vector[idx] = 1.0 / v;
+            let factor = {
+                let v = distribution.sample(&mut self.rng);
+                if v < self.p {
+                    0.0
+                } else {
+                    // SS: inverted dropout
+                    1.0 / self.p
+                }
+            };
+            self.probability_vector[idx] = factor;
         }
     }
 

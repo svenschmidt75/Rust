@@ -11,7 +11,7 @@ pub struct TrainingData {
 impl TrainingData {
     pub fn from_mnist(data: &[u8], label: u8) -> TrainingData {
         TrainingData {
-            input_activations: Vector::from(data.iter().map(|&x| x as f64 / 255_f64).collect::<Vec<_>>()),
+            input_activations: Vector::from(data.iter().map(|&x| f64::from(x) / 255_f64).collect::<Vec<_>>()),
             output_activations: Vector::from((0..10).map(|x| if x == label { 1_f64 } else { 0_f64 }).collect::<Vec<_>>()),
         }
     }

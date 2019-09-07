@@ -89,7 +89,7 @@ impl CrossEntropyCost {
     fn single_cost(a: &Vector, y: &Vector) -> f64 {
         // SS: a are the output layer activations
         assert_eq!(a.dim(), y.dim(), "Vectors must have same dimension");
-        let cost = (0..a.dim()).into_iter().map(|idx| CrossEntropyCost::single_cost_i(a[idx], y[idx])).sum();
+        let cost = (0..a.dim()).map(|idx| CrossEntropyCost::single_cost_i(a[idx], y[idx])).sum();
         cost
     }
 

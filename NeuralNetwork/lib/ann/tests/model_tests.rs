@@ -12,7 +12,7 @@ use assert_approx_eq::assert_approx_eq;
 use linear_algebra::vector::Vector;
 use mnist_loader::loader::{load_image_file, load_label_file};
 
-const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
+const PROJECT_DIRECTORY: &str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
 
 #[test]
 fn test_train_1() {

@@ -76,11 +76,8 @@ impl Layer {
     }
 
     pub(crate) fn next_training_sample(&mut self) {
-        match self {
-            Layer::Dropout(layer) => {
-                layer.next_training_sample();
-            }
-            _ => {}
+        if let Layer::Dropout(layer) = self {
+            layer.next_training_sample();
         }
     }
 
@@ -132,9 +129,8 @@ impl Layer {
     }
 
     pub fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
-        match self {
-            Layer::FullyConnected(layer) => layer.update_network(layer_index, mbs, eta, rho, lambda),
-            _ => {}
+        if let Layer::FullyConnected(layer) = self {
+            layer.update_network(layer_index, mbs, eta, rho, lambda);
         }
     }
 

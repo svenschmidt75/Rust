@@ -22,18 +22,16 @@ use crate::ann::layers::softmax_layer::SoftMaxLayer;
 use crate::ann::minibatch::Minibatch;
 use crate::ann::training_data::TrainingData;
 
+#[derive(Default)]
 pub struct Model {
-    layers: Vec<Box<Layer>>,
+    layers: Vec<Layer>,
 }
 
-fn get_neighbors<U, T>(v: &mut Vec<T>, idx: usize) -> (&U, &mut U)
-where
-    T: Sized + AsRef<U> + AsMut<U>,
-    U: ?Sized,
+fn get_neighbors<T>(v: &mut Vec<T>, idx: usize) -> (&T, &mut T)
 {
     let (l, r) = v.split_at_mut(idx);
-    let item1 = l.last().unwrap().as_ref();
-    let item2 = r[0].as_mut();
+    let item1 = l.last().unwrap();
+    let item2 = &mut r[0];
     (item1, item2)
 }
 
@@ -43,23 +41,23 @@ impl Model {
     }
 
     pub fn addInputLayer(&mut self, layer: InputLayer) {
-        self.layers.push(Box::new(Layer::from(layer)))
+        self.layers.push(Layer::from(layer))
     }
 
     pub fn addFullyConnectedLayer(&mut self, layer: FCLayer) {
-        self.layers.push(Box::new(Layer::from(layer)))
+        self.layers.push(Layer::from(layer))
     }
 
     pub fn addActivationLayer(&mut self, layer: ActivationLayer) {
-        self.layers.push(Box::new(Layer::from(layer)))
+        self.layers.push(Layer::from(layer))
     }
 
     pub fn addSoftMaxLayer(&mut self, layer: SoftMaxLayer) {
-        self.layers.push(Box::new(Layer::from(layer)))
+        self.layers.push(Layer::from(layer))
     }
 
     pub fn get_layer(&self, idx: usize) -> &Layer {
-        self.layers[idx].as_ref()
+        &self.layers[idx]
     }
 
     pub fn output_layer_index(&self) -> usize {
@@ -170,7 +168,7 @@ impl Model {
                 same += 1;
             }
         }
-        accuracy = same as f64 / xs.len() as f64;
+        accuracy = f64::from(same) / xs.len() as f64;
         accuracy
     }
 
@@ -250,28 +248,28 @@ impl Model {
     }
 
     pub(crate) fn get_weights(&self, layer_index: usize) -> &Matrix2D {
-        match &*self.layers[layer_index] {
+        match &self.layers[layer_index] {
             Layer::FullyConnected(layer) => layer.get_weights(),
             _ => panic!("get_weights: layer does not have weights"),
         }
     }
 
     pub(crate) fn set_weights(&mut self, layer_index: usize, weights: Matrix2D) {
-        match &mut *self.layers[layer_index] {
+        match &mut self.layers[layer_index] {
             Layer::FullyConnected(layer) => layer.set_weights(weights),
             _ => panic!("get_weights: layer does not have weights"),
         }
     }
 
     pub(crate) fn get_biases(&self, layer_index: usize) -> &Vector {
-        match &*self.layers[layer_index] {
+        match &self.layers[layer_index] {
             Layer::FullyConnected(layer) => layer.get_biases(),
             _ => panic!("get_weights: layer does not have biases"),
         }
     }
 
     pub(crate) fn set_biases(&mut self, layer_index: usize, biases: Vector) {
-        match &mut *self.layers[layer_index] {
+        match &mut self.layers[layer_index] {
             Layer::FullyConnected(layer) => layer.set_biases(biases),
             _ => panic!("get_weights: layer does not have biases"),
         }

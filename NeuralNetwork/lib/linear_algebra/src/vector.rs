@@ -40,7 +40,7 @@ impl<'a> Iterator for Iter<'a> {
     type Item = &'a f64;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.pos <= self.v.dim() - 1 {
+        if self.pos < self.v.dim() {
             let value = &self.v[self.pos];
             self.pos += 1;
             Some(value)
