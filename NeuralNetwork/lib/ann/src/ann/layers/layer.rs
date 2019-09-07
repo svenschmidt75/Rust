@@ -103,6 +103,10 @@ impl Layer {
                 let a = layer.feedforward(&input);
                 mb.output[layer_index] = a;
             }
+            Layer::SoftMax(layer) => {
+                let a = layer.feedforward(&input);
+                mb.output[layer_index] = a;
+            }
             _ => {}
         }
     }
@@ -113,6 +117,7 @@ impl Layer {
             FullyConnected(layer) => layer.backprop(layer_index, mb),
             Layer::Dropout(layer) => layer.backprop(layer_index, mb),
             Layer::Activation(layer) => layer.backprop(layer_index, mb),
+            Layer::SoftMax(layer) => layer.backprop(layer_index, mb),
             _ => panic!(),
         }
     }

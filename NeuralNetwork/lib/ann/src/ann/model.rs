@@ -384,60 +384,6 @@ mod tests {
 
     use super::*;
 
-    const PROJECT_DIRECTORY: &'static str = "/home/svenschmidt75/Develop/Rust/NeuralNetwork/lib/ann/src/ann/";
-
-    //    #[test]
-    fn test_MNIST() {
-        use crate::ann::activation::Sigmoid;
-
-        // Arrange
-        let training_images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-images.idx3-ubyte"))
-            .unwrap()
-            .into_iter()
-            .collect::<Vec<_>>();
-        let training_labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/train-labels.idx1-ubyte"))
-            .unwrap()
-            .into_iter()
-            .collect::<Vec<_>>();
-
-        let test_images = load_image_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/t10k-images.idx3-ubyte"))
-            .unwrap()
-            .into_iter()
-            .collect::<Vec<_>>();
-        let test_labels = load_label_file(&(PROJECT_DIRECTORY.to_owned() + "../../../../MNIST/t10k-labels.idx1-ubyte"))
-            .unwrap()
-            .into_iter()
-            .collect::<Vec<_>>();
-
-        let training_data = training_images
-            .iter()
-            .zip(training_labels.iter())
-            .map(|data| TrainingData::from_mnist(&data.0.data, data.1.label))
-            .collect::<Vec<_>>();
-        let test_data = test_images
-            .iter()
-            .zip(test_labels.iter())
-            .map(|data| TrainingData::from_mnist(&data.0.data, data.1.label))
-            .collect::<Vec<_>>();
-        //        let partitioned_data = TrainingData::partition(&training_data, 0.8, 0.2);
-        let partitioned_data = (&training_data[..], &training_data[0..0], &test_data[..]);
-
-        // SS: set up model
-        let mut model = Model::new();
-        model.addInputLayer(InputLayer::new(28 * 28));
-        model.addFullyConnectedLayer(FCLayer::new(100));
-        model.addActivationLayer(ActivationLayer::new(100, Box::new(Sigmoid {})));
-        model.addFullyConnectedLayer(FCLayer::new(10));
-        model.addActivationLayer(ActivationLayer::new(10, Box::new(Sigmoid {})));
-
-        let cost_function = QuadraticCost;
-
-        // Act
-        model.train(&partitioned_data, 50, 2.5, 0.0, 0.00001, 25, &cost_function);
-
-        // Assert
-    }
-
     #[test]
     fn test_analytical_equals_numerical_derivative_1() {
         use crate::ann::activation::Id;

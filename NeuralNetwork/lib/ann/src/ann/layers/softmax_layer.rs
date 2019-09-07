@@ -4,6 +4,7 @@ use linear_algebra::vector::Vector;
 
 use crate::ann::layers::softmax::softmax;
 use crate::ann::minibatch::Minibatch;
+use linear_algebra::matrix::Matrix2D;
 
 pub struct SoftMaxLayer {
     nneurons: usize,
@@ -33,27 +34,24 @@ impl SoftMaxLayer {
         // SS: calculate da^{l+1}/dz^{l}
 
         // SS: dC/da^{l}
-
-        // SS
-        // 1. initialize matrix
-        // 2. matrix multiplication
-
-        // SS: write test for backprop!
-
         let delta_next = &mb.error[layer_index + 1];
+
         let a = &mb.output[layer_index];
-        let mut dC_dz = Vector::new(self.nneurons);
+
+        // SS: local_gradient = d_a/d_z
+        let mut local_gradient = Matrix2D::new(self.nneurons, self.nneurons);
         for i in 0..self.nneurons {
-            let mut result = 0.0;
-            for k in 0..delta_next.dim() {
+            for k in 0..self.nneurons {
                 let mut da_k_dz_i = -a[k] * a[i];
                 if i == k {
                     da_k_dz_i += a[k];
                 }
-                result += da_k_dz_i * delta_next[k];
+                local_gradient[(i, k)] = da_k_dz_i;
             }
-            dC_dz[i] = result;
         }
+
+        // SS: multiply local gradient by incoming gradient
+        let dC_dz = local_gradient.ax(delta_next);
         mb.error[layer_index] = dC_dz;
     }
 }
@@ -94,7 +92,7 @@ mod tests {
         // Assert
         // dCdz0 = dCda0 * da0dz0 + dCda1 * da1dz0
         let dCdz0 = dCda0 * a0 * (1.0 - a0) - dCda1 * a1 * a0;
-        let dCdz1 = - dCda0 * a0 * a1 + dCda1 * a1 * (1.0 - a1);
+        let dCdz1 = -dCda0 * a0 * a1 + dCda1 * a1 * (1.0 - a1);
         assert_approx_eq!(dCdz0, mb.error[1][0], 1E-12);
         assert_approx_eq!(dCdz1, mb.error[1][1], 1E-12);
     }
