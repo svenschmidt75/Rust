@@ -27,8 +27,7 @@ pub struct Model {
     layers: Vec<Layer>,
 }
 
-fn get_neighbors<T>(v: &mut Vec<T>, idx: usize) -> (&T, &mut T)
-{
+fn get_neighbors<T>(v: &mut Vec<T>, idx: usize) -> (&T, &mut T) {
     let (l, r) = v.split_at_mut(idx);
     let item1 = l.last().unwrap();
     let item2 = &mut r[0];
