@@ -108,8 +108,8 @@ mod tests {
     #[test]
     fn test_backprop_gradient() {
         // Arrange
-        let  dropout_probability = 0.5;
-        let layer = DropoutLayer::new(2, dropout_probability, Box::new(TestUniformDistributionSampler { p: 0.75 }));
+        let  dropout_probability = 0.75;
+        let mut layer = DropoutLayer::new(2, dropout_probability, Box::new(TestUniformDistributionSampler { p: dropout_probability }));
         let mut mb = Minibatch::new(vec![2, 2, 2]);
 
         let z0 = 0.765;
@@ -118,6 +118,7 @@ mod tests {
         mb.output[0] = Vector::from(vec![z0, z1]);
 
         // calculate a from z
+        layer.next_training_sample();
         mb.output[1] = layer.feedforward(&mb.output[0]);
         let a0 = mb.output[1][0];
         let a1 = mb.output[1][1];
@@ -134,8 +135,8 @@ mod tests {
 
         // Assert
         // dCdz0 = dCda0 * da0dz0 + dCda1 * da1dz0
-        let dCdz0 = dCda0 * dropout_probability;
-        let dCdz1 = dCda0 * dropout_probability;
+        let dCdz0 = dCda0 * 1.0 / dropout_probability;
+        let dCdz1 = dCda1 * 1.0 / dropout_probability;
         assert_approx_eq!(dCdz0, mb.error[1][0], 1E-12);
         assert_approx_eq!(dCdz1, mb.error[1][1], 1E-12);
     }
