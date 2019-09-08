@@ -10,7 +10,6 @@ pub struct DropoutLayer {
     p: f64,
     sampler: Box<dyn UniformDistributionSampler>,
     probability_vector: Vector,
-    rng: ThreadRng,
 }
 
 impl DropoutLayer {
@@ -20,7 +19,6 @@ impl DropoutLayer {
             p,
             sampler,
             probability_vector: Vector::new(nneurons),
-            rng: rand::thread_rng(),
         }
     }
 
@@ -108,7 +106,7 @@ mod tests {
     #[test]
     fn test_backprop_gradient() {
         // Arrange
-        let  dropout_probability = 0.75;
+        let dropout_probability = 0.75;
         let mut layer = DropoutLayer::new(2, dropout_probability, Box::new(TestUniformDistributionSampler { p: dropout_probability }));
         let mut mb = Minibatch::new(vec![2, 2, 2]);
 

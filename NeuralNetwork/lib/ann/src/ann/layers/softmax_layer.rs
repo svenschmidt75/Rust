@@ -64,7 +64,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_softmax_backprop1() {
+    fn test_backprop_gradient() {
         // Arrange
         let layer = SoftMaxLayer { nneurons: 2 };
         let mut mb = Minibatch::new(vec![2, 2, 2]);
