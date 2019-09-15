@@ -1,4 +1,4 @@
-use ann::ann::activation::Sigmoid;
+use ann::ann::activation::{Sigmoid, ReLU, LeakyReLU};
 use ann::ann::cost_function::{CrossEntropyCost, QuadraticCost};
 use ann::ann::layers::activation_layer::ActivationLayer;
 use ann::ann::layers::dropout_layer::{DropoutLayer, ProdUniformDistributionSampler};
@@ -50,7 +50,7 @@ fn test_dropout_mnist() {
     let mut model = Model::new();
     model.addInputLayer(InputLayer::new(28 * 28));
     model.addFullyConnectedLayer(FCLayer::new(100));
-    model.addActivationLayer(ActivationLayer::new(100, Box::new(Sigmoid {})));
+    model.addActivationLayer(ActivationLayer::new(100, Box::new(LeakyReLU {})));
     model.addDropoutLayer(DropoutLayer::new(100, 0.5, Box::new(ProdUniformDistributionSampler::new())));
     model.addFullyConnectedLayer(FCLayer::new(10));
     model.addActivationLayer(ActivationLayer::new(10, Box::new(Sigmoid {})));

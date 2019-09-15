@@ -122,6 +122,7 @@ impl Model {
         println!("Learning rate: {}", eta);
         println!("Number of epochs: {}", epochs);
         println!("L2 regularization: {}", lambda);
+        println!("Momentum: {}", rho);
         println!();
 
         for epoch in 0..epochs {
