@@ -58,7 +58,7 @@ impl DropoutLayer {
     }
 
     pub(crate) fn print_summary(&self) {
-        unimplemented!()
+        println!("{:15} | {:>15} | {:15}", "dropout", format!("p={}", self.p), "");
     }
 }
 

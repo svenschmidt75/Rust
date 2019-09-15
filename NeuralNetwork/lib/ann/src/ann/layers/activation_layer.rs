@@ -22,7 +22,7 @@ impl ActivationLayer {
     }
 
     pub(crate) fn print_summary(&self) {
-        println!("{:15} | {:15} | {:15}", "activation", "", "");
+        println!("{:15} | {:>15} | {:15}", "activation", self.activation.id(), "");
     }
 
     pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {

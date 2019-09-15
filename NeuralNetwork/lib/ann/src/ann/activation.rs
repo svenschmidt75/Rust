@@ -7,6 +7,8 @@ pub trait Activation {
     fn f(&self, v: &Vector) -> Vector;
 
     fn df(&self, v: &Vector) -> Vector;
+
+    fn id(&self) -> &'static str;
 }
 
 pub struct Sigmoid;
@@ -26,6 +28,10 @@ impl Activation for Sigmoid {
 
     fn df(&self, v: &Vector) -> Vector {
         ops::f(v, &sigmoid_prime)
+    }
+
+    fn id(&self) -> &'static str {
+        "sigmoid"
     }
 }
 
@@ -51,6 +57,10 @@ impl Activation for ReLU {
     // todo SS: verify this
     fn df(&self, v: &Vector) -> Vector {
         ops::f(v, &relu_prime)
+    }
+
+    fn id(&self) -> &'static str {
+        "ReLU"
     }
 }
 
@@ -80,6 +90,10 @@ impl Activation for LeakyReLU {
     fn df(&self, v: &Vector) -> Vector {
         ops::f(v, &leaky_relu_prime)
     }
+
+    fn id(&self) -> &'static str {
+        "leaky ReLU"
+    }
 }
 
 pub struct Tanh;
@@ -101,6 +115,10 @@ impl Activation for Tanh {
     fn df(&self, v: &Vector) -> Vector {
         ops::f(v, &tanh_prime)
     }
+
+    fn id(&self) -> &'static str {
+        "tanh"
+    }
 }
 
 pub struct Id;
@@ -112,6 +130,10 @@ impl Activation for Id {
 
     fn df(&self, v: &Vector) -> Vector {
         Vector::from(vec![1.0; v.dim()])
+    }
+
+    fn id(&self) -> &'static str {
+        "id"
     }
 }
 
@@ -132,6 +154,10 @@ impl Activation for Sin {
 
     fn df(&self, v: &Vector) -> Vector {
         ops::f(v, &cos)
+    }
+
+    fn id(&self) -> &'static str {
+        "sin"
     }
 }
 

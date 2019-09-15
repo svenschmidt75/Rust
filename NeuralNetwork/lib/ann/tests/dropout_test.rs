@@ -49,9 +49,9 @@ fn test_dropout_mnist() {
     // SS: set up model
     let mut model = Model::new();
     model.addInputLayer(InputLayer::new(28 * 28));
-    model.addFullyConnectedLayer(FCLayer::new(50));
-    model.addActivationLayer(ActivationLayer::new(50, Box::new(Sigmoid {})));
-//    model.addDropoutLayer(DropoutLayer::new(50, 0.5, Box::new(ProdUniformDistributionSampler::new(0.5))));
+    model.addFullyConnectedLayer(FCLayer::new(100));
+    model.addActivationLayer(ActivationLayer::new(100, Box::new(Sigmoid {})));
+    model.addDropoutLayer(DropoutLayer::new(100, 0.5, Box::new(ProdUniformDistributionSampler::new())));
     model.addFullyConnectedLayer(FCLayer::new(10));
     model.addActivationLayer(ActivationLayer::new(10, Box::new(Sigmoid {})));
 
