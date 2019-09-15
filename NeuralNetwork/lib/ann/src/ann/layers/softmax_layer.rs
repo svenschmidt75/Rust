@@ -25,7 +25,7 @@ impl SoftMaxLayer {
     }
 
     pub(crate) fn print_summary(&self) {
-        println!("summary");
+        println!("{:15} | {:15} | {:15}", "softmax", "", "");
     }
 
     pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {

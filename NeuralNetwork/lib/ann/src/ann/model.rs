@@ -15,6 +15,7 @@ use crate::ann::activation::Activation;
 use crate::ann::cost_function::CostFunction;
 use crate::ann::cost_function::QuadraticCost;
 use crate::ann::layers::activation_layer::ActivationLayer;
+use crate::ann::layers::dropout_layer::DropoutLayer;
 use crate::ann::layers::fc_layer::FCLayer;
 use crate::ann::layers::input_layer::InputLayer;
 use crate::ann::layers::layer::Layer;
@@ -44,6 +45,10 @@ impl Model {
     }
 
     pub fn addFullyConnectedLayer(&mut self, layer: FCLayer) {
+        self.layers.push(Layer::from(layer))
+    }
+
+    pub fn addDropoutLayer(&mut self, layer: DropoutLayer) {
         self.layers.push(Layer::from(layer))
     }
 
@@ -146,17 +151,18 @@ impl Model {
             // SS: epoch completed, print cost for all training samples, print accuracy
             let cost = cost_function.cost(self, training_data, lambda);
             let error = QuadraticCost {}.cost(self, training_data, lambda);
-            let accuracy = self.accuracy(data.2);
-            println!("Epoch {} - cost {} - error {} - acc {}", epoch + 1, cost, error, accuracy);
+            let train_accuracy = self.accuracy(training_data);
+            let test_accuracy = self.accuracy(data.2);
+            println!("Epoch {} - cost {} - error {} - train acc {} - test acc {}", epoch + 1, cost, error, train_accuracy, test_accuracy);
         }
     }
 
-    fn accuracy(&mut self, xs: &[TrainingData]) -> f64 {
+    fn accuracy(&mut self, test_data: &[TrainingData]) -> f64 {
         let accuracy;
         let mut same = 0;
         let mut mb = self.create_minibatch();
         let output_layer_index = self.output_layer_index();
-        for x in xs {
+        for x in test_data {
             mb.output[0] = x.input_activations.clone();
             self.feedforward(&mut mb);
             let output_activations = &mb.output[output_layer_index];
@@ -167,7 +173,7 @@ impl Model {
                 same += 1;
             }
         }
-        accuracy = f64::from(same) / xs.len() as f64;
+        accuracy = f64::from(same) / test_data.len() as f64;
         accuracy
     }
 
