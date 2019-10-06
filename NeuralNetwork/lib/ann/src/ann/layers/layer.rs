@@ -7,6 +7,7 @@ use crate::ann::layers::input_layer::InputLayer;
 use crate::ann::layers::layer::Layer::FullyConnected;
 use crate::ann::layers::softmax_layer::SoftMaxLayer;
 use crate::ann::minibatch::Minibatch;
+use crate::ann::layers::batch_normalize::BatchNormalizeLayer;
 
 pub enum Layer {
     Input(InputLayer),
@@ -14,6 +15,7 @@ pub enum Layer {
     Dropout(DropoutLayer),
     Activation(ActivationLayer),
     SoftMax(SoftMaxLayer),
+    BatchNormalize(BatchNormalizeLayer),
 }
 
 impl From<InputLayer> for Layer {
@@ -54,6 +56,7 @@ impl Layer {
             Layer::Dropout(layer) => layer.number_of_neurons(),
             Layer::Activation(layer) => layer.number_of_neurons(),
             Layer::SoftMax(layer) => layer.number_of_neurons(),
+            Layer::BatchNormalize(layer) => layer.number_of_neurons(),
         }
     }
 
@@ -71,6 +74,9 @@ impl Layer {
             Layer::SoftMax(layer) => {
                 layer.print_summary();
             }
+            Layer::BatchNormalize(layer) => {
+                layer.print_summary();
+            }
             _ => {}
         }
     }
@@ -81,12 +87,21 @@ impl Layer {
         }
     }
 
+    pub(crate) fn next_minibatch(&mut self, mbs: &[Minibatch]) {
+        if let Layer::BatchNormalize(layer) = self {
+            layer.next_minibatch(mbs);
+        }
+    }
+
     pub fn initialize(&mut self, prev_layer: &Layer) {
         match self {
             Layer::FullyConnected(layer) => {
                 layer.initialize(&prev_layer);
             }
             Layer::Dropout(layer) => {
+                layer.initialize(&prev_layer);
+            }
+            Layer::BatchNormalize(layer) => {
                 layer.initialize(&prev_layer);
             }
             _ => {}

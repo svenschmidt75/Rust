@@ -5,3 +5,4 @@ pub mod input_layer;
 pub mod layer;
 pub mod softmax;
 pub mod softmax_layer;
+pub mod batch_normalize;

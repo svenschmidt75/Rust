@@ -134,15 +134,26 @@ impl Model {
             let chunks = trainingdata_indices.chunks(mb_size);
 
             for (_chunk_index, chunk) in chunks.enumerate() {
+
+                // SS: insert training data on minibatch
                 for idx in 0..chunk.len() {
-                    // SS: tell dropout layers to change
+                    let mb = &mut mbs[idx];
+                    let training_sample_idx = chunk[idx];
+                    let training_sample = &training_data[training_sample_idx];
+                    mb.output[0] = training_sample.input_activations.clone();
+                }
+
+                self.next_minibatch(&mbs);
+
+                for idx in 0..chunk.len() {
+                    // SS: announce next forward pass to layers
                     self.next_training_sample();
 
                     let mb = &mut mbs[idx];
                     let training_sample_idx = chunk[idx];
                     let training_sample = &training_data[training_sample_idx];
                     let known_classification = &training_sample.output_activations;
-                    mb.output[0] = training_sample.input_activations.clone();
+//                    mb.output[0] = training_sample.input_activations.clone();
                     self.feedforward(mb);
                     self.backprop(mb, known_classification, cost_function);
                 }
@@ -192,6 +203,10 @@ impl Model {
 
     fn next_training_sample(&mut self) {
         self.layers.iter_mut().for_each(|layer| layer.next_training_sample());
+    }
+
+    fn next_minibatch(&mut self, mbs: &[Minibatch]) {
+        self.layers.iter_mut().for_each(|layer| layer.next_minibatch(mbs));
     }
 
     fn initialize_layers(&mut self) {
