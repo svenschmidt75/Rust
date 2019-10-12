@@ -179,7 +179,7 @@ impl Model {
     }
 
     fn next_minibatch(&mut self, mbs: &[Minibatch]) {
-        self.layers.iter_mut().for_each(|layer| layer.new_minibatch(mbs));
+        self.layers.iter_mut().enumerate().for_each(|(layer_index, layer)| layer.new_minibatch(mbs, layer_index));
     }
 
     fn initialize_layers(&mut self) {
@@ -204,7 +204,7 @@ impl Model {
         // SS: feed forward all minibatch items for one entire layer, before
         // advancing to the next layer.
         self.layers.iter_mut().enumerate().skip(1).for_each(|(layer_index, layer)| {
-            layer.new_minibatch(mbs);
+            layer.new_minibatch(mbs, layer_index);
             for i in 0..mbs.len() {
                 layer.new_feedforward();
                 let mb = &mut mbs[i];

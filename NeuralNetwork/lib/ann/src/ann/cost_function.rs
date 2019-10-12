@@ -233,5 +233,4 @@ mod tests {
         assert_approx_eq!(dc_analytical[0], dc_numeric1, 1E-4);
         assert_approx_eq!(dc_analytical[1], dc_numeric2, 1E-4);
     }
-
 }

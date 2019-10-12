@@ -107,7 +107,6 @@ impl std::ops::Div<f64> for &Vector {
 
 impl std::ops::DivAssign<usize> for Vector {
     fn div_assign(&mut self, rhs: usize) {
-        // SS: collect to force evaluation as lazy...
         self.data.iter_mut().for_each(|v| *v /= rhs as f64);
     }
 }

@@ -1,13 +1,13 @@
 #![allow(dead_code)]
 
 use crate::ann::layers::activation_layer::ActivationLayer;
+use crate::ann::layers::batch_normalize::BatchNormalizeLayer;
 use crate::ann::layers::dropout_layer::DropoutLayer;
 use crate::ann::layers::fc_layer::FCLayer;
 use crate::ann::layers::input_layer::InputLayer;
 use crate::ann::layers::layer::Layer::FullyConnected;
 use crate::ann::layers::softmax_layer::SoftMaxLayer;
 use crate::ann::minibatch::Minibatch;
-use crate::ann::layers::batch_normalize::BatchNormalizeLayer;
 
 pub enum Layer {
     Input(InputLayer),
@@ -87,9 +87,9 @@ impl Layer {
         }
     }
 
-    pub(crate) fn new_minibatch(&mut self, mbs: &[Minibatch]) {
+    pub(crate) fn new_minibatch(&mut self, mbs: &[Minibatch], layer_index: usize) {
         if let Layer::BatchNormalize(layer) = self {
-            layer.next_minibatch(mbs);
+            layer.next_minibatch(mbs, layer_index);
         }
     }
 

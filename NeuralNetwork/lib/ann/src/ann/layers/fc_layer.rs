@@ -246,5 +246,4 @@ mod tests {
         assert_approx_eq!(dCdz0, mb.error[1][0], 1E-12);
         assert_approx_eq!(dCdz1, mb.error[1][1], 1E-12);
     }
-
 }
