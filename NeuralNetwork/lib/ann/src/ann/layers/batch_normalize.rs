@@ -18,6 +18,9 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
         assert_eq!(self.nneurons, prev_layer.number_of_neurons());
+
+        // SS: allocate enough memory, need to know the minibatch size
+
     }
 
     pub (crate) fn number_of_neurons(&self) -> usize {
@@ -25,10 +28,17 @@ impl BatchNormalizeLayer {
     }
 
     pub(crate) fn next_minibatch(&mut self, mbs: &[Minibatch]) {
+        // SS: calculate mean and variance across minibatch
+//        let mut means = vec![];
+    }
+
+    pub(crate) fn feedforward(&self, z: &Vector) -> Vector {
+        unimplemented!()
     }
 
     pub(crate) fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
         assert!(layer_index > 0);
+
     }
 
     pub(crate) fn print_summary(&self) {

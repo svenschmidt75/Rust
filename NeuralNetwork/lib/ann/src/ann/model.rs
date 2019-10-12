@@ -75,21 +75,6 @@ impl Model {
 
     pub fn train(&mut self, data: &(&[TrainingData], &[TrainingData], &[TrainingData]), epochs: usize, eta: f64, rho: f64, lambda: f64, minibatch_size: usize, cost_function: &dyn CostFunction) {
         // call initialize on each layer
-
-        // for each epoch
-        //   shuffle training data indices
-        //   for each minibatch
-        //     call on_new_epoch on all layers
-        //     feed forward
-        //     calculate error in output layer
-        //   backprop
-        //   update parameters
-        // print statistics
-
-        // print update step after each epoch
-
-        // ss: MOVE THIS OUT HERE, SO WE CAN REUSE WEIGHTS,
-        // maybe to continue training with smaller learning rates
         self.initialize_layers();
 
         let training_data = data.0;
@@ -134,29 +119,17 @@ impl Model {
             let chunks = trainingdata_indices.chunks(mb_size);
 
             for (_chunk_index, chunk) in chunks.enumerate() {
-
-                // SS: insert training data on minibatch
+                let mut known_classifications = Vec::with_capacity(chunk.len());
+                // SS: insert training data into minibatches
                 for idx in 0..chunk.len() {
                     let mb = &mut mbs[idx];
                     let training_sample_idx = chunk[idx];
                     let training_sample = &training_data[training_sample_idx];
+                    known_classifications.push(&training_sample.output_activations);
                     mb.output[0] = training_sample.input_activations.clone();
                 }
-
-                self.next_minibatch(&mbs);
-
-                for idx in 0..chunk.len() {
-                    // SS: announce next forward pass to layers
-                    self.next_training_sample();
-
-                    let mb = &mut mbs[idx];
-                    let training_sample_idx = chunk[idx];
-                    let training_sample = &training_data[training_sample_idx];
-                    let known_classification = &training_sample.output_activations;
-//                    mb.output[0] = training_sample.input_activations.clone();
-                    self.feedforward(mb);
-                    self.backprop(mb, known_classification, cost_function);
-                }
+                self.feedforward2(&mut mbs);
+                self.backprop2(&mut mbs, &known_classifications, cost_function);
                 self.update_network(&mbs, eta, rho, lambda);
             }
 
@@ -202,11 +175,11 @@ impl Model {
     }
 
     fn next_training_sample(&mut self) {
-        self.layers.iter_mut().for_each(|layer| layer.next_training_sample());
+        self.layers.iter_mut().for_each(|layer| layer.new_feedforward());
     }
 
     fn next_minibatch(&mut self, mbs: &[Minibatch]) {
-        self.layers.iter_mut().for_each(|layer| layer.next_minibatch(mbs));
+        self.layers.iter_mut().for_each(|layer| layer.new_minibatch(mbs));
     }
 
     fn initialize_layers(&mut self) {
@@ -227,6 +200,20 @@ impl Model {
         Minibatch::new(nas)
     }
 
+    pub fn feedforward2(&mut self, mbs: &mut [Minibatch]) {
+        // SS: feed forward all minibatch items for one entire layer, before
+        // advancing to the next layer.
+        self.layers.iter_mut().enumerate().skip(1).for_each(|(layer_index, layer)| {
+            layer.new_minibatch(mbs);
+            for i in 0..mbs.len() {
+                layer.new_feedforward();
+                let mb = &mut mbs[i];
+                layer.feedforward(layer_index, mb);
+            }
+        });
+    }
+
+    // todo SS: remove
     pub fn feedforward(&self, mb: &mut Minibatch) {
         // SS: feed forward one instance of a training data sample
         // and record all calculated activations for all layers
@@ -244,12 +231,23 @@ impl Model {
         mb.error[output_layer_index + 1] = dCda;
     }
 
+    fn backprop2(&self, mbs: &mut [Minibatch], y: &[&Vector], cost_function: &dyn CostFunction) {
+        let output_layer_index = self.output_layer_index();
+        for layer_index in (1..=output_layer_index).rev() {
+            let layer = &self.layers[layer_index];
+            for i in 0..mbs.len() {
+                let mb = &mut mbs[i];
+                self.calculate_outputlayer_error(mb, y[i], cost_function);
+                layer.backprop(layer_index, mb);
+            }
+        }
+    }
+
     fn backprop(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
         let output_layer_index = self.output_layer_index();
         self.calculate_outputlayer_error(mb, y, cost_function);
         for layer_index in (1..=output_layer_index).rev() {
             let layer = &self.layers[layer_index];
-            layer.backprop(layer_index, mb);
         }
     }
 

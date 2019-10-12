@@ -81,13 +81,13 @@ impl Layer {
         }
     }
 
-    pub(crate) fn next_training_sample(&mut self) {
+    pub(crate) fn new_feedforward(&mut self) {
         if let Layer::Dropout(layer) = self {
             layer.next_training_sample();
         }
     }
 
-    pub(crate) fn next_minibatch(&mut self, mbs: &[Minibatch]) {
+    pub(crate) fn new_minibatch(&mut self, mbs: &[Minibatch]) {
         if let Layer::BatchNormalize(layer) = self {
             layer.next_minibatch(mbs);
         }
@@ -125,6 +125,10 @@ impl Layer {
                 mb.output[layer_index] = a;
             }
             Layer::SoftMax(layer) => {
+                let a = layer.feedforward(&input);
+                mb.output[layer_index] = a;
+            }
+            Layer::BatchNormalize(layer) => {
                 let a = layer.feedforward(&input);
                 mb.output[layer_index] = a;
             }
