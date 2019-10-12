@@ -9,17 +9,16 @@ use std::cell::RefCell;
 pub struct BatchNormalizeLayer {
     nneurons: usize,
     means: Vector,
+    variance: Vector,
 }
 
 impl BatchNormalizeLayer {
     pub fn new(nneurons: usize) -> BatchNormalizeLayer {
-        BatchNormalizeLayer { nneurons, means: Vector::new(0) }
+        BatchNormalizeLayer { nneurons, means: Vector::new(0), variance: Vector::new(0) }
     }
 
     pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
         assert_eq!(self.nneurons, prev_layer.number_of_neurons());
-
-        // SS: allocate enough memory, need to know the minibatch size
     }
 
     pub(crate) fn number_of_neurons(&self) -> usize {
@@ -28,27 +27,34 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn next_minibatch(&mut self, mbs: &[Minibatch], layer_index: usize) {
         // SS: calculate mean and variance across minibatch
+        self.means = BatchNormalizeLayer::mean(mbs, layer_index);
+        self.variance = BatchNormalizeLayer::variance(mbs, layer_index, &self.means);
+    }
+
+    fn variance(mbs: &[Minibatch], layer_index: usize, means: &Vector) -> Vector {
         assert!(mbs.len() > 0);
-
-        // todo SS: extract into method
-        let output = &mbs[0].output[layer_index];
-        let mut means = mbs.iter().fold(Vector::new(output.dim()), |mut accum, mb| {
-            let output = &mb.output[layer_index];
-            accum += output;
-            accum
-        });
-        means /= output.dim();
-        self.means = means.clone();
-
-        // todo SS: extract into method
-        let mut variance = mbs.iter().fold(Vector::new(output.dim()), |mut accum, mb| {
+        let msize = mbs[0].output[layer_index].dim();
+        let mut variance = mbs.iter().fold(Vector::new(msize), |mut accum, mb| {
             let output = &mb.output[layer_index];
             let tmp = output - &means;
             let tmp2 = ops::hadamard(&tmp, &tmp);
             accum += &tmp2;
             accum
         });
-        variance /= output.dim();
+        variance /= mbs.len();
+        variance
+    }
+
+    fn mean(mbs: &[Minibatch], layer_index: usize) -> Vector {
+        assert!(mbs.len() > 0);
+        let msize = mbs[0].output[layer_index].dim();
+        let mut means = mbs.iter().fold(Vector::new(msize), |mut accum, mb| {
+            let output = &mb.output[layer_index];
+            accum += output;
+            accum
+        });
+        means /= mbs.len();
+        means
     }
 
     pub(crate) fn feedforward(&self, z: &Vector) -> Vector {
@@ -70,6 +76,78 @@ mod tests {
     use linear_algebra::vector::Vector;
 
     use super::*;
+
+    #[test]
+    fn test_means() {
+        // Arrange
+        let mut mb1 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb2 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb3 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb4 = Minibatch::new(vec![2, 3, 2]);
+        let mut mbs = [mb1, mb2, mb3, mb4];
+
+        mbs[0].output[1][0] = 7.0;
+        mbs[0].output[1][1] = 9.0;
+        mbs[0].output[1][2] = 10.0;
+
+        mbs[1].output[1][0] = 3.0;
+        mbs[1].output[1][1] = -2.0;
+        mbs[1].output[1][2] = 6.0;
+
+        mbs[2].output[1][0] = 4.0;
+        mbs[2].output[1][1] = 3.0;
+        mbs[2].output[1][2] = 2.0;
+
+        mbs[3].output[1][0] = 12.0;
+        mbs[3].output[1][1] = 13.0;
+        mbs[3].output[1][2] = 6.0;
+
+        // Act
+        let means = BatchNormalizeLayer::mean(&mbs, 1);
+
+        // Assert
+        assert_eq!(means.dim(), 3);
+        assert_approx_eq!(means[0], 6.5);
+        assert_approx_eq!(means[1], 5.75);
+        assert_approx_eq!(means[2], 6.0);
+    }
+
+    #[test]
+    fn test_variance() {
+        // Arrange
+        let mut mb1 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb2 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb3 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb4 = Minibatch::new(vec![2, 3, 2]);
+        let mut mbs = [mb1, mb2, mb3, mb4];
+
+        mbs[0].output[1][0] = 7.0;
+        mbs[0].output[1][1] = 9.0;
+        mbs[0].output[1][2] = 10.0;
+
+        mbs[1].output[1][0] = 3.0;
+        mbs[1].output[1][1] = -2.0;
+        mbs[1].output[1][2] = 6.0;
+
+        mbs[2].output[1][0] = 4.0;
+        mbs[2].output[1][1] = 3.0;
+        mbs[2].output[1][2] = 2.0;
+
+        mbs[3].output[1][0] = 12.0;
+        mbs[3].output[1][1] = 13.0;
+        mbs[3].output[1][2] = 6.0;
+
+        let means = BatchNormalizeLayer::mean(&mbs, 1);
+
+        // Act
+        let variance = BatchNormalizeLayer::variance(&mbs, 1, &means);
+
+        // Assert
+        assert_eq!(variance.dim(), 3);
+        assert_approx_eq!(variance[0], 12.25);
+        assert_approx_eq!(variance[1], 32.6875);
+        assert_approx_eq!(variance[2], 8.0);
+    }
 
     #[test]
     fn test_backprop_gradient() {

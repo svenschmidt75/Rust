@@ -195,7 +195,7 @@ impl Model {
         // SS: add one "hidden" layer
         // We are only going to use its error property,
         // which gets initialized with the initial
-        // // error of the cost function, i.e. dC\dA_L.
+        // error of the cost function, i.e. dC\dA_L.
         nas.push(self.layers.iter().last().unwrap().number_of_neurons());
         Minibatch::new(nas)
     }
