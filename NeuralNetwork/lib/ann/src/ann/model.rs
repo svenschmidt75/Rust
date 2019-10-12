@@ -248,6 +248,7 @@ impl Model {
         self.calculate_outputlayer_error(mb, y, cost_function);
         for layer_index in (1..=output_layer_index).rev() {
             let layer = &self.layers[layer_index];
+            layer.backprop(layer_index, mb);
         }
     }
 
