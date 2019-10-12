@@ -50,7 +50,7 @@ impl CostFunction for QuadraticCost {
         let mut mb = model.create_minibatch();
         for x in y {
             mb.output[0] = x.input_activations.clone();
-            model.feedforward(&mut mb);
+            model.feedforward_minibatch(&mut mb);
             let c = Self::single_cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
         }
@@ -117,7 +117,7 @@ impl CostFunction for CrossEntropyCost {
         let mut mb = model.create_minibatch();
         for x in y {
             mb.output[0] = x.input_activations.clone();
-            model.feedforward(&mut mb);
+            model.feedforward_minibatch(&mut mb);
             let c = Self::single_cost(mb.output_activations(), &x.output_activations);
             total_cost += c;
         }

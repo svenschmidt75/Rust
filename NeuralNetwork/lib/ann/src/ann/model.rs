@@ -128,8 +128,8 @@ impl Model {
                     known_classifications.push(&training_sample.output_activations);
                     mb.output[0] = training_sample.input_activations.clone();
                 }
-                self.feedforward2(&mut mbs);
-                self.backprop2(&mut mbs, &known_classifications, cost_function);
+                self.feedforward(&mut mbs);
+                self.backprop(&mut mbs, &known_classifications, cost_function);
                 self.update_network(&mbs, eta, rho, lambda);
             }
 
@@ -149,7 +149,7 @@ impl Model {
         let output_layer_index = self.output_layer_index();
         for x in test_data {
             mb.output[0] = x.input_activations.clone();
-            self.feedforward(&mut mb);
+            self.feedforward_minibatch(&mut mb);
             let output_activations = &mb.output[output_layer_index];
             let expected_output_layer_activations = &x.output_activations;
             let is_classification = Model::get_class(output_activations);
@@ -200,7 +200,7 @@ impl Model {
         Minibatch::new(nas)
     }
 
-    pub fn feedforward2(&mut self, mbs: &mut [Minibatch]) {
+    pub fn feedforward(&mut self, mbs: &mut [Minibatch]) {
         // SS: feed forward all minibatch items for one entire layer, before
         // advancing to the next layer.
         self.layers.iter_mut().enumerate().skip(1).for_each(|(layer_index, layer)| {
@@ -213,8 +213,7 @@ impl Model {
         });
     }
 
-    // todo SS: remove
-    pub fn feedforward(&self, mb: &mut Minibatch) {
+    pub fn feedforward_minibatch(&self, mb: &mut Minibatch) {
         // SS: feed forward one instance of a training data sample
         // and record all calculated activations for all layers
         // for backprop.
@@ -231,7 +230,7 @@ impl Model {
         mb.error[output_layer_index + 1] = dCda;
     }
 
-    fn backprop2(&self, mbs: &mut [Minibatch], y: &[&Vector], cost_function: &dyn CostFunction) {
+    fn backprop(&self, mbs: &mut [Minibatch], y: &[&Vector], cost_function: &dyn CostFunction) {
         let output_layer_index = self.output_layer_index();
         for layer_index in (1..=output_layer_index).rev() {
             let layer = &self.layers[layer_index];
@@ -243,7 +242,7 @@ impl Model {
         }
     }
 
-    fn backprop(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
+    fn backprop_minibatch(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
         let output_layer_index = self.output_layer_index();
         self.calculate_outputlayer_error(mb, y, cost_function);
         for layer_index in (1..=output_layer_index).rev() {
@@ -332,8 +331,8 @@ impl Model {
             let y = &training_sample.output_activations;
             let mb = &mut mbs[0];
             mb.output[0] = training_sample.input_activations.clone();
-            self.feedforward(mb);
-            self.backprop(mb, y, cost);
+            self.feedforward_minibatch(mb);
+            self.backprop_minibatch(mb, y, cost);
             let (_, db2) = fc_layer.calculate_derivatives(layer_index, &mbs[..], lambda);
             db += &db2;
         }
@@ -380,8 +379,8 @@ impl Model {
             let y = &training_sample.output_activations;
             let mb = &mut mbs[0];
             mb.output[0] = training_sample.input_activations.clone();
-            self.feedforward(mb);
-            self.backprop(mb, y, cost);
+            self.feedforward_minibatch(mb);
+            self.backprop_minibatch(mb, y, cost);
             let (dw2, _) = fc_layer.calculate_derivatives(layer_index, &mbs[..], lambda);
             dw += &dw2;
         }
@@ -518,7 +517,7 @@ mod tests {
         let mut mb = model.create_minibatch();
         let training_sample = &training_data[0];
         mb.output[0] = training_sample.input_activations.clone();
-        model.feedforward(&mut mb);
+        model.feedforward_minibatch(&mut mb);
 
         // Assert
 
@@ -580,7 +579,7 @@ mod tests {
         let mut mb = model.create_minibatch();
         let training_sample = &training_data[0];
         mb.output[0] = training_sample.input_activations.clone();
-        model.feedforward(&mut mb);
+        model.feedforward_minibatch(&mut mb);
 
         // Assert
 
@@ -642,7 +641,7 @@ mod tests {
         let mut mb = model.create_minibatch();
         let training_sample = &training_data[0];
         mb.output[0] = training_sample.input_activations.clone();
-        model.feedforward(&mut mb);
+        model.feedforward_minibatch(&mut mb);
 
         // Assert
 
@@ -744,7 +743,7 @@ mod tests {
         model.initialize_layers();
 
         // Act
-        model.feedforward(&mut mb);
+        model.feedforward_minibatch(&mut mb);
 
         // Assert
         let weights1 = model.get_weights(1);
@@ -811,19 +810,19 @@ mod tests {
         let output_layer_index = 4;
         let mut mb = model.create_minibatch();
         mb.output[0] = Vector::from(vec![0.0, 0.0]);
-        model.feedforward(&mut mb);
+        model.feedforward_minibatch(&mut mb);
         assert_approx_eq!(0.000000008600374481948007, &mb.output[output_layer_index][0], 1E-6);
 
         mb.output[0] = Vector::from(vec![1.0, 0.0]);
-        model.feedforward(&mut mb);
+        model.feedforward_minibatch(&mut mb);
         assert_approx_eq!(0.0002504695377738481, &mb.output[output_layer_index][0], 1E-3);
 
         mb.output[0] = Vector::from(vec![0.0, 1.0]);
-        model.feedforward(&mut mb);
+        model.feedforward_minibatch(&mut mb);
         assert_approx_eq!(0.00023494173889617028, &mb.output[output_layer_index][0], 1E-3);
 
         mb.output[0] = Vector::from(vec![1.0, 1.0]);
-        model.feedforward(&mut mb);
+        model.feedforward_minibatch(&mut mb);
         assert_approx_eq!(0.9992958721912137, &mb.output[output_layer_index][0], 1E-3);
     }
 
