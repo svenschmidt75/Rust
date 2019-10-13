@@ -221,6 +221,50 @@ mod tests {
     }
 
     #[test]
+    fn test_calculate_x_hat() {
+        // Arrange
+        let mut mb1 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb2 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb3 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb4 = Minibatch::new(vec![2, 3, 2]);
+        let mut mbs = [mb1, mb2, mb3, mb4];
+
+        mbs[0].output[1][0] = 7.0;
+        mbs[0].output[1][1] = 9.0;
+        mbs[0].output[1][2] = 10.0;
+
+        mbs[1].output[1][0] = 3.0;
+        mbs[1].output[1][1] = -2.0;
+        mbs[1].output[1][2] = 6.0;
+
+        mbs[2].output[1][0] = 4.0;
+        mbs[2].output[1][1] = 3.0;
+        mbs[2].output[1][2] = 2.0;
+
+        mbs[3].output[1][0] = 12.0;
+        mbs[3].output[1][1] = 13.0;
+        mbs[3].output[1][2] = 6.0;
+
+        let mut layer = BatchNormalizeLayer::new(3);
+        layer.next_minibatch(&mbs, 1);
+        let z = Vector::from(vec![1.0, 1.0, 1.0]);
+
+        // Act
+        let x_hat = layer.x_hat(&z);
+
+        // Assert
+        assert_eq!(x_hat.dim(), 3);
+
+        let mean = BatchNormalizeLayer::mean(&mbs, 1);
+        let variance = BatchNormalizeLayer::variance(&mbs, 1, &mean);
+        let stddev = BatchNormalizeLayer::stddev(&variance);
+
+        assert_approx_eq!(x_hat[0], (z[0] - mean[0]) / stddev[0]);
+        assert_approx_eq!(x_hat[1], (z[1] - mean[1]) / stddev[1]);
+        assert_approx_eq!(x_hat[2], (z[2] - mean[2]) / stddev[2]);
+    }
+
+    #[test]
     fn test_backprop_gradient() {
         // Arrange
         //        let dropout_probability = 0.75;
