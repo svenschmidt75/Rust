@@ -73,14 +73,16 @@ impl FCLayer {
         }
     }
 
-    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+    pub fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
 
         // SS: calculate dz^{l}/da^{l-1}
-        let weights = &self.weights.transpose();
-        let delta_next = &mb.error[layer_index + 1];
-        let delta = weights.ax(delta_next);
-        mb.error[layer_index] = delta;
+        for mb in mbs {
+            let weights = &self.weights.transpose();
+            let delta_next = &mb.error[layer_index + 1];
+            let delta = weights.ax(delta_next);
+            mb.error[layer_index] = delta;
+        }
     }
 
     pub(crate) fn get_weights(&self) -> &Matrix2D {
@@ -241,7 +243,7 @@ mod tests {
         mbs[0].error[2] = Vector::from(vec![dCda0, dCda1, dCda2]);
 
         // Act
-        layer.backprop(1, &mut mbs[0]);
+        layer.backprop(1, &mut mbs);
 
         // Assert
         let weights = layer.get_weights();

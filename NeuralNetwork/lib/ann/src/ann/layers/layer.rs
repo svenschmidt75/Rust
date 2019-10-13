@@ -118,13 +118,13 @@ impl Layer {
         }
     }
 
-    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+    pub fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
         match self {
-            FullyConnected(layer) => layer.backprop(layer_index, mb),
-            Layer::Dropout(layer) => layer.backprop(layer_index, mb),
-            Layer::Activation(layer) => layer.backprop(layer_index, mb),
-            Layer::SoftMax(layer) => layer.backprop(layer_index, mb),
+            FullyConnected(layer) => layer.backprop(layer_index, mbs),
+            Layer::Dropout(layer) => layer.backprop(layer_index, mbs),
+            Layer::Activation(layer) => layer.backprop(layer_index, mbs),
+            Layer::SoftMax(layer) => layer.backprop(layer_index, mbs),
             _ => panic!(),
         }
     }

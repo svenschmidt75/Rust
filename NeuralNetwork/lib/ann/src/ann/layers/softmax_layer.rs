@@ -30,31 +30,32 @@ impl SoftMaxLayer {
         println!("{:15} | {:15} | {:15}", "softmax", "", "");
     }
 
-    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+    pub fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
 
         // SS: calculate da^{l+1}/dz^{l}
+        for mb in mbs {
+            // SS: dC/da^{l}
+            let delta_next = &mb.error[layer_index + 1];
 
-        // SS: dC/da^{l}
-        let delta_next = &mb.error[layer_index + 1];
+            let a = &mb.output[layer_index];
 
-        let a = &mb.output[layer_index];
-
-        // SS: local_gradient = d_a/d_z
-        let mut local_gradient = Matrix2D::new(self.nneurons, self.nneurons);
-        for i in 0..self.nneurons {
-            for k in 0..self.nneurons {
-                let mut da_k_dz_i = -a[k] * a[i];
-                if i == k {
-                    da_k_dz_i += a[k];
+            // SS: local_gradient = d_a/d_z
+            let mut local_gradient = Matrix2D::new(self.nneurons, self.nneurons);
+            for i in 0..self.nneurons {
+                for k in 0..self.nneurons {
+                    let mut da_k_dz_i = -a[k] * a[i];
+                    if i == k {
+                        da_k_dz_i += a[k];
+                    }
+                    local_gradient[(i, k)] = da_k_dz_i;
                 }
-                local_gradient[(i, k)] = da_k_dz_i;
             }
-        }
 
-        // SS: multiply local gradient by incoming gradient
-        let dC_dz = local_gradient.ax(delta_next);
-        mb.error[layer_index] = dC_dz;
+            // SS: multiply local gradient by incoming gradient
+            let dC_dz = local_gradient.ax(delta_next);
+            mb.error[layer_index] = dC_dz;
+        }
     }
 }
 
@@ -90,7 +91,7 @@ mod tests {
         mbs[0].error[2] = Vector::from(vec![dCda0, dCda1]);
 
         // Act
-        layer.backprop(1, &mut mbs[0]);
+        layer.backprop(1, &mut mbs);
 
         // Assert
         // dCdz0 = dCda0 * da0dz0 + dCda1 * da1dz0

@@ -199,34 +199,31 @@ impl Model {
         self.layers.iter_mut().enumerate().skip(1).for_each(|(layer_index, layer)| layer.feedforward(layer_index, mbs));
     }
 
-    fn calculate_outputlayer_error(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
+    fn calculate_outputlayer_error(&self, mbs: &mut [Minibatch], y: &[&Vector], cost_function: &dyn CostFunction) {
+        assert_eq!(mbs.len(), y.len());
         let output_layer_index = self.output_layer_index();
-        let aL = &mb.output[output_layer_index];
+        for idx in 0..mbs.len() {
+            let mut mb = &mut mbs[idx];
 
-        // SS: calculate dC/da^{L}
-        let dCda = cost_function.output_error(aL, y);
+            let aL = &mb.output[output_layer_index];
 
-        mb.error[output_layer_index + 1] = dCda;
+            // SS: calculate dC/da^{L}
+            let dCda = cost_function.output_error(aL, y[idx]);
+
+            mb.error[output_layer_index + 1] = dCda;
+        }
     }
 
     fn backprop(&self, mbs: &mut [Minibatch], y: &[&Vector], cost_function: &dyn CostFunction) {
+        assert_eq!(mbs.len(), y.len());
+        self.calculate_outputlayer_error(mbs, y, cost_function);
+
         let output_layer_index = self.output_layer_index();
         for layer_index in (1..=output_layer_index).rev() {
             let layer = &self.layers[layer_index];
             for i in 0..mbs.len() {
-                let mb = &mut mbs[i];
-                self.calculate_outputlayer_error(mb, y[i], cost_function);
-                layer.backprop(layer_index, mb);
+                layer.backprop(layer_index, mbs);
             }
-        }
-    }
-
-    fn backprop_minibatch(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
-        let output_layer_index = self.output_layer_index();
-        self.calculate_outputlayer_error(mb, y, cost_function);
-        for layer_index in (1..=output_layer_index).rev() {
-            let layer = &self.layers[layer_index];
-            layer.backprop(layer_index, mb);
         }
     }
 
@@ -310,7 +307,7 @@ impl Model {
             let y = &training_sample.output_activations;
             mbs[0].output[0] = training_sample.input_activations.clone();
             self.feedforward(&mut mbs);
-            self.backprop_minibatch(&mut mbs[0], y, cost);
+            self.backprop(&mut mbs, &[y], cost);
 
             let layer = self.get_layer(layer_index);
             let fc_layer = if let Layer::FullyConnected(l) = layer { l } else { panic!("not a fully-connected layer") };
@@ -360,7 +357,7 @@ impl Model {
             let y = &training_sample.output_activations;
             mbs[0].output[0] = training_sample.input_activations.clone();
             self.feedforward(&mut mbs);
-            self.backprop_minibatch(&mut mbs[0], y, cost);
+            self.backprop(&mut mbs, &[y], cost);
 
             let layer = self.get_layer(layer_index);
             let fc_layer = if let Layer::FullyConnected(l) = layer { l } else { panic!("not a fully-connected layer") };

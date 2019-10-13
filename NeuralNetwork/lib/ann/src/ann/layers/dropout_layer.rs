@@ -55,11 +55,13 @@ impl DropoutLayer {
         }
     }
 
-    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+    pub fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
-        let delta_next = &mb.error[layer_index + 1];
-        let delta = delta_next.hadamard(&self.probability_vector);
-        mb.error[layer_index] = delta;
+        for mb in mbs {
+            let delta_next = &mb.error[layer_index + 1];
+            let delta = delta_next.hadamard(&self.probability_vector);
+            mb.error[layer_index] = delta;
+        }
     }
 
     pub(crate) fn print_summary(&self) {
@@ -135,7 +137,7 @@ mod tests {
         mbs[0].error[2] = Vector::from(vec![dCda0, dCda1]);
 
         // Act
-        layer.backprop(1, &mut mbs[0]);
+        layer.backprop(1, &mut mbs);
 
         // Assert
         // dCdz0 = dCda0 * da0dz0 + dCda1 * da1dz0
