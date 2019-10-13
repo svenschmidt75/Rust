@@ -28,15 +28,15 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
         assert_eq!(self.nneurons, prev_layer.number_of_neurons());
-        self.gamma  = Vector::from(vec![1.0; self.nneurons]);
-        self.beta  = Vector::from(vec![0.0; self.nneurons]);
+        self.gamma = Vector::from(vec![1.0; self.nneurons]);
+        self.beta = Vector::from(vec![0.0; self.nneurons]);
     }
 
     pub(crate) fn number_of_neurons(&self) -> usize {
         self.nneurons
     }
 
-    pub(crate) fn next_minibatch(&mut self, mbs: &[Minibatch], layer_index: usize) {
+    pub(crate) fn next_minibatch(&mut self, layer_index: usize, mbs: &[Minibatch]) {
         // SS: calculate mean and variance across minibatch
         self.mean = BatchNormalizeLayer::mean(mbs, layer_index);
         self.variance = BatchNormalizeLayer::variance(mbs, layer_index, &self.mean);
@@ -78,8 +78,9 @@ impl BatchNormalizeLayer {
         means
     }
 
-    pub(crate) fn feedforward(&self, layer_index: usize, mbs: &mut [Minibatch]) {
+    pub(crate) fn feedforward(&mut self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
+        self.next_minibatch(layer_index, &mbs);
         for mb in mbs {
             let input = &mb.output[layer_index - 1];
             let x_hat = self.x_hat(input);
@@ -98,12 +99,7 @@ impl BatchNormalizeLayer {
     pub(crate) fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
         assert!(layer_index > 0);
 
-
-
         let delta_next = &mb.error[layer_index + 1];
-
-
-
     }
 
     pub(crate) fn print_summary(&self) {
@@ -122,10 +118,7 @@ impl BatchNormalizeLayer {
         (Vector::new(0), Vector::new(0))
     }
 
-    fn update_parameters(&mut self, dgamma: &Vector, dbeta: &Vector) {
-
-    }
-
+    fn update_parameters(&mut self, dgamma: &Vector, dbeta: &Vector) {}
 }
 
 #[cfg(test)]
@@ -272,7 +265,7 @@ mod tests {
         mbs[3].output[1][2] = 6.0;
 
         let mut layer = BatchNormalizeLayer::new(3);
-        layer.next_minibatch(&mbs, 1);
+        layer.next_minibatch(1, &mbs);
         let z = Vector::from(vec![1.0, 1.0, 1.0]);
 
         // Act
@@ -318,7 +311,7 @@ mod tests {
         let prev_layer = FCLayer::new(3);
         let mut layer = BatchNormalizeLayer::new(3);
         layer.initialize(&Layer::from(prev_layer));
-        layer.next_minibatch(&mbs, 1);
+        layer.next_minibatch(1, &mbs);
 
         let z = Vector::from(vec![1.0, 1.0, 1.0]);
         mbs[0].output[0] = z.clone();

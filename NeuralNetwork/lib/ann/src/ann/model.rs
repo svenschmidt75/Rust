@@ -175,10 +175,6 @@ impl Model {
         index
     }
 
-    fn next_minibatch(&mut self, mbs: &[Minibatch]) {
-        self.layers.iter_mut().enumerate().for_each(|(layer_index, layer)| layer.new_minibatch(mbs, layer_index));
-    }
-
     fn initialize_layers(&mut self) {
         for idx in 1..self.layers.len() {
             let (prev, current) = get_neighbors(&mut self.layers, idx);
@@ -200,19 +196,8 @@ impl Model {
     pub fn feedforward(&mut self, mbs: &mut [Minibatch]) {
         // SS: feed forward all minibatch items for one entire layer, before
         // advancing to the next layer.
-        self.layers.iter_mut().enumerate().skip(1).for_each(|(layer_index, layer)| {
-            layer.new_minibatch(mbs, layer_index);
-            layer.feedforward(layer_index, mbs);
-        });
+        self.layers.iter_mut().enumerate().skip(1).for_each(|(layer_index, layer)| layer.feedforward(layer_index, mbs));
     }
-//
-//    pub fn feedforward_minibatch(&self, mb: &mut Minibatch) {
-//        // SS: feed forward one instance of a training data sample
-//        // and record all calculated activations for all layers
-//        // for backprop.
-//        let mut mbs = [mb];
-//        self.layers.iter().enumerate().skip(1).for_each(|(layer_index, layer)| layer.feedforward(layer_index, &mut mbs));
-//    }
 
     fn calculate_outputlayer_error(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
         let output_layer_index = self.output_layer_index();

@@ -81,12 +81,6 @@ impl Layer {
         }
     }
 
-    pub(crate) fn new_minibatch(&mut self, mbs: &[Minibatch], layer_index: usize) {
-        if let Layer::BatchNormalize(layer) = self {
-            layer.next_minibatch(mbs, layer_index);
-        }
-    }
-
     pub fn initialize(&mut self, prev_layer: &Layer) {
         match self {
             Layer::FullyConnected(layer) => {
