@@ -125,6 +125,7 @@ impl Layer {
             Layer::Dropout(layer) => layer.backprop(layer_index, mbs),
             Layer::Activation(layer) => layer.backprop(layer_index, mbs),
             Layer::SoftMax(layer) => layer.backprop(layer_index, mbs),
+            Layer::BatchNormalize(layer) => layer.backprop(layer_index, mbs),
             _ => panic!(),
         }
     }

@@ -96,10 +96,12 @@ impl BatchNormalizeLayer {
         x_hat
     }
 
-    pub(crate) fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+    pub(crate) fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
+        for mb in mbs {
+            let delta_next = &mb.error[layer_index + 1];
 
-        let delta_next = &mb.error[layer_index + 1];
+        }
     }
 
     pub(crate) fn print_summary(&self) {

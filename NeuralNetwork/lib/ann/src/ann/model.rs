@@ -145,7 +145,7 @@ impl Model {
     fn accuracy(&mut self, test_data: &[TrainingData]) -> f64 {
         let accuracy;
         let mut same = 0;
-        let mut mb = self.create_minibatch();
+        let mb = self.create_minibatch();
         let mut mbs = [mb];
         let output_layer_index = self.output_layer_index();
         for x in test_data {
@@ -203,7 +203,7 @@ impl Model {
         assert_eq!(mbs.len(), y.len());
         let output_layer_index = self.output_layer_index();
         for idx in 0..mbs.len() {
-            let mut mb = &mut mbs[idx];
+            let mb = &mut mbs[idx];
 
             let aL = &mb.output[output_layer_index];
 
@@ -221,9 +221,7 @@ impl Model {
         let output_layer_index = self.output_layer_index();
         for layer_index in (1..=output_layer_index).rev() {
             let layer = &self.layers[layer_index];
-            for i in 0..mbs.len() {
-                layer.backprop(layer_index, mbs);
-            }
+            layer.backprop(layer_index, mbs);
         }
     }
 

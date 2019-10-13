@@ -52,7 +52,7 @@ fn test_train_1() {
 
     // Assert
     let output_layer_index = 4;
-    let mut mb = model.create_minibatch();
+    let mb = model.create_minibatch();
     let mut mbs = [mb];
     let mut rng = rand::thread_rng();
     let result = (0..50_usize)
@@ -107,7 +107,7 @@ fn test_train_2() {
 
     // Assert
     let output_layer_index = 4;
-    let mut mb = model.create_minibatch();
+    let mb = model.create_minibatch();
     let mut mbs = [mb];
     let mut rng = rand::thread_rng();
     let result = (0..50_usize)
@@ -170,7 +170,7 @@ fn test_train_and_gate() {
     model.train(&data, 1000, 50.0, 0.0, 0.00001, 4, &cost_function);
 
     // Assert
-    let mut mb = model.create_minibatch();
+    let mb = model.create_minibatch();
     let mut mbs = [mb];
 
     // 0 && 0 == 0

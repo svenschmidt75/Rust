@@ -47,7 +47,7 @@ impl CostFunction for QuadraticCost {
         let mut total_cost = 0.0;
 
         // SS: can use map and sum here...
-        let mut mb = model.create_minibatch();
+        let mb = model.create_minibatch();
         let mut mbs = [mb];
         for x in y {
             mbs[0].output[0] = x.input_activations.clone();
@@ -115,7 +115,7 @@ impl CostFunction for CrossEntropyCost {
         let mut total_cost = 0.0;
 
         // SS: can use map and sum here...
-        let mut mb = model.create_minibatch();
+        let mb = model.create_minibatch();
         let mut mbs = [mb];
         for x in y {
             mbs[0].output[0] = x.input_activations.clone();
