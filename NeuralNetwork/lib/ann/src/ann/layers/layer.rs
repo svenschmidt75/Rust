@@ -81,12 +81,6 @@ impl Layer {
         }
     }
 
-    pub(crate) fn new_feedforward(&mut self) {
-        if let Layer::Dropout(layer) = self {
-            layer.new_feedforward();
-        }
-    }
-
     pub(crate) fn new_minibatch(&mut self, mbs: &[Minibatch], layer_index: usize) {
         if let Layer::BatchNormalize(layer) = self {
             layer.next_minibatch(mbs, layer_index);
@@ -108,29 +102,23 @@ impl Layer {
         }
     }
 
-    pub fn feedforward(&self, layer_index: usize, mb: &mut Minibatch) {
-        let input = &mb.output[layer_index - 1];
+    pub fn feedforward(&mut self, layer_index: usize, mbs: &mut [Minibatch]) {
         match self {
             Layer::FullyConnected(layer) => {
-                let z = layer.feedforward(&input);
-                mb.output[layer_index] = z;
+                layer.feedforward(layer_index, mbs);
             }
             Layer::Dropout(layer) => {
-                // SS: dropout  layer only modifies a, not z
-                let a = layer.feedforward(&input);
-                mb.output[layer_index] = a;
+                // SS: dropout layer only modifies a, not z
+                layer.feedforward(layer_index, mbs);
             }
             Layer::Activation(layer) => {
-                let a = layer.feedforward(&input);
-                mb.output[layer_index] = a;
+                layer.feedforward(layer_index, mbs);
             }
             Layer::SoftMax(layer) => {
-                let a = layer.feedforward(&input);
-                mb.output[layer_index] = a;
+                layer.feedforward(layer_index, mbs);
             }
             Layer::BatchNormalize(layer) => {
-                let a = layer.feedforward(&input);
-                mb.output[layer_index] = a;
+                layer.feedforward(layer_index, mbs);
             }
             _ => {}
         }

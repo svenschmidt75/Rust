@@ -2,9 +2,6 @@ use crate::ann::layers::layer::Layer;
 use crate::ann::minibatch::Minibatch;
 use linear_algebra::ops;
 use linear_algebra::vector::Vector;
-use rand::distributions::{Distribution, Uniform};
-use rand::prelude::ThreadRng;
-use std::cell::RefCell;
 
 pub struct BatchNormalizeLayer {
     nneurons: usize,
@@ -81,10 +78,14 @@ impl BatchNormalizeLayer {
         means
     }
 
-    pub(crate) fn feedforward(&self, z: &Vector) -> Vector {
-        let x_hat = self.x_hat(z);
-        let y = &ops::hadamard(&x_hat, &self.gamma) + &self.beta;
-        y
+    pub(crate) fn feedforward(&self, layer_index: usize, mbs: &mut [Minibatch]) {
+        assert!(layer_index > 0);
+        for mb in mbs {
+            let input = &mb.output[layer_index - 1];
+            let x_hat = self.x_hat(input);
+            let y = &ops::hadamard(&x_hat, &self.gamma) + &self.beta;
+            mb.output[layer_index] = y;
+        }
     }
 
     fn x_hat(&self, z: &Vector) -> Vector {
@@ -292,10 +293,10 @@ mod tests {
     #[test]
     fn test_feedforward() {
         // Arrange
-        let mut mb1 = Minibatch::new(vec![2, 3, 2]);
-        let mut mb2 = Minibatch::new(vec![2, 3, 2]);
-        let mut mb3 = Minibatch::new(vec![2, 3, 2]);
-        let mut mb4 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb1 = Minibatch::new(vec![3, 3, 2]);
+        let mut mb2 = Minibatch::new(vec![3, 3, 2]);
+        let mut mb3 = Minibatch::new(vec![3, 3, 2]);
+        let mut mb4 = Minibatch::new(vec![3, 3, 2]);
         let mut mbs = [mb1, mb2, mb3, mb4];
 
         mbs[0].output[1][0] = 7.0;
@@ -320,11 +321,13 @@ mod tests {
         layer.next_minibatch(&mbs, 1);
 
         let z = Vector::from(vec![1.0, 1.0, 1.0]);
+        mbs[0].output[0] = z.clone();
 
         // Act
-        let y = layer.feedforward(&z);
+        layer.feedforward(1, &mut mbs);
 
         // Assert
+        let y = &mbs[0].output[0];
         assert_eq!(y.dim(), 3);
 
         // SS: gamma=1 and beta=0 initially
