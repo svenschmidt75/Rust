@@ -8,17 +8,31 @@ use std::cell::RefCell;
 
 pub struct BatchNormalizeLayer {
     nneurons: usize,
-    means: Vector,
+    mean: Vector,
     variance: Vector,
+    stddev: Vector,
+    one_over_stddev: Vector,
+    gamma: Vector,
+    beta: Vector,
 }
 
 impl BatchNormalizeLayer {
     pub fn new(nneurons: usize) -> BatchNormalizeLayer {
-        BatchNormalizeLayer { nneurons, means: Vector::new(0), variance: Vector::new(0) }
+        BatchNormalizeLayer {
+            nneurons,
+            mean: Vector::new(0),
+            variance: Vector::new(0),
+            stddev: Vector::new(0),
+            one_over_stddev: Vector::new(0),
+            gamma: Vector::new(0),
+            beta: Vector::new(0),
+        }
     }
 
     pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
         assert_eq!(self.nneurons, prev_layer.number_of_neurons());
+        self.gamma  = Vector::new(self.nneurons);
+        self.beta = Vector::new(self.nneurons);
     }
 
     pub(crate) fn number_of_neurons(&self) -> usize {
@@ -27,8 +41,10 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn next_minibatch(&mut self, mbs: &[Minibatch], layer_index: usize) {
         // SS: calculate mean and variance across minibatch
-        self.means = BatchNormalizeLayer::mean(mbs, layer_index);
-        self.variance = BatchNormalizeLayer::variance(mbs, layer_index, &self.means);
+        self.mean = BatchNormalizeLayer::mean(mbs, layer_index);
+        self.variance = BatchNormalizeLayer::variance(mbs, layer_index, &self.mean);
+        self.stddev = BatchNormalizeLayer::stddev(&self.variance);
+        self.one_over_stddev = ops::f(&self.stddev, &|x| 1.0 / x);
     }
 
     fn variance(mbs: &[Minibatch], layer_index: usize, means: &Vector) -> Vector {
@@ -45,6 +61,10 @@ impl BatchNormalizeLayer {
         variance
     }
 
+    fn stddev(variance: &Vector) -> Vector {
+        ops::f(variance, &f64::sqrt)
+    }
+
     fn mean(mbs: &[Minibatch], layer_index: usize) -> Vector {
         assert!(mbs.len() > 0);
         let msize = mbs[0].output[layer_index].dim();
@@ -58,7 +78,16 @@ impl BatchNormalizeLayer {
     }
 
     pub(crate) fn feedforward(&self, z: &Vector) -> Vector {
-        unimplemented!()
+        let x_hat = self.x_hat(z);
+        let y = &ops::hadamard(&x_hat, &self.gamma) + &self.beta;
+        return y;
+    }
+
+    fn x_hat(&self, z: &Vector) -> Vector {
+        assert_eq!(z.dim(), self.mean.dim());
+        let tmp1 = z - &self.mean;
+        let x_hat = ops::hadamard(&tmp1, &self.one_over_stddev);
+        x_hat
     }
 
     pub(crate) fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
@@ -73,7 +102,6 @@ impl BatchNormalizeLayer {
 #[cfg(test)]
 mod tests {
     use assert_approx_eq::assert_approx_eq;
-    use linear_algebra::vector::Vector;
 
     use super::*;
 

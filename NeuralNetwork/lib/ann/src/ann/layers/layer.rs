@@ -83,7 +83,7 @@ impl Layer {
 
     pub(crate) fn new_feedforward(&mut self) {
         if let Layer::Dropout(layer) = self {
-            layer.next_training_sample();
+            layer.new_feedforward();
         }
     }
 

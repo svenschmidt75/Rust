@@ -30,7 +30,7 @@ impl DropoutLayer {
         self.nneurons
     }
 
-    pub(crate) fn next_training_sample(&mut self) {
+    pub(crate) fn new_feedforward(&mut self) {
         for idx in 0..self.probability_vector.dim() {
             let factor = {
                 let v = self.sampler.sample();
@@ -116,7 +116,7 @@ mod tests {
         mb.output[0] = Vector::from(vec![z0, z1]);
 
         // calculate a from z
-        layer.next_training_sample();
+        layer.new_feedforward();
         mb.output[1] = layer.feedforward(&mb.output[0]);
         let a0 = mb.output[1][0];
         let a1 = mb.output[1][1];
