@@ -44,7 +44,7 @@ impl BatchNormalizeLayer {
         self.mean = BatchNormalizeLayer::mean(mbs, layer_index);
         self.variance = BatchNormalizeLayer::variance(mbs, layer_index, &self.mean);
         self.stddev = BatchNormalizeLayer::stddev(&self.variance);
-        self.one_over_stddev = ops::f(&self.stddev, &|x| 1.0 / x);
+        self.one_over_stddev = BatchNormalizeLayer::one_over_stddev(&self.stddev);
     }
 
     fn variance(mbs: &[Minibatch], layer_index: usize, means: &Vector) -> Vector {
@@ -63,6 +63,10 @@ impl BatchNormalizeLayer {
 
     fn stddev(variance: &Vector) -> Vector {
         ops::f(variance, &f64::sqrt)
+    }
+
+    fn one_over_stddev(stddev: &Vector) -> Vector {
+        ops::f(stddev, &|x| 1.0 / x)
     }
 
     fn mean(mbs: &[Minibatch], layer_index: usize) -> Vector {
@@ -175,6 +179,45 @@ mod tests {
         assert_approx_eq!(variance[0], 12.25);
         assert_approx_eq!(variance[1], 32.6875);
         assert_approx_eq!(variance[2], 8.0);
+    }
+
+    #[test]
+    fn test_one_over_stddev() {
+        // Arrange
+        let mut mb1 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb2 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb3 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb4 = Minibatch::new(vec![2, 3, 2]);
+        let mut mbs = [mb1, mb2, mb3, mb4];
+
+        mbs[0].output[1][0] = 7.0;
+        mbs[0].output[1][1] = 9.0;
+        mbs[0].output[1][2] = 10.0;
+
+        mbs[1].output[1][0] = 3.0;
+        mbs[1].output[1][1] = -2.0;
+        mbs[1].output[1][2] = 6.0;
+
+        mbs[2].output[1][0] = 4.0;
+        mbs[2].output[1][1] = 3.0;
+        mbs[2].output[1][2] = 2.0;
+
+        mbs[3].output[1][0] = 12.0;
+        mbs[3].output[1][1] = 13.0;
+        mbs[3].output[1][2] = 6.0;
+
+        let means = BatchNormalizeLayer::mean(&mbs, 1);
+        let variance = BatchNormalizeLayer::variance(&mbs, 1, &means);
+        let stddev = BatchNormalizeLayer::stddev(&variance);
+
+        // Act
+        let one_over_stddev = BatchNormalizeLayer::one_over_stddev(&stddev);
+
+        // Assert
+        assert_eq!(one_over_stddev.dim(), 3);
+        assert_approx_eq!(one_over_stddev[0], 1.0 / 3.5);
+        assert_approx_eq!(one_over_stddev[1], 1.0 / 5.7172983130146);
+        assert_approx_eq!(one_over_stddev[2], 1.0 / 2.8284271247462);
     }
 
     #[test]
