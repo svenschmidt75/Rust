@@ -31,8 +31,8 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn initialize(&mut self, prev_layer: &Layer) {
         assert_eq!(self.nneurons, prev_layer.number_of_neurons());
-        self.gamma  = Vector::new(self.nneurons);
-        self.beta = Vector::new(self.nneurons);
+        self.gamma  = Vector::from(vec![1.0; self.nneurons]);
+        self.beta  = Vector::from(vec![0.0; self.nneurons]);
     }
 
     pub(crate) fn number_of_neurons(&self) -> usize {
@@ -84,7 +84,7 @@ impl BatchNormalizeLayer {
     pub(crate) fn feedforward(&self, z: &Vector) -> Vector {
         let x_hat = self.x_hat(z);
         let y = &ops::hadamard(&x_hat, &self.gamma) + &self.beta;
-        return y;
+        y
     }
 
     fn x_hat(&self, z: &Vector) -> Vector {
@@ -108,6 +108,7 @@ mod tests {
     use assert_approx_eq::assert_approx_eq;
 
     use super::*;
+    use crate::ann::layers::fc_layer::FCLayer;
 
     #[test]
     fn test_means() {
@@ -262,6 +263,51 @@ mod tests {
         assert_approx_eq!(x_hat[0], (z[0] - mean[0]) / stddev[0]);
         assert_approx_eq!(x_hat[1], (z[1] - mean[1]) / stddev[1]);
         assert_approx_eq!(x_hat[2], (z[2] - mean[2]) / stddev[2]);
+    }
+
+    #[test]
+    fn test_feedforward() {
+        // Arrange
+        let mut mb1 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb2 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb3 = Minibatch::new(vec![2, 3, 2]);
+        let mut mb4 = Minibatch::new(vec![2, 3, 2]);
+        let mut mbs = [mb1, mb2, mb3, mb4];
+
+        mbs[0].output[1][0] = 7.0;
+        mbs[0].output[1][1] = 9.0;
+        mbs[0].output[1][2] = 10.0;
+
+        mbs[1].output[1][0] = 3.0;
+        mbs[1].output[1][1] = -2.0;
+        mbs[1].output[1][2] = 6.0;
+
+        mbs[2].output[1][0] = 4.0;
+        mbs[2].output[1][1] = 3.0;
+        mbs[2].output[1][2] = 2.0;
+
+        mbs[3].output[1][0] = 12.0;
+        mbs[3].output[1][1] = 13.0;
+        mbs[3].output[1][2] = 6.0;
+
+        let prev_layer = FCLayer::new(3);
+        let mut layer = BatchNormalizeLayer::new(3);
+        layer.initialize(&Layer::from(prev_layer));
+        layer.next_minibatch(&mbs, 1);
+
+        let z = Vector::from(vec![1.0, 1.0, 1.0]);
+
+        // Act
+        let y = layer.feedforward(&z);
+
+        // Assert
+        assert_eq!(y.dim(), 3);
+
+        // SS: gamma=1 and beta=0 initially
+        let x_hat = layer.x_hat(&z);
+        assert_approx_eq!(x_hat[0], x_hat[0]);
+        assert_approx_eq!(x_hat[1], x_hat[1]);
+        assert_approx_eq!(x_hat[2], x_hat[2]);
     }
 
     #[test]
