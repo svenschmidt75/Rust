@@ -148,8 +148,10 @@ impl Layer {
     }
 
     pub fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
-        if let Layer::FullyConnected(layer) = self {
-            layer.update_network(layer_index, mbs, eta, rho, lambda);
+        match self {
+            Layer::FullyConnected(layer) => layer.update_network(layer_index, mbs, eta, rho, lambda),
+            Layer::BatchNormalize(layer) => layer.update_network(layer_index, mbs),
+            _ => {}
         }
     }
 

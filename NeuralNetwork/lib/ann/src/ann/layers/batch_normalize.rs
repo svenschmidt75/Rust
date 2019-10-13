@@ -96,11 +96,35 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
         assert!(layer_index > 0);
+
+
+
+        let delta_next = &mb.error[layer_index + 1];
+
+
+
     }
 
     pub(crate) fn print_summary(&self) {
         println!("{:15} | {:15} | {:15}", "BN", "", "");
     }
+
+    pub(crate) fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch]) {
+        // SS: adjust parameters this layer leans, gamma and beta
+        let (dgamma, dbeta) = self.calculate_derivatives(layer_index, mbs);
+
+        // update gamma and beta
+        self.update_parameters(&dgamma, &dbeta);
+    }
+
+    fn calculate_derivatives(&mut self, layer_index: usize, mbs: &[Minibatch]) -> (Vector, Vector) {
+        (Vector::new(0), Vector::new(0))
+    }
+
+    fn update_parameters(&mut self, dgamma: &Vector, dbeta: &Vector) {
+
+    }
+
 }
 
 #[cfg(test)]

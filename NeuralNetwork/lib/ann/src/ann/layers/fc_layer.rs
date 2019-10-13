@@ -126,8 +126,8 @@ impl FCLayer {
         println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
     }
 
-    pub fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
-        // calc. derivatives from all mini batches
+    pub(crate) fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
+        // SS: adjust parameters this layer leans, weights and biases
         let (dw, db) = self.calculate_derivatives(layer_index, mbs, lambda);
 
         // calc. momentum
