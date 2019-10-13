@@ -38,13 +38,13 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn next_minibatch(&mut self, layer_index: usize, mbs: &[Minibatch]) {
         // SS: calculate mean and variance across minibatch
-        self.mean = BatchNormalizeLayer::mean(mbs, layer_index);
-        self.variance = BatchNormalizeLayer::variance(mbs, layer_index, &self.mean);
+        self.mean = BatchNormalizeLayer::mean(layer_index, mbs);
+        self.variance = BatchNormalizeLayer::variance(layer_index, mbs, &self.mean);
         self.stddev = BatchNormalizeLayer::stddev(&self.variance);
         self.one_over_stddev = BatchNormalizeLayer::one_over_stddev(&self.stddev);
     }
 
-    fn variance(mbs: &[Minibatch], layer_index: usize, means: &Vector) -> Vector {
+    fn variance(layer_index: usize, mbs: &[Minibatch], means: &Vector) -> Vector {
         assert!(mbs.len() > 0);
         let msize = mbs[0].output[layer_index].dim();
         let mut variance = mbs.iter().fold(Vector::new(msize), |mut accum, mb| {
@@ -66,7 +66,7 @@ impl BatchNormalizeLayer {
         ops::f(stddev, &|x| 1.0 / x)
     }
 
-    fn mean(mbs: &[Minibatch], layer_index: usize) -> Vector {
+    fn mean(layer_index: usize, mbs: &[Minibatch]) -> Vector {
         assert!(mbs.len() > 0);
         let msize = mbs[0].output[layer_index].dim();
         let mut means = mbs.iter().fold(Vector::new(msize), |mut accum, mb| {
@@ -154,7 +154,7 @@ mod tests {
         mbs[3].output[1][2] = 6.0;
 
         // Act
-        let means = BatchNormalizeLayer::mean(&mbs, 1);
+        let means = BatchNormalizeLayer::mean(1, &mbs);
 
         // Assert
         assert_eq!(means.dim(), 3);
@@ -188,10 +188,10 @@ mod tests {
         mbs[3].output[1][1] = 13.0;
         mbs[3].output[1][2] = 6.0;
 
-        let means = BatchNormalizeLayer::mean(&mbs, 1);
+        let means = BatchNormalizeLayer::mean(1, &mbs);
 
         // Act
-        let variance = BatchNormalizeLayer::variance(&mbs, 1, &means);
+        let variance = BatchNormalizeLayer::variance(1, &mbs, &means);
 
         // Assert
         assert_eq!(variance.dim(), 3);
@@ -225,8 +225,8 @@ mod tests {
         mbs[3].output[1][1] = 13.0;
         mbs[3].output[1][2] = 6.0;
 
-        let means = BatchNormalizeLayer::mean(&mbs, 1);
-        let variance = BatchNormalizeLayer::variance(&mbs, 1, &means);
+        let means = BatchNormalizeLayer::mean(1, &mbs);
+        let variance = BatchNormalizeLayer::variance(1, &mbs, &means);
         let stddev = BatchNormalizeLayer::stddev(&variance);
 
         // Act
@@ -274,8 +274,8 @@ mod tests {
         // Assert
         assert_eq!(x_hat.dim(), 3);
 
-        let mean = BatchNormalizeLayer::mean(&mbs, 1);
-        let variance = BatchNormalizeLayer::variance(&mbs, 1, &mean);
+        let mean = BatchNormalizeLayer::mean(1, &mbs);
+        let variance = BatchNormalizeLayer::variance(1, &mbs, &mean);
         let stddev = BatchNormalizeLayer::stddev(&variance);
 
         assert_approx_eq!(x_hat[0], (z[0] - mean[0]) / stddev[0]);
