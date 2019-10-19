@@ -102,46 +102,54 @@ impl BatchNormalizeLayer {
     pub(crate) fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
         assert!(!mbs.is_empty());
-        assert_eq!(mbs.len(), self.mean.dim());
 
         let dim = mbs[0].output[layer_index].dim();
 
+        assert_eq!(dim, self.mean.dim());
+        assert_eq!(dim, self.variance.dim());
+        assert_eq!(dim, self.stddev.dim());
+        assert_eq!(dim, self.one_over_stddev.dim());
+        assert_eq!(dim, self.gamma.dim());
+        assert_eq!(dim, self.beta.dim());
+
         // SS: for each dimension of the input vector to the BN layer
         for k in 0..dim {
+            let sigma2 = self.variance[k];
+            let sigma = self.stddev[k];
+            let tmp1 = sigma2 + EPS;
+            let tmp2 = tmp1.sqrt();
+            let tmp3 = 1.0 / (tmp1 * tmp2);
+            let tmp4 = -0.5 * tmp3;
 
             // SS: for each minibatch
             for m in 0..mbs.len() {
-                let sigma2 = self.variance[m];
-                let sigma = self.stddev[m];
-                let tmp1 = sigma2 + EPS;
-                let tmp2 = tmp1.sqrt();
-                let tmp3 = 1.0 / (tmp1 * tmp2);
-                let tmp4 = -0.5 * tmp3;
-
                 let mut dl_dsigma2 = 0.0;
-                for m2 in 0..mbs.len() {
-                    let dC_dy = mbs[m2].error[layer_index + 1][k];
-                    let dC_dxhat = dC_dy * self.gamma[m];
-                    let x = mbs[m2].output[layer_index - 1][k];
-                    let tmp = dC_dxhat * (x - self.mean[m]) * tmp4;
+
+                // todo SS: use fold here?
+                for i in 0..mbs.len() {
+                    let dC_dy = mbs[i].error[layer_index + 1][k];
+                    let dC_dxhat = dC_dy * self.gamma[k];
+                    let x = mbs[i].output[layer_index - 1][k];
+                    let tmp = dC_dxhat * (x - self.mean[k]);
                     dl_dsigma2 += tmp;
                 }
+                dl_dsigma2 *= tmp4;
 
 
 
 
                 let mut dl_dmu = 0.0;
-                let tmp5  = -1.0 / tmp1;
-                for m2 in 0..mbs.len() {
-                    let dC_dy = mbs[m2].error[layer_index + 1][k];
-                    let dC_dxhat = dC_dy * self.gamma[m];
-                    dl_dmu += tmp5 * dC_dxhat;
+                for i in 0..mbs.len() {
+                    let dC_dy = mbs[i].error[layer_index + 1][k];
+                    let dC_dxhat = dC_dy * self.gamma[k];
+                    dl_dmu += dC_dxhat;
                 }
+                dl_dmu *= 1.0 / tmp2;
 
                 let mut nom = 0.0;
-                for m2 in 0..mbs.len() {
-                    let x = mbs[m2].output[layer_index - 1][k];
-                    let tmp = -2.0 * (x - self.mean[m]);
+                for i in 0..mbs.len() {
+                    let x = mbs[i].output[layer_index - 1][k];
+                    let tmp = -2.0 * (x - self.mean[k]);
                     nom += tmp;
                 }
                 dl_dmu += dl_dsigma2 * nom / mbs.len() as f64;
@@ -150,16 +158,16 @@ impl BatchNormalizeLayer {
 
 
                 let dC_dy = mbs[m].error[layer_index + 1][k];
-                let dC_dxhat = dC_dy * self.gamma[m];
+                let dC_dxhat = dC_dy * self.gamma[k];
 
-                let t1 = dC_dxhat / tmp1;
+                let t1 = dC_dxhat / tmp2;
 
                 let x = mbs[m].output[layer_index - 1][k];
-                let t2 = dl_dsigma2 * 2.0 * (x - self.mean[m]) / mbs.len() as f64;
+                let t2 = dl_dsigma2 * 2.0 * (x - self.mean[k]) / mbs.len() as f64;
 
                 let t3 = dl_dmu / mbs.len() as f64;
 
-                let dl_dx = t1 + t2 + t3;;
+                let dl_dx = t1 + t2 + t3;
 
                 mbs[m].error[layer_index][k] = dl_dx;
             }
