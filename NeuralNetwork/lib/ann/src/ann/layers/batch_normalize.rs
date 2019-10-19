@@ -3,6 +3,9 @@ use crate::ann::minibatch::Minibatch;
 use linear_algebra::ops;
 use linear_algebra::vector::Vector;
 
+
+const EPS: f64 = 1E-8;
+
 pub struct BatchNormalizeLayer {
     nneurons: usize,
     mean: Vector,
@@ -98,9 +101,68 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
-        for mb in mbs {
-            let delta_next = &mb.error[layer_index + 1];
+        assert!(!mbs.is_empty());
+        assert_eq!(mbs.len(), self.mean.dim());
 
+        let dim = mbs[0].output[layer_index].dim();
+
+        // SS: for each dimension of the input vector to the BN layer
+        for k in 0..dim {
+
+            // SS: for each minibatch
+            for m in 0..mbs.len() {
+                let sigma2 = self.variance[m];
+                let sigma = self.stddev[m];
+                let tmp1 = sigma2 + EPS;
+                let tmp2 = tmp1.sqrt();
+                let tmp3 = 1.0 / (tmp1 * tmp2);
+                let tmp4 = -0.5 * tmp3;
+
+                let mut dl_dsigma2 = 0.0;
+                for m2 in 0..mbs.len() {
+                    let dC_dy = mbs[m2].error[layer_index + 1][k];
+                    let dC_dxhat = dC_dy * self.gamma[m];
+                    let x = mbs[m2].output[layer_index - 1][k];
+                    let tmp = dC_dxhat * (x - self.mean[m]) * tmp4;
+                    dl_dsigma2 += tmp;
+                }
+
+
+
+
+                let mut dl_dmu = 0.0;
+                let tmp5  = -1.0 / tmp1;
+                for m2 in 0..mbs.len() {
+                    let dC_dy = mbs[m2].error[layer_index + 1][k];
+                    let dC_dxhat = dC_dy * self.gamma[m];
+                    dl_dmu += tmp5 * dC_dxhat;
+                }
+
+                let mut nom = 0.0;
+                for m2 in 0..mbs.len() {
+                    let x = mbs[m2].output[layer_index - 1][k];
+                    let tmp = -2.0 * (x - self.mean[m]);
+                    nom += tmp;
+                }
+                dl_dmu += dl_dsigma2 * nom / mbs.len() as f64;
+
+
+
+
+                let dC_dy = mbs[m].error[layer_index + 1][k];
+                let dC_dxhat = dC_dy * self.gamma[m];
+
+                let t1 = dC_dxhat / tmp1;
+
+                let x = mbs[m].output[layer_index - 1][k];
+                let t2 = dl_dsigma2 * 2.0 * (x - self.mean[m]) / mbs.len() as f64;
+
+                let t3 = dl_dmu / mbs.len() as f64;
+
+                let dl_dx = t1 + t2 + t3;;
+
+                mbs[m].error[layer_index][k] = dl_dx;
+            }
         }
     }
 
