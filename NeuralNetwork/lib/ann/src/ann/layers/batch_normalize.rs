@@ -12,7 +12,7 @@ pub struct BatchNormalizeLayer {
     variance: Vector,
     stddev: Vector,
     one_over_stddev: Vector,
-    gamma: Vector,
+    pub(crate) gamma: Vector,
     beta: Vector,
 }
 
@@ -83,7 +83,7 @@ impl BatchNormalizeLayer {
 
     pub(crate) fn feedforward(&mut self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
-        self.next_minibatch(layer_index, &mbs);
+        self.next_minibatch(layer_index - 1, &mbs);
         for mb in mbs {
             let input = &mb.output[layer_index - 1];
             let x_hat = self.x_hat(input);
@@ -199,6 +199,8 @@ mod tests {
 
     use super::*;
     use crate::ann::layers::fc_layer::FCLayer;
+    use crate::ann::layers::input_layer::InputLayer;
+    use crate::ann::layers::layer::Layer::BatchNormalize;
 
     #[test]
     fn test_means() {
@@ -356,7 +358,7 @@ mod tests {
     }
 
     #[test]
-    fn test_feedforward() {
+    fn test_feedforward1() {
         // Arrange
         let mut mb1 = Minibatch::new(vec![3, 3, 2]);
         let mut mb2 = Minibatch::new(vec![3, 3, 2]);
@@ -403,38 +405,49 @@ mod tests {
     }
 
     #[test]
-    fn test_backprop_gradient() {
+    fn test_backprop_gradient_1() {
         // Arrange
-        //        let dropout_probability = 0.75;
-        //        let mut layer = DropoutLayer::new(2, dropout_probability, Box::new(TestUniformDistributionSampler { p: dropout_probability }));
-        //        let mut mb = Minibatch::new(vec![2, 2, 2]);
-        //
-        //        let z0 = 0.765;
-        //        let z1 = 0.134;
-        //
-        //        mb.output[0] = Vector::from(vec![z0, z1]);
-        //
-        //        // calculate a from z
-        //        layer.next_training_sample();
-        //        mb.output[1] = layer.feedforward(&mb.output[0]);
-        //        let a0 = mb.output[1][0];
-        //        let a1 = mb.output[1][1];
-        //
-        //        // C(a0, a1) = -3 * sin(a0) + 5 * cos(a1)
-        //
-        //        // set dC/da
-        //        let dCda0 = -3.0 * a0.cos();
-        //        let dCda1 = -5.0 * a1.sin();
-        //        mb.error[2] = Vector::from(vec![dCda0, dCda1]);
-        //
-        //        // Act
-        //        layer.backprop(1, &mut mb);
-        //
-        //        // Assert
-        //        // dCdz0 = dCda0 * da0dz0 + dCda1 * da1dz0
-        //        let dCdz0 = dCda0 * 1.0 / dropout_probability;
-        //        let dCdz1 = dCda1 * 1.0 / dropout_probability;
-        //        assert_approx_eq!(dCdz0, mb.error[1][0], 1E-12);
-        //        assert_approx_eq!(dCdz1, mb.error[1][1], 1E-12);
+        let input_layer = Layer::from(InputLayer::new(2));
+        let mut layer = BatchNormalizeLayer::new(2);
+        layer.initialize(&input_layer);
+
+        let mut mbs = [Minibatch::new(vec![2, 2, 2]), Minibatch::new(vec![2, 2, 2])];
+
+        let z00 = 3.0;
+        let z01 = 21.0;
+        mbs[0].output[0] = Vector::from(vec![z00, z01]);
+
+        let z10 = 4.0;
+        let z11 = 11.0;
+        mbs[1].output[0] = Vector::from(vec![z10, z11]);
+
+        layer.feedforward(1, &mut mbs);
+
+        // C(y0, y1) = -3 * sin(y0) + 5 * cos(y1)
+
+        // set dC/dy
+        let y0 = mbs[0].output[1][0];
+        let y1 = mbs[0].output[1][1];
+        let dCdy0 = -3.0 * y0.cos();
+        let dCdy1 = -5.0 * y1.sin();
+        mbs[0].error[2] = Vector::from(vec![dCdy0, dCdy1]);
+
+        let y0 = mbs[1].output[1][0];
+        let y1 = mbs[1].output[1][1];
+        let dCdy0 = -3.0 * y0.cos();
+        let dCdy1 = -5.0 * y1.sin();
+        mbs[1].error[2] = Vector::from(vec![dCdy0, dCdy1]);
+
+        // Act
+        layer.backprop(1, &mut mbs);
+
+        // Assert
+
+        // dCdz0 = dCda0 * da0dz0 + dCda1 * da1dz0 + dCda2 * da2dz0
+//        let dCdz0 = dCda0 * weights[(0, 0)] + dCda1 * weights[(1, 0)] + dCda2 * weights[(2, 0)];
+//        let dCdz1 = dCda0 * weights[(0, 1)] + dCda1 * weights[(1, 1)] + dCda2 * weights[(2, 1)];
+//        assert_approx_eq!(dCdz0, mbs[0].error[1][0], 1E-12);
+//        assert_approx_eq!(dCdz1, mbs[0].error[1][1], 1E-12);
+
     }
 }

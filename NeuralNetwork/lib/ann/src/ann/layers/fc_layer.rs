@@ -234,7 +234,7 @@ mod tests {
         let a1 = mbs[0].output[1][1];
         let a2 = mbs[0].output[1][2];
 
-        // C(a0, a1) = -3 * sin(a0) + 5 * cos(a1)
+        // C(a0, a1) = -3 * sin(a0) + 5 * cos(a1) + 7 * sin(a0 + a2)
 
         // set dC/da
         let dCda0 = -3.0 * a0.cos() + 7.0 * (a0 + a2).cos();
