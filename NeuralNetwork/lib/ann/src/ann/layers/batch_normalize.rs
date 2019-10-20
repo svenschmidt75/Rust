@@ -423,11 +423,11 @@ mod tests {
         // C(y0, y1) = -3 * sin(y0) + 5 * cos(y1)
 
         let calculate_dC_dy = |minibatch_idx: usize| -> Vector {
-            let y00 = mbs[minibatch_idx].output[1][0];
-            let y01 = mbs[minibatch_idx].output[1][1];
-            let dCdy00 = -3.0 * y00.cos();
-            let dCdy01 = -5.0 * y01.sin();
-            Vector::from(vec![dCdy00, dCdy01])
+            let y0 = mbs[minibatch_idx].output[1][0];
+            let y1 = mbs[minibatch_idx].output[1][1];
+            let dCdy0 = -3.0 * y0.cos();
+            let dCdy1 = -5.0 * y1.sin();
+            Vector::from(vec![dCdy0, dCdy1])
         };
 
         // set dC/dy for minibatch 1
