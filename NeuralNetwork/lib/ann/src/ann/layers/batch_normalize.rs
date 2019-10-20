@@ -92,9 +92,9 @@ impl BatchNormalizeLayer {
         }
     }
 
-    fn x_hat(&self, z: &Vector) -> Vector {
-        assert_eq!(z.dim(), self.mean.dim());
-        let tmp1 = z - &self.mean;
+    fn x_hat(&self, x: &Vector) -> Vector {
+        assert_eq!(x.dim(), self.mean.dim());
+        let tmp1 = x - &self.mean;
         let x_hat = ops::hadamard(&tmp1, &self.one_over_stddev);
         x_hat
     }
@@ -116,21 +116,19 @@ impl BatchNormalizeLayer {
         for k in 0..dim {
             let sigma2 = self.variance[k];
             let tmp1 = sigma2 + EPS;
-            let tmp2 = tmp1.sqrt();
-            let tmp3 = 1.0 / (tmp1 * tmp2);
-            let tmp4 = -0.5 * tmp3;
+            let tmp2 = 1.0 / tmp1.sqrt();
+            let tmp3 = -0.5 * tmp2 * tmp2 * tmp2;
 
             // SS: for each minibatch
             for m in 0..mbs.len() {
-                let mut dl_dsigma2 = 0.0;
-
                 // todo SS: use fold here?
+                let mut dl_dsigma2 = 0.0;
                 for i in 0..mbs.len() {
                     let dC_dy = mbs[i].error[layer_index + 1][k];
                     let dC_dxhat = dC_dy * self.gamma[k];
                     let x = mbs[i].output[layer_index - 1][k];
                     let tmp = dC_dxhat * (x - self.mean[k]);
-                    dl_dsigma2 += tmp * tmp4;
+                    dl_dsigma2 += tmp * tmp3;
                 }
 
 
@@ -138,7 +136,7 @@ impl BatchNormalizeLayer {
                 for i in 0..mbs.len() {
                     let dC_dy = mbs[i].error[layer_index + 1][k];
                     let dC_dxhat = dC_dy * self.gamma[k];
-                    dl_dmu += dC_dxhat * (-1.0) / tmp2;
+                    dl_dmu += dC_dxhat * (-1.0) * tmp2;
                 }
 
                 let mut nom = 0.0;
@@ -152,7 +150,7 @@ impl BatchNormalizeLayer {
 
                 let dC_dy = mbs[m].error[layer_index + 1][k];
                 let dC_dxhat = dC_dy * self.gamma[k];
-                let t1 = dC_dxhat / tmp2;
+                let t1 = dC_dxhat * tmp2;
 
                 let x = mbs[m].output[layer_index - 1][k];
                 let t2 = dl_dsigma2 * 2.0 * (x - self.mean[k]) / mbs.len() as f64;
@@ -405,14 +403,17 @@ mod tests {
 
         let mut mbs = [Minibatch::new(vec![2, 2, 2]), Minibatch::new(vec![2, 2, 2]), Minibatch::new(vec![2, 2, 2])];
 
+        // set input for minibatch 1
         let x00 = 6.645;
         let x01 = -1.7365;
         mbs[0].output[0] = Vector::from(vec![x00, x01]);
 
+        // set input for minibatch 2
         let x10 = 3.45;
         let x11 = -1.987;
         mbs[1].output[0] = Vector::from(vec![x10, x11]);
 
+        // set input for minibatch 3
         let x20 = 12.45;
         let x21 = -14.987;
         mbs[2].output[0] = Vector::from(vec![x20, x21]);
@@ -421,19 +422,21 @@ mod tests {
 
         // C(y0, y1) = -3 * sin(y0) + 5 * cos(y1)
 
-        // set dC/dy
+        // set dC/dy for minibatch 1
         let y0 = mbs[0].output[1][0];
         let y1 = mbs[0].output[1][1];
         let dCdy0 = -3.0 * y0.cos();
         let dCdy1 = -5.0 * y1.sin();
         mbs[0].error[2] = Vector::from(vec![dCdy0, dCdy1]);
 
+        // set dC/dy for minibatch 2
         let y0 = mbs[1].output[1][0];
         let y1 = mbs[1].output[1][1];
         let dCdy0 = -3.0 * y0.cos();
         let dCdy1 = -5.0 * y1.sin();
         mbs[1].error[2] = Vector::from(vec![dCdy0, dCdy1]);
 
+        // set dC/dy for minibatch 3
         let y0 = mbs[2].output[1][0];
         let y1 = mbs[2].output[1][1];
         let dCdy0 = -3.0 * y0.cos();
@@ -445,29 +448,27 @@ mod tests {
 
         // Assert
         let x_hat = |x: f64, mean: f64, variance: f64| -> f64 {
-            let x_hat = (x - mean) / variance.sqrt();
+            let stddev = variance.sqrt();
+            let x_hat = (x - mean) / stddev;
             x_hat
         };
 
         let y = |x_hat: f64, gamma: f64, beta: f64| gamma * x_hat + beta;
 
-        let cost_function = |y0: f64, y1: f64| {
+        let cost_function = |x0: f64, x1: f64| {
             let cost = -3.0 * y0.sin() + 5.0 * y1.cos();
             cost
         };
 
-        let mean_0 = 7.515;
-        let mean_1 = -6.2368333333333332;
-
-        let sigma2_0 = 13.878449999999999;
-        let sigma2_1 = 38.293166722222225;
+        let mean = BatchNormalizeLayer::mean(0, &mbs);
+        let variance = BatchNormalizeLayer::variance(0, &mbs, &mean);
 
         let delta = 1E-5;
-        let c1 = cost_function(y(x_hat(x00 + delta, mean_0, sigma2_0), 1.0, 0.0), y(x_hat(x01, mean_1, sigma2_1), 1.0, 0.0));
-        let c2 = cost_function(y(x_hat(x00 - delta, mean_0, sigma2_0), 1.0, 0.0), y(x_hat(x01, mean_1, sigma2_1), 1.0, 0.0));
+//        let c1 = cost_function(y(x_hat(x00 + delta, mean[0], variance[0]), 1.0, 0.0), y(x_hat(x01, mean[1], variance[1]), 1.0, 0.0));
+//        let c2 = cost_function(y(x_hat(x00 - delta, mean[0], variance[0]), 1.0, 0.0), y(x_hat(x01, mean[1], variance[1]), 1.0, 0.0));
 
-        let c1 = cost_function(y(x_hat(x00, mean_0, sigma2_0 + delta), 1.0, 0.0), y(x_hat(x01, mean_1, sigma2_1), 1.0, 0.0));
-        let c2 = cost_function(y(x_hat(x00, mean_0, sigma2_0 - delta), 1.0, 0.0), y(x_hat(x01, mean_1, sigma2_1), 1.0, 0.0));
+        let c1 = cost_function(y(x_hat(x00, mean[0], variance[0] + delta), 1.0, 0.0), y(x_hat(x01, mean[1], variance[1]), 1.0, 0.0));
+        let c2 = cost_function(y(x_hat(x00, mean[0], variance[0] - delta), 1.0, 0.0), y(x_hat(x01, mean[1], variance[1]), 1.0, 0.0));
         let dC_dx_numeric = (c1 - c2) / 2.0 / delta;
 
         let dC_dx = mbs[0].error[1][0];
