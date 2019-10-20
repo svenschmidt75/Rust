@@ -422,26 +422,26 @@ mod tests {
 
         // C(y0, y1) = -3 * sin(y0) + 5 * cos(y1)
 
+        let calculate_dC_dy = |minibatch_idx: usize| -> Vector {
+            let y00 = mbs[minibatch_idx].output[1][0];
+            let y01 = mbs[minibatch_idx].output[1][1];
+            let dCdy00 = -3.0 * y00.cos();
+            let dCdy01 = -5.0 * y01.sin();
+            Vector::from(vec![dCdy00, dCdy01])
+        };
+
         // set dC/dy for minibatch 1
-        let y0 = mbs[0].output[1][0];
-        let y1 = mbs[0].output[1][1];
-        let dCdy0 = -3.0 * y0.cos();
-        let dCdy1 = -5.0 * y1.sin();
-        mbs[0].error[2] = Vector::from(vec![dCdy0, dCdy1]);
+        let dC_dy1 = calculate_dC_dy(0);
 
         // set dC/dy for minibatch 2
-        let y0 = mbs[1].output[1][0];
-        let y1 = mbs[1].output[1][1];
-        let dCdy0 = -3.0 * y0.cos();
-        let dCdy1 = -5.0 * y1.sin();
-        mbs[1].error[2] = Vector::from(vec![dCdy0, dCdy1]);
+        let dC_dy2 = calculate_dC_dy(1);
 
         // set dC/dy for minibatch 3
-        let y0 = mbs[2].output[1][0];
-        let y1 = mbs[2].output[1][1];
-        let dCdy0 = -3.0 * y0.cos();
-        let dCdy1 = -5.0 * y1.sin();
-        mbs[2].error[2] = Vector::from(vec![dCdy0, dCdy1]);
+        let dC_dy3 = calculate_dC_dy(2);
+
+        mbs[0].error[2] = dC_dy1;
+        mbs[1].error[2] = dC_dy2;
+        mbs[2].error[2] = dC_dy3;
 
         // Act
         layer.backprop(1, &mut mbs);
@@ -455,7 +455,7 @@ mod tests {
 
         let y = |x_hat: f64, gamma: f64, beta: f64| gamma * x_hat + beta;
 
-        let cost_function = |x0: f64, x1: f64| {
+        let cost_function = |y0: f64, y1: f64| {
             let cost = -3.0 * y0.sin() + 5.0 * y1.cos();
             cost
         };
