@@ -149,8 +149,8 @@ impl BatchNormalizeLayer {
                     let dC_dy = mbs[l].error[layer_index + 1][k];
                     let dC_dxhat = dC_dy * self.gamma[k];
                     let x = mbs[i].output[layer_index - 1][k];
-                    let tmp = dC_dxhat * (x - self.mean[k]);
-                    dl_dsigma2 += tmp * tmp3 * 2.0 / mbs.len() as f64;
+                    let tmp = dC_dxhat * (x - self.mean[k]) * tmp3 * 2.0 / mbs.len() as f64;
+                    dl_dsigma2 += tmp;
                 }
 
 
@@ -510,21 +510,21 @@ mod tests {
         layer.backprop(1, &mut mbs);
 
         // Assert
-        let x_hat = |xs: &[&Vector], idx: usize| -> Vector {
+        let x_hat = |xs: &[&Vector], idx: usize| -> Vec<Vector> {
             let mean = BatchNormalizeLayer::mean_vec(xs);
             let variance = BatchNormalizeLayer::variance_vec(xs, &mean);
             let stddev = BatchNormalizeLayer::stddev(&variance);
             let one_over_stddev = BatchNormalizeLayer::one_over_stddev(&stddev);
 //            let x_hat = (xs[idx] - &mean).hadamard(&one_over_stddev);
-            let x_hat = one_over_stddev;
+            let x_hat = xs.iter().map(|_| one_over_stddev.clone()).collect::<Vec<_>>();
             x_hat
         };
 
         let y = |x_hat: f64, gamma: f64, beta: f64| gamma * x_hat + beta;
 
-        let cost_function = |y: &Vector| {
+        let cost_function = |y: &[Vector]| {
 //            let cost = -3.0 * y[0].sin() + 5.0 * y[1].cos();
-            let cost = y[0] + y[1];
+            let cost = y[0][0] + y[0][1] + y[1][0] + y[1][1] + y[1][0] + y[1][1];
             cost
         };
 
@@ -537,7 +537,7 @@ mod tests {
 
         let dC_dx = mbs[0].error[1][0];
 
-        assert_approx_eq!(dC_dx, 3.0 * dC_dx_numeric, 1E-8);
+        assert_approx_eq!(dC_dx, dC_dx_numeric, 1E-8);
     }
 
 
