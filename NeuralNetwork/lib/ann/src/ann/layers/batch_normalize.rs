@@ -130,31 +130,32 @@ impl BatchNormalizeLayer {
             let tmp2 = 1.0 / tmp1.sqrt();
             let tmp3 = -0.5 * tmp2 * tmp2 * tmp2;
 
-//            let mut dl_dmu = 0.0;
-//            for i in 0..mbs.len() {
+            for i in 0..mbs.len() {
 //                let dC_dy = mbs[i].error[layer_index + 1][k];
 //                let dC_dxhat = dC_dy * self.gamma[k];
-//                dl_dmu += dC_dxhat * (-1.0) / mbs.len() as f64;
-//            }
-
-
-            for i in 0..mbs.len() {
-                let dC_dy = mbs[i].error[layer_index + 1][k];
-                let dC_dxhat = dC_dy * self.gamma[k];
-                let t1 = dC_dxhat;
+//                let t1 = dC_dxhat * tmp2;
 
                 // todo SS: use fold here?
+                let mut t1 = 0.0;
+                let mut dl_dmu = 0.0;
                 let mut dl_dsigma2 = 0.0;
                 for l in 0..mbs.len() {
                     let dC_dy = mbs[l].error[layer_index + 1][k];
                     let dC_dxhat = dC_dy * self.gamma[k];
-                    let x = mbs[i].output[layer_index - 1][k];
-                    let tmp = dC_dxhat * (x - self.mean[k]) * tmp3 * 2.0 / mbs.len() as f64;
+
+                    if i == l {
+                        t1 += dC_dxhat * tmp2;
+                    }
+
+                    dl_dmu += dC_dxhat * (-1.0) * tmp2 / mbs.len() as f64;
+
+                    let xi = mbs[i].output[layer_index - 1][k];
+                    let xl = mbs[l].output[layer_index - 1][k];
+                    let tmp = dC_dxhat * (xi - self.mean[k]) * (xl - self.mean[k]) * tmp3 * 2.0 / mbs.len() as f64;
                     dl_dsigma2 += tmp;
                 }
 
-
-                let dl_dx = dl_dsigma2;
+                let dl_dx = t1 + dl_dmu + dl_dsigma2;
 
                 mbs[i].error[layer_index][k] = dl_dx;
             }
@@ -252,6 +253,7 @@ mod tests {
     use crate::ann::layers::fc_layer::FCLayer;
     use crate::ann::layers::input_layer::InputLayer;
     use crate::ann::layers::layer::Layer::BatchNormalize;
+    use linear_algebra::ops::hadamard;
 
     #[test]
     fn test_means() {
@@ -510,13 +512,12 @@ mod tests {
         layer.backprop(1, &mut mbs);
 
         // Assert
-        let x_hat = |xs: &[&Vector], idx: usize| -> Vec<Vector> {
+        let x_hat = |xs: &[&Vector]| -> Vec<Vector> {
             let mean = BatchNormalizeLayer::mean_vec(xs);
             let variance = BatchNormalizeLayer::variance_vec(xs, &mean);
             let stddev = BatchNormalizeLayer::stddev(&variance);
             let one_over_stddev = BatchNormalizeLayer::one_over_stddev(&stddev);
-//            let x_hat = (xs[idx] - &mean).hadamard(&one_over_stddev);
-            let x_hat = xs.iter().map(|_| one_over_stddev.clone()).collect::<Vec<_>>();
+            let x_hat = xs.iter().map(|&x| (x - &mean).hadamard(&one_over_stddev)).collect::<Vec<_>>();
             x_hat
         };
 
@@ -524,14 +525,14 @@ mod tests {
 
         let cost_function = |y: &[Vector]| {
 //            let cost = -3.0 * y[0].sin() + 5.0 * y[1].cos();
-            let cost = y[0][0] + y[0][1] + y[1][0] + y[1][1] + y[1][0] + y[1][1];
+            let cost = y[0][0] + y[0][1] + y[1][0] + y[1][1] + y[2][0] + y[2][1];
             cost
         };
 
         let delta = 1E-5;
 
-        let c1 = cost_function(&x_hat(&[&vec![x00 + delta, x01].into(), &vec![x10, x11].into(), &vec![x20, x21].into()], 0));
-        let c2 = cost_function(&x_hat(&[&vec![x00 - delta, x01].into(), &vec![x10, x11].into(), &vec![x20, x21].into()], 0));
+        let c1 = cost_function(&x_hat(&[&vec![x00 + delta, x01].into(), &vec![x10, x11].into(), &vec![x20, x21].into()]));
+        let c2 = cost_function(&x_hat(&[&vec![x00 - delta, x01].into(), &vec![x10, x11].into(), &vec![x20, x21].into()]));
 
         let dC_dx_numeric = (c1 - c2) / 2.0 / delta;
 
