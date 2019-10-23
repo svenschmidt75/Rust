@@ -162,70 +162,6 @@ impl BatchNormalizeLayer {
         }
     }
 
-    pub(crate) fn backprop_orig(&self, layer_index: usize, mbs: &mut [Minibatch]) {
-        assert!(layer_index > 0);
-        assert!(!mbs.is_empty());
-
-        let dim = mbs[0].output[layer_index].dim();
-
-        assert_eq!(dim, self.mean.dim());
-        assert_eq!(dim, self.variance.dim());
-        assert_eq!(dim, self.stddev.dim());
-        assert_eq!(dim, self.one_over_stddev.dim());
-        assert_eq!(dim, self.gamma.dim());
-        assert_eq!(dim, self.beta.dim());
-
-        // SS: for each dimension of the input vector to the BN layer
-        for k in 0..dim {
-            let sigma2 = self.variance[k];
-            let tmp1 = sigma2 + EPS;
-            let tmp2 = 1.0 / tmp1.sqrt();
-            let tmp3 = -0.5 * tmp2 * tmp2 * tmp2;
-
-            // todo SS: use fold here?
-            let mut dl_dsigma2 = 0.0;
-            for i in 0..mbs.len() {
-                let dC_dy = mbs[i].error[layer_index + 1][k];
-                let dC_dxhat = dC_dy * self.gamma[k];
-                let x = mbs[i].output[layer_index - 1][k];
-                let tmp = dC_dxhat * (x - self.mean[k]);
-                dl_dsigma2 += tmp * tmp3;
-            }
-
-            let mut dl_dmu = 0.0;
-            for i in 0..mbs.len() {
-                let dC_dy = mbs[i].error[layer_index + 1][k];
-                let dC_dxhat = dC_dy * self.gamma[k];
-                dl_dmu += dC_dxhat * (-1.0) * tmp2;
-            }
-
-            // SS: the following term is 0
-            let mut nom = 0.0;
-            for i in 0..mbs.len() {
-                let x = mbs[i].output[layer_index - 1][k];
-                let tmp = -2.0 * (x - self.mean[k]);
-                nom += tmp;
-            }
-            dl_dmu += dl_dsigma2 * nom / mbs.len() as f64;
-
-            // SS: for each minibatch
-            for m in 0..mbs.len() {
-                let dC_dy = mbs[m].error[layer_index + 1][k];
-                let dC_dxhat = dC_dy * self.gamma[k];
-                let t1 = dC_dxhat * tmp2;
-
-                let x = mbs[m].output[layer_index - 1][k];
-                let t2 = dl_dsigma2 * 2.0 * (x - self.mean[k]) / mbs.len() as f64;
-
-                let t3 = dl_dmu / mbs.len() as f64;
-
-                let dl_dx = t1 + t2 + t3;
-
-                mbs[m].error[layer_index][k] = dl_dx;
-            }
-        }
-    }
-
     pub(crate) fn print_summary(&self) {
         println!("{:15} | {:15} | {:15}", "BN", "", "");
     }
@@ -488,10 +424,8 @@ mod tests {
         let calculate_dC_dy = |minibatch_idx: usize| -> Vector {
             let y0 = mbs[minibatch_idx].output[1][0];
             let y1 = mbs[minibatch_idx].output[1][1];
-//            let dCdy0 = -3.0 * y0.cos();
-//            let dCdy1 = -5.0 * y1.sin();
-            let dCdy0 = 1.0;
-            let dCdy1 = 1.0;
+            let dCdy0 = -3.0 * y0.cos();
+            let dCdy1 = -5.0 * y1.sin();
             Vector::from(vec![dCdy0, dCdy1])
         };
 
@@ -524,8 +458,10 @@ mod tests {
         let y = |x_hat: f64, gamma: f64, beta: f64| gamma * x_hat + beta;
 
         let cost_function = |y: &[Vector]| {
-//            let cost = -3.0 * y[0].sin() + 5.0 * y[1].cos();
-            let cost = y[0][0] + y[0][1] + y[1][0] + y[1][1] + y[2][0] + y[2][1];
+            let cost_y0 = -3.0 * y[0][0].sin() + 5.0 * y[0][1].cos();
+            let cost_y1 = -3.0 * y[1][0].sin() + 5.0 * y[1][1].cos();
+            let cost_y2 = -3.0 * y[2][0].sin() + 5.0 * y[2][1].cos();
+            let cost = cost_y0 + cost_y1 + cost_y2;
             cost
         };
 
@@ -539,109 +475,5 @@ mod tests {
         let dC_dx = mbs[0].error[1][0];
 
         assert_approx_eq!(dC_dx, dC_dx_numeric, 1E-8);
-    }
-
-
-
-    #[test]
-    fn test_backprop_gradient_later() {
-        // Arrange
-        let input_layer = Layer::from(InputLayer::new(2));
-        let mut layer = BatchNormalizeLayer::new(2);
-        layer.initialize(&input_layer);
-
-        let mut mbs = [Minibatch::new(vec![2, 2, 2]), Minibatch::new(vec![2, 2, 2]), Minibatch::new(vec![2, 2, 2])];
-
-        // set input for minibatch 1
-        let x00 = 6.645;
-        let x01 = -1.7365;
-        mbs[0].output[0] = Vector::from(vec![x00, x01]);
-
-        // set input for minibatch 2
-        let x10 = 3.45;
-        let x11 = -1.987;
-        mbs[1].output[0] = Vector::from(vec![x10, x11]);
-
-        // set input for minibatch 3
-        let x20 = 12.45;
-        let x21 = -14.987;
-        mbs[2].output[0] = Vector::from(vec![x20, x21]);
-
-        layer.feedforward(1, &mut mbs);
-
-        // C(y0, y1) = -3 * sin(y0) + 5 * cos(y1)
-
-        let calculate_dC_dy = |minibatch_idx: usize| -> Vector {
-            let y0 = mbs[minibatch_idx].output[1][0];
-            let y1 = mbs[minibatch_idx].output[1][1];
-            let dCdy0 = -3.0 * y0.cos();
-            let dCdy1 = -5.0 * y1.sin();
-            Vector::from(vec![dCdy0, dCdy1])
-        };
-
-        // set dC/dy for minibatch 1
-        let dC_dy1 = calculate_dC_dy(0);
-
-        // set dC/dy for minibatch 2
-        let dC_dy2 = calculate_dC_dy(1);
-
-        // set dC/dy for minibatch 3
-        let dC_dy3 = calculate_dC_dy(2);
-
-        mbs[0].error[2] = dC_dy1;
-        mbs[1].error[2] = dC_dy2;
-        mbs[2].error[2] = dC_dy3;
-
-        // Act
-        layer.backprop(1, &mut mbs);
-
-        // Assert
-        let x_hat = |xs: &[&Vector], idx: usize| -> Vector {
-            let mean = BatchNormalizeLayer::mean_vec(xs);
-            let variance = BatchNormalizeLayer::variance_vec(xs, &mean);
-            let stddev = BatchNormalizeLayer::stddev(&variance);
-            let one_over_stddev = BatchNormalizeLayer::one_over_stddev(&stddev);
-            let x_hat = (xs[idx] - &mean).hadamard(&one_over_stddev);
-            x_hat
-        };
-
-        let y = |x_hat: f64, gamma: f64, beta: f64| gamma * x_hat + beta;
-
-        let cost_function = |y: &Vector| {
-            let cost = -3.0 * y[0].sin() + 5.0 * y[1].cos();
-            cost
-        };
-
-        let delta = 1E-5;
-
-        let c1 = cost_function(&x_hat(&[&vec![x00 + delta, x01].into(), &vec![x10, x11].into(), &vec![x20, x21].into()], 0));
-        let c2 = cost_function(&x_hat(&[&vec![x00 - delta, x01].into(), &vec![x10, x11].into(), &vec![x20, x21].into()], 0));
-
-        let dC_dx_numeric = (c1 - c2) / 2.0 / delta;
-
-        let dC_dx = mbs[0].error[1][0];
-
-
-
-        let c1 = cost_function(&x_hat(&[&vec![x00, x01 + delta].into(), &vec![x10, x11].into(), &vec![x20, x21].into()], 0));
-        let c2 = cost_function(&x_hat(&[&vec![x00, x01 - delta].into(), &vec![x10, x11].into(), &vec![x20, x21].into()], 0));
-
-        let dC_dx_numeric = (c1 - c2) / 2.0 / delta;
-
-        let dC_dx = mbs[0].error[1][1];
-
-
-
-
-        let c1 = cost_function(&x_hat(&[&vec![x00, x01].into(), &vec![x10 + delta, x11].into(), &vec![x20, x21].into()], 0));
-        let c2 = cost_function(&x_hat(&[&vec![x00, x01].into(), &vec![x10 - delta, x11].into(), &vec![x20, x21].into()], 0));
-
-        let dC_dx_numeric = (c1 - c2) / 2.0 / delta;
-
-        let dC_dx = mbs[1].error[1][0];
-
-
-
-        assert_approx_eq!(dC_dx, dC_dx_numeric, 1E-12);
     }
 }
