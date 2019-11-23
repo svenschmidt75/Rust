@@ -124,36 +124,30 @@ impl BatchNormalizeLayer {
         assert_eq!(dim, self.beta.dim());
 
         // SS: for each dimension of the input vector to the BN layer
-        for k in 0..dim {
-            let sigma2 = self.variance[k];
-            let tmp1 = sigma2;// + EPS;
-            let tmp2 = 1.0 / tmp1.sqrt();
-            let tmp3 = -0.5 * tmp2 * tmp2 * tmp2;
+        for i in 0..mbs.len() {
+            let sigma2 = &self.variance;
+            let tmp2 = sigma2.f(|x| 1.0 / x.sqrt());
+            let tmp3 = -0.5 * &tmp2.f(|x| x * x * x);
 
-            for i in 0..mbs.len() {
-                let dC_dy = mbs[i].error[layer_index + 1][k];
-                let dC_dxhat = dC_dy * self.gamma[k];
-                let t1 = dC_dxhat * tmp2;
+            let dC_dy = &mbs[i].error[layer_index + 1];
+            let dC_dxhat = dC_dy.hadamard(&self.gamma);
+            let t1 = dC_dxhat.hadamard(&tmp2);
 
-                // todo SS: use fold here?
-                let mut dmu = 0.0;
-                let mut dsigma2 = 0.0;
-                for l in 0..mbs.len() {
-                    let dC_dy = mbs[l].error[layer_index + 1][k];
-                    let dC_dxhat = dC_dy * self.gamma[k];
+            let mut dmu = Vector::new(dim);
+            let mut dsigma2 = Vector::new(dim);
+            for l in 0..mbs.len() {
+                let dC_dy = &mbs[l].error[layer_index + 1];
+                let dC_dxhat = dC_dy.hadamard(&self.gamma);
 
-                    dmu += dC_dxhat * (-1.0) * tmp2 / mbs.len() as f64;
+                let xi = &mbs[i].output[layer_index - 1];
+                let xl = &mbs[l].output[layer_index - 1];
 
-                    let xi = mbs[i].output[layer_index - 1][k];
-                    let xl = mbs[l].output[layer_index - 1][k];
-                    let tmp = dC_dxhat * (xi - self.mean[k]) * (xl - self.mean[k]) * tmp3 * 2.0 / mbs.len() as f64;
-                    dsigma2 += tmp;
-                }
-
-                let dl_dx = t1 + dmu + dsigma2;
-
-                mbs[i].error[layer_index][k] = dl_dx;
+                dmu += &dC_dxhat.hadamard(&tmp2).f(|x| x * (-1.0) / mbs.len() as f64);
+                dsigma2 += &dC_dxhat.hadamard(&(xi - &self.mean)).hadamard(&(xl - &self.mean)).hadamard(&tmp3).f(|x| x * 2.0 / mbs.len() as f64);
             }
+
+            let dl_dx = &(&t1 + &dmu) + &dsigma2;
+            mbs[i].error[layer_index] = dl_dx;
         }
     }
 

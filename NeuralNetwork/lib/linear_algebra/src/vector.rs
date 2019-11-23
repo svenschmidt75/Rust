@@ -29,6 +29,13 @@ impl Vector {
     pub fn hadamard(&self, v: &Vector) -> Vector {
         ops::hadamard(self, v)
     }
+
+    pub fn f<F>(&self, f: F) -> Vector
+    where
+        F: Fn(f64) -> f64,
+    {
+        ops::f(&self, &f)
+    }
 }
 
 pub struct Iter<'a> {
