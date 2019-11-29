@@ -86,3 +86,7 @@ NeuralNetwork/MNIST/train-labels\.idx1-ubyte
 NeuralNetwork/MNIST/train-labels50\.idx1-ubyte
 
 NeuralNetwork/MNIST/data/
+
+*.lock
+
+ThoughtsOnLifetimes/target/
