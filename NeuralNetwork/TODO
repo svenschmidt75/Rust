@@ -1,0 +1,12 @@
+Sven Schmidt
+Nov. 30th, 2019
+
+Batch Normalization
+===================
+
+- update gamma and beta
+- write tests
+
+- calc. d Cost / d gamma and d Cost / d beta
+- tests
+
