@@ -312,5 +312,4 @@ mod tests {
         // Assert
         assert_approx_eq!(tanh_prime(2.03), df, h)
     }
-
 }

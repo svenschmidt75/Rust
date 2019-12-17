@@ -1,4 +1,4 @@
-use ann::ann::activation::{Sigmoid, ReLU, LeakyReLU};
+use ann::ann::activation::{LeakyReLU, ReLU, Sigmoid};
 use ann::ann::cost_function::{CrossEntropyCost, QuadraticCost};
 use ann::ann::layers::activation_layer::ActivationLayer;
 use ann::ann::layers::dropout_layer::{DropoutLayer, ProdUniformDistributionSampler};

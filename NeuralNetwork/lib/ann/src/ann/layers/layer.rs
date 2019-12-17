@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use crate::ann::layers::activation_layer::ActivationLayer;
+use crate::ann::layers::batch_normalize::BatchNormalizeLayer;
 use crate::ann::layers::dropout_layer::DropoutLayer;
 use crate::ann::layers::fc_layer::FCLayer;
 use crate::ann::layers::input_layer::InputLayer;
@@ -14,6 +15,7 @@ pub enum Layer {
     Dropout(DropoutLayer),
     Activation(ActivationLayer),
     SoftMax(SoftMaxLayer),
+    BatchNormalize(BatchNormalizeLayer),
 }
 
 impl From<InputLayer> for Layer {
@@ -54,6 +56,7 @@ impl Layer {
             Layer::Dropout(layer) => layer.number_of_neurons(),
             Layer::Activation(layer) => layer.number_of_neurons(),
             Layer::SoftMax(layer) => layer.number_of_neurons(),
+            Layer::BatchNormalize(layer) => layer.number_of_neurons(),
         }
     }
 
@@ -71,13 +74,10 @@ impl Layer {
             Layer::SoftMax(layer) => {
                 layer.print_summary();
             }
+            Layer::BatchNormalize(layer) => {
+                layer.print_summary();
+            }
             _ => {}
-        }
-    }
-
-    pub(crate) fn next_training_sample(&mut self) {
-        if let Layer::Dropout(layer) = self {
-            layer.next_training_sample();
         }
     }
 
@@ -89,48 +89,52 @@ impl Layer {
             Layer::Dropout(layer) => {
                 layer.initialize(&prev_layer);
             }
+            Layer::BatchNormalize(layer) => {
+                layer.initialize(&prev_layer);
+            }
             _ => {}
         }
     }
 
-    pub fn feedforward(&self, layer_index: usize, mb: &mut Minibatch) {
-        let input = &mb.output[layer_index - 1];
+    pub fn feedforward(&mut self, layer_index: usize, mbs: &mut [Minibatch]) {
         match self {
             Layer::FullyConnected(layer) => {
-                let z = layer.feedforward(&input);
-                mb.output[layer_index] = z;
+                layer.feedforward(layer_index, mbs);
             }
             Layer::Dropout(layer) => {
-                // SS: dropout  layer only modifies a, not z
-                let a = layer.feedforward(&input);
-                mb.output[layer_index] = a;
+                // SS: dropout layer only modifies a, not z
+                layer.feedforward(layer_index, mbs);
             }
             Layer::Activation(layer) => {
-                let a = layer.feedforward(&input);
-                mb.output[layer_index] = a;
+                layer.feedforward(layer_index, mbs);
             }
             Layer::SoftMax(layer) => {
-                let a = layer.feedforward(&input);
-                mb.output[layer_index] = a;
+                layer.feedforward(layer_index, mbs);
+            }
+            Layer::BatchNormalize(layer) => {
+                layer.feedforward(layer_index, mbs);
             }
             _ => {}
         }
     }
 
-    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+    pub fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
         match self {
-            FullyConnected(layer) => layer.backprop(layer_index, mb),
-            Layer::Dropout(layer) => layer.backprop(layer_index, mb),
-            Layer::Activation(layer) => layer.backprop(layer_index, mb),
-            Layer::SoftMax(layer) => layer.backprop(layer_index, mb),
+            FullyConnected(layer) => layer.backprop(layer_index, mbs),
+            Layer::Dropout(layer) => layer.backprop(layer_index, mbs),
+            Layer::Activation(layer) => layer.backprop(layer_index, mbs),
+            Layer::SoftMax(layer) => layer.backprop(layer_index, mbs),
+            Layer::BatchNormalize(layer) => layer.backprop(layer_index, mbs),
             _ => panic!(),
         }
     }
 
     pub fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
-        if let Layer::FullyConnected(layer) = self {
-            layer.update_network(layer_index, mbs, eta, rho, lambda);
+        match self {
+            Layer::FullyConnected(layer) => layer.update_network(layer_index, mbs, eta, rho, lambda),
+            Layer::BatchNormalize(layer) => layer.update_network(layer_index, mbs),
+            _ => {}
         }
     }
 

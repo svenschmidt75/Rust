@@ -88,5 +88,4 @@ NeuralNetwork/MNIST/train-labels50\.idx1-ubyte
 NeuralNetwork/MNIST/data/
 
 MergeSort/target/
-
 *.lock

@@ -47,11 +47,12 @@ impl CostFunction for QuadraticCost {
         let mut total_cost = 0.0;
 
         // SS: can use map and sum here...
-        let mut mb = model.create_minibatch();
+        let mb = model.create_minibatch();
+        let mut mbs = [mb];
         for x in y {
-            mb.output[0] = x.input_activations.clone();
-            model.feedforward(&mut mb);
-            let c = Self::single_cost(mb.output_activations(), &x.output_activations);
+            mbs[0].output[0] = x.input_activations.clone();
+            model.feedforward(&mut mbs);
+            let c = Self::single_cost(mbs[0].output_activations(), &x.output_activations);
             total_cost += c;
         }
         let ntraining_samples = y.len() as f64;
@@ -114,11 +115,12 @@ impl CostFunction for CrossEntropyCost {
         let mut total_cost = 0.0;
 
         // SS: can use map and sum here...
-        let mut mb = model.create_minibatch();
+        let mb = model.create_minibatch();
+        let mut mbs = [mb];
         for x in y {
-            mb.output[0] = x.input_activations.clone();
-            model.feedforward(&mut mb);
-            let c = Self::single_cost(mb.output_activations(), &x.output_activations);
+            mbs[0].output[0] = x.input_activations.clone();
+            model.feedforward(&mut mbs);
+            let c = Self::single_cost(mbs[0].output_activations(), &x.output_activations);
             total_cost += c;
         }
         let ntraining_samples = y.len() as f64;
@@ -233,5 +235,4 @@ mod tests {
         assert_approx_eq!(dc_analytical[0], dc_numeric1, 1E-4);
         assert_approx_eq!(dc_analytical[1], dc_numeric2, 1E-4);
     }
-
 }

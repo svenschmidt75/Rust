@@ -75,21 +75,6 @@ impl Model {
 
     pub fn train(&mut self, data: &(&[TrainingData], &[TrainingData], &[TrainingData]), epochs: usize, eta: f64, rho: f64, lambda: f64, minibatch_size: usize, cost_function: &dyn CostFunction) {
         // call initialize on each layer
-
-        // for each epoch
-        //   shuffle training data indices
-        //   for each minibatch
-        //     call on_new_epoch on all layers
-        //     feed forward
-        //     calculate error in output layer
-        //   backprop
-        //   update parameters
-        // print statistics
-
-        // print update step after each epoch
-
-        // ss: MOVE THIS OUT HERE, SO WE CAN REUSE WEIGHTS,
-        // maybe to continue training with smaller learning rates
         self.initialize_layers();
 
         let training_data = data.0;
@@ -134,18 +119,17 @@ impl Model {
             let chunks = trainingdata_indices.chunks(mb_size);
 
             for (_chunk_index, chunk) in chunks.enumerate() {
+                let mut known_classifications = Vec::with_capacity(chunk.len());
+                // SS: insert training data into minibatches
                 for idx in 0..chunk.len() {
-                    // SS: tell dropout layers to change
-                    self.next_training_sample();
-
                     let mb = &mut mbs[idx];
                     let training_sample_idx = chunk[idx];
                     let training_sample = &training_data[training_sample_idx];
-                    let known_classification = &training_sample.output_activations;
+                    known_classifications.push(&training_sample.output_activations);
                     mb.output[0] = training_sample.input_activations.clone();
-                    self.feedforward(mb);
-                    self.backprop(mb, known_classification, cost_function);
                 }
+                self.feedforward(&mut mbs);
+                self.backprop(&mut mbs, &known_classifications, cost_function);
                 self.update_network(&mbs, eta, rho, lambda);
             }
 
@@ -161,12 +145,13 @@ impl Model {
     fn accuracy(&mut self, test_data: &[TrainingData]) -> f64 {
         let accuracy;
         let mut same = 0;
-        let mut mb = self.create_minibatch();
+        let mb = self.create_minibatch();
+        let mut mbs = [mb];
         let output_layer_index = self.output_layer_index();
         for x in test_data {
-            mb.output[0] = x.input_activations.clone();
-            self.feedforward(&mut mb);
-            let output_activations = &mb.output[output_layer_index];
+            mbs[0].output[0] = x.input_activations.clone();
+            self.feedforward(&mut mbs);
+            let output_activations = &mbs[0].output[output_layer_index];
             let expected_output_layer_activations = &x.output_activations;
             let is_classification = Model::get_class(output_activations);
             let expected_class = Model::get_class(expected_output_layer_activations);
@@ -190,10 +175,6 @@ impl Model {
         index
     }
 
-    fn next_training_sample(&mut self) {
-        self.layers.iter_mut().for_each(|layer| layer.next_training_sample());
-    }
-
     fn initialize_layers(&mut self) {
         for idx in 1..self.layers.len() {
             let (prev, current) = get_neighbors(&mut self.layers, idx);
@@ -207,34 +188,40 @@ impl Model {
         // SS: add one "hidden" layer
         // We are only going to use its error property,
         // which gets initialized with the initial
-        // // error of the cost function, i.e. dC\dA_L.
+        // error of the cost function, i.e. dC\dA_L.
         nas.push(self.layers.iter().last().unwrap().number_of_neurons());
         Minibatch::new(nas)
     }
 
-    pub fn feedforward(&self, mb: &mut Minibatch) {
-        // SS: feed forward one instance of a training data sample
-        // and record all calculated activations for all layers
-        // for backprop.
-        self.layers.iter().enumerate().skip(1).for_each(|(layer_index, layer)| layer.feedforward(layer_index, mb));
+    pub fn feedforward(&mut self, mbs: &mut [Minibatch]) {
+        // SS: feed forward all minibatch items for one entire layer, before
+        // advancing to the next layer.
+        self.layers.iter_mut().enumerate().skip(1).for_each(|(layer_index, layer)| layer.feedforward(layer_index, mbs));
     }
 
-    fn calculate_outputlayer_error(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
+    fn calculate_outputlayer_error(&self, mbs: &mut [Minibatch], y: &[&Vector], cost_function: &dyn CostFunction) {
+        assert_eq!(mbs.len(), y.len());
         let output_layer_index = self.output_layer_index();
-        let aL = &mb.output[output_layer_index];
+        for idx in 0..mbs.len() {
+            let mb = &mut mbs[idx];
 
-        // SS: calculate dC/da^{L}
-        let dCda = cost_function.output_error(aL, y);
+            let aL = &mb.output[output_layer_index];
 
-        mb.error[output_layer_index + 1] = dCda;
+            // SS: calculate dC/da^{L}
+            let dCda = cost_function.output_error(aL, y[idx]);
+
+            mb.error[output_layer_index + 1] = dCda;
+        }
     }
 
-    fn backprop(&self, mb: &mut Minibatch, y: &Vector, cost_function: &dyn CostFunction) {
+    fn backprop(&self, mbs: &mut [Minibatch], y: &[&Vector], cost_function: &dyn CostFunction) {
+        assert_eq!(mbs.len(), y.len());
+        self.calculate_outputlayer_error(mbs, y, cost_function);
+
         let output_layer_index = self.output_layer_index();
-        self.calculate_outputlayer_error(mb, y, cost_function);
         for layer_index in (1..=output_layer_index).rev() {
             let layer = &self.layers[layer_index];
-            layer.backprop(layer_index, mb);
+            layer.backprop(layer_index, mbs);
         }
     }
 
@@ -308,18 +295,20 @@ impl Model {
     fn grad_bias(&mut self, layer_index: usize, xs: &[TrainingData], cost: &dyn CostFunction, lambda: f64) -> Vector {
         // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
-        let layer = self.get_layer(layer_index);
-        let fc_layer = if let Layer::FullyConnected(l) = layer { l } else { panic!("not a fully-connected layer") };
 
         let mut mbs = vec![self.create_minibatch()];
+
+        let layer = self.get_layer(layer_index);
         let mut db = Vector::new(layer.number_of_neurons());
 
         for training_sample in xs {
             let y = &training_sample.output_activations;
-            let mb = &mut mbs[0];
-            mb.output[0] = training_sample.input_activations.clone();
-            self.feedforward(mb);
-            self.backprop(mb, y, cost);
+            mbs[0].output[0] = training_sample.input_activations.clone();
+            self.feedforward(&mut mbs);
+            self.backprop(&mut mbs, &[y], cost);
+
+            let layer = self.get_layer(layer_index);
+            let fc_layer = if let Layer::FullyConnected(l) = layer { l } else { panic!("not a fully-connected layer") };
             let (_, db2) = fc_layer.calculate_derivatives(layer_index, &mbs[..], lambda);
             db += &db2;
         }
@@ -355,19 +344,21 @@ impl Model {
     fn grad_weight(&mut self, layer_index: usize, xs: &[TrainingData], cost: &dyn CostFunction, lambda: f64) -> Matrix2D {
         // SS: same as calculate_derivatives, but here we are using recursion
         assert!(layer_index > 0);
-        let prev_layer = self.get_layer(layer_index - 1);
-        let layer = self.get_layer(layer_index);
-        let fc_layer = if let Layer::FullyConnected(l) = layer { l } else { panic!("not a fully-connected layer") };
 
         let mut mbs = vec![self.create_minibatch()];
+
+        let prev_layer = self.get_layer(layer_index - 1);
+        let layer = self.get_layer(layer_index);
         let mut dw = Matrix2D::new(layer.number_of_neurons(), prev_layer.number_of_neurons());
 
         for training_sample in xs {
             let y = &training_sample.output_activations;
-            let mb = &mut mbs[0];
-            mb.output[0] = training_sample.input_activations.clone();
-            self.feedforward(mb);
-            self.backprop(mb, y, cost);
+            mbs[0].output[0] = training_sample.input_activations.clone();
+            self.feedforward(&mut mbs);
+            self.backprop(&mut mbs, &[y], cost);
+
+            let layer = self.get_layer(layer_index);
+            let fc_layer = if let Layer::FullyConnected(l) = layer { l } else { panic!("not a fully-connected layer") };
             let (dw2, _) = fc_layer.calculate_derivatives(layer_index, &mbs[..], lambda);
             dw += &dw2;
         }
@@ -502,9 +493,10 @@ mod tests {
 
         // Act
         let mut mb = model.create_minibatch();
+        let mut mbs = [mb];
         let training_sample = &training_data[0];
-        mb.output[0] = training_sample.input_activations.clone();
-        model.feedforward(&mut mb);
+        mbs[0].output[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mbs);
 
         // Assert
 
@@ -564,9 +556,10 @@ mod tests {
 
         // Act
         let mut mb = model.create_minibatch();
+        let mut mbs = [mb];
         let training_sample = &training_data[0];
-        mb.output[0] = training_sample.input_activations.clone();
-        model.feedforward(&mut mb);
+        mbs[0].output[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mbs);
 
         // Assert
 
@@ -626,9 +619,10 @@ mod tests {
 
         // Act
         let mut mb = model.create_minibatch();
+        let mut mbs = [mb];
         let training_sample = &training_data[0];
-        mb.output[0] = training_sample.input_activations.clone();
-        model.feedforward(&mut mb);
+        mbs[0].output[0] = training_sample.input_activations.clone();
+        model.feedforward(&mut mbs);
 
         // Assert
 
@@ -725,12 +719,13 @@ mod tests {
         model.addActivationLayer(ActivationLayer::new(1, Box::new(ReLU {})));
 
         let mut mb = model.create_minibatch();
-        mb.output[0] = Vector::from(vec![0.0, 1.0]);
+        let mut mbs = [mb];
+        mbs[0].output[0] = Vector::from(vec![0.0, 1.0]);
 
         model.initialize_layers();
 
         // Act
-        model.feedforward(&mut mb);
+        model.feedforward(&mut mbs);
 
         // Assert
         let weights1 = model.get_weights(1);
@@ -739,20 +734,20 @@ mod tests {
         let biases2 = model.get_biases(3);
 
         // a^{2}_{0}
-        let a10 = activation::sigmoid(weights1[(0, 0)] * mb.output[0][0] + weights1[(0, 1)] * mb.output[0][1] + biases1[0]);
-        assert_eq!(a10, mb.output[2][0]);
+        let a10 = activation::sigmoid(weights1[(0, 0)] * mbs[0].output[0][0] + weights1[(0, 1)] * mbs[0].output[0][1] + biases1[0]);
+        assert_eq!(a10, mbs[0].output[2][0]);
 
         // a^{2}_{1}
-        let a11 = activation::sigmoid(weights1[(1, 0)] * mb.output[0][0] + weights1[(1, 1)] * mb.output[0][1] + biases1[1]);
-        assert_eq!(a11, mb.output[2][1]);
+        let a11 = activation::sigmoid(weights1[(1, 0)] * mbs[0].output[0][0] + weights1[(1, 1)] * mbs[0].output[0][1] + biases1[1]);
+        assert_eq!(a11, mbs[0].output[2][1]);
 
         // a^{2}_{2}
-        let a12 = activation::sigmoid(weights1[(2, 0)] * mb.output[0][0] + weights1[(2, 1)] * mb.output[0][1] + biases1[2]);
-        assert_eq!(a12, mb.output[2][2]);
+        let a12 = activation::sigmoid(weights1[(2, 0)] * mbs[0].output[0][0] + weights1[(2, 1)] * mbs[0].output[0][1] + biases1[2]);
+        assert_eq!(a12, mbs[0].output[2][2]);
 
         // a^{2}_{0}
-        let a20 = activation::relu(weights2[(0, 0)] * mb.output[2][0] + weights2[(0, 1)] * mb.output[2][1] + weights2[(0, 2)] * mb.output[2][2] + biases2[0]);
-        assert_eq!(a20, mb.output[4][0]);
+        let a20 = activation::relu(weights2[(0, 0)] * mbs[0].output[2][0] + weights2[(0, 1)] * mbs[0].output[2][1] + weights2[(0, 2)] * mbs[0].output[2][2] + biases2[0]);
+        assert_eq!(a20, mbs[0].output[4][0]);
     }
 
     #[test]
@@ -796,21 +791,22 @@ mod tests {
         // Assert
         let output_layer_index = 4;
         let mut mb = model.create_minibatch();
-        mb.output[0] = Vector::from(vec![0.0, 0.0]);
-        model.feedforward(&mut mb);
-        assert_approx_eq!(0.000000008600374481948007, &mb.output[output_layer_index][0], 1E-6);
+        let mut mbs = [mb];
+        mbs[0].output[0] = Vector::from(vec![0.0, 0.0]);
+        model.feedforward(&mut mbs);
+        assert_approx_eq!(0.000000008600374481948007, &mbs[0].output[output_layer_index][0], 1E-6);
 
-        mb.output[0] = Vector::from(vec![1.0, 0.0]);
-        model.feedforward(&mut mb);
-        assert_approx_eq!(0.0002504695377738481, &mb.output[output_layer_index][0], 1E-3);
+        mbs[0].output[0] = Vector::from(vec![1.0, 0.0]);
+        model.feedforward(&mut mbs);
+        assert_approx_eq!(0.0002504695377738481, &mbs[0].output[output_layer_index][0], 1E-3);
 
-        mb.output[0] = Vector::from(vec![0.0, 1.0]);
-        model.feedforward(&mut mb);
-        assert_approx_eq!(0.00023494173889617028, &mb.output[output_layer_index][0], 1E-3);
+        mbs[0].output[0] = Vector::from(vec![0.0, 1.0]);
+        model.feedforward(&mut mbs);
+        assert_approx_eq!(0.00023494173889617028, &mbs[0].output[output_layer_index][0], 1E-3);
 
-        mb.output[0] = Vector::from(vec![1.0, 1.0]);
-        model.feedforward(&mut mb);
-        assert_approx_eq!(0.9992958721912137, &mb.output[output_layer_index][0], 1E-3);
+        mbs[0].output[0] = Vector::from(vec![1.0, 1.0]);
+        model.feedforward(&mut mbs);
+        assert_approx_eq!(0.9992958721912137, &mbs[0].output[output_layer_index][0], 1E-3);
     }
 
     #[test]

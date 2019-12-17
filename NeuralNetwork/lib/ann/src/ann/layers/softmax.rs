@@ -23,5 +23,4 @@ mod tests {
         assert_eq!(0.7053845126982411, result[1]);
         assert_eq!(0.0351190269593397242, result[2])
     }
-
 }

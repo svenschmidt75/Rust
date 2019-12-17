@@ -29,6 +29,13 @@ impl Vector {
     pub fn hadamard(&self, v: &Vector) -> Vector {
         ops::hadamard(self, v)
     }
+
+    pub fn f<F>(&self, f: F) -> Vector
+    where
+        F: Fn(f64) -> f64,
+    {
+        ops::f(&self, &f)
+    }
 }
 
 pub struct Iter<'a> {
@@ -107,7 +114,6 @@ impl std::ops::Div<f64> for &Vector {
 
 impl std::ops::DivAssign<usize> for Vector {
     fn div_assign(&mut self, rhs: usize) {
-        // SS: collect to force evaluation as lazy...
         self.data.iter_mut().for_each(|v| *v /= rhs as f64);
     }
 }

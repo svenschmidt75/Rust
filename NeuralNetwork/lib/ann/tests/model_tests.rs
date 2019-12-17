@@ -52,15 +52,16 @@ fn test_train_1() {
 
     // Assert
     let output_layer_index = 4;
-    let mut mb = model.create_minibatch();
+    let mb = model.create_minibatch();
+    let mut mbs = [mb];
     let mut rng = rand::thread_rng();
     let result = (0..50_usize)
         .map(|_| rng.gen::<usize>() % ntraining_samples)
         .map(|idx| {
             let td = &training_data[idx];
-            mb.output[0] = td.input_activations.clone();
-            model.feedforward(&mut mb);
-            (&mb.output[output_layer_index][0] - td.output_activations[0]).abs()
+            mbs[0].output[0] = td.input_activations.clone();
+            model.feedforward(&mut mbs);
+            (&mbs[0].output[output_layer_index][0] - td.output_activations[0]).abs()
         })
         .fold(true, |acc, len| acc && len < 0.1);
     assert!(result);
@@ -106,15 +107,16 @@ fn test_train_2() {
 
     // Assert
     let output_layer_index = 4;
-    let mut mb = model.create_minibatch();
+    let mb = model.create_minibatch();
+    let mut mbs = [mb];
     let mut rng = rand::thread_rng();
     let result = (0..50_usize)
         .map(|_x| rng.gen::<usize>() % ntraining_samples)
         .map(|idx| {
             let td = &training_data[idx];
-            mb.output[0] = td.input_activations.clone();
-            model.feedforward(&mut mb);
-            (&mb.output[output_layer_index][0] - td.output_activations[0]).abs()
+            mbs[0].output[0] = td.input_activations.clone();
+            model.feedforward(&mut mbs);
+            (&mbs[0].output[output_layer_index][0] - td.output_activations[0]).abs()
         })
         .fold(true, |acc, len| acc && len < 0.1);
     assert!(result);
@@ -168,27 +170,28 @@ fn test_train_and_gate() {
     model.train(&data, 1000, 50.0, 0.0, 0.00001, 4, &cost_function);
 
     // Assert
-    let mut mb = model.create_minibatch();
+    let mb = model.create_minibatch();
+    let mut mbs = [mb];
 
     // 0 && 0 == 0
-    mb.output[0] = Vector::from(vec![0.0, 0.0]);
-    model.feedforward(&mut mb);
-    assert_approx_eq!(0.0003339, &mb.output[4][0], 0.001);
+    mbs[0].output[0] = Vector::from(vec![0.0, 0.0]);
+    model.feedforward(&mut mbs);
+    assert_approx_eq!(0.0003339, &mbs[0].output[4][0], 0.001);
 
     // 1 && 0 == 0
-    mb.output[0] = Vector::from(vec![1.0, 0.0]);
-    model.feedforward(&mut mb);
-    assert_approx_eq!(0.00656, &mb.output[4][0], 0.01);
+    mbs[0].output[0] = Vector::from(vec![1.0, 0.0]);
+    model.feedforward(&mut mbs);
+    assert_approx_eq!(0.00656, &mbs[0].output[4][0], 0.01);
 
     // 0 && 1 == 0
-    mb.output[0] = Vector::from(vec![0.0, 1.0]);
-    model.feedforward(&mut mb);
-    assert_approx_eq!(0.005284975257848634, &mb.output[4][0], 0.01);
+    mbs[0].output[0] = Vector::from(vec![0.0, 1.0]);
+    model.feedforward(&mut mbs);
+    assert_approx_eq!(0.005284975257848634, &mbs[0].output[4][0], 0.01);
 
     // 1 && 1 == 0
-    mb.output[0] = Vector::from(vec![1.0, 1.0]);
-    model.feedforward(&mut mb);
-    assert_approx_eq!(0.9887443090898671, &mb.output[4][0], 0.01);
+    mbs[0].output[0] = Vector::from(vec![1.0, 1.0]);
+    model.feedforward(&mut mbs);
+    assert_approx_eq!(0.9887443090898671, &mbs[0].output[4][0], 0.01);
 }
 
 #[test]

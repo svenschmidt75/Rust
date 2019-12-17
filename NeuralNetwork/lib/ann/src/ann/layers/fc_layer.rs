@@ -58,24 +58,31 @@ impl FCLayer {
         }
     }
 
-    pub(crate) fn feedforward(&self, prev_a: &Vector) -> Vector {
-        // SS: number of activations in this layer: self.weights.nrows()
-        let output = self.weights.ax(prev_a);
+    pub(crate) fn feedforward(&self, layer_index: usize, mbs: &mut [Minibatch]) {
+        assert!(layer_index > 0);
+        for mb in mbs {
+            let input = &mb.output[layer_index - 1];
 
-        // SS: alternatively, add another column to weights with the biases.
-        // Add another row with all 0s, except for the bias column where we put 1.
-        let z = &output + &self.biases;
-        z
+            // SS: number of activations in this layer: self.weights.nrows()
+            let output = self.weights.ax(input);
+
+            // SS: alternatively, add another column to weights with the biases.
+            // Add another row with all 0s, except for the bias column where we put 1.
+            let z = &output + &self.biases;
+            mb.output[layer_index] = z;
+        }
     }
 
-    pub fn backprop(&self, layer_index: usize, mb: &mut Minibatch) {
+    pub fn backprop(&self, layer_index: usize, mbs: &mut [Minibatch]) {
         assert!(layer_index > 0);
 
         // SS: calculate dz^{l}/da^{l-1}
-        let weights = &self.weights.transpose();
-        let delta_next = &mb.error[layer_index + 1];
-        let delta = weights.ax(delta_next);
-        mb.error[layer_index] = delta;
+        for mb in mbs {
+            let weights = &self.weights.transpose();
+            let delta_next = &mb.error[layer_index + 1];
+            let delta = weights.ax(delta_next);
+            mb.error[layer_index] = delta;
+        }
     }
 
     pub(crate) fn get_weights(&self) -> &Matrix2D {
@@ -126,8 +133,8 @@ impl FCLayer {
         println!("{:15} | {:15} | {:15}", "dense", self.nneurons, nparams);
     }
 
-    pub fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
-        // calc. derivatives from all mini batches
+    pub(crate) fn update_network(&mut self, layer_index: usize, mbs: &[Minibatch], eta: f64, rho: f64, lambda: f64) {
+        // SS: adjust parameters this layer leans, weights and biases
         let (dw, db) = self.calculate_derivatives(layer_index, mbs, lambda);
 
         // calc. momentum
@@ -214,28 +221,29 @@ mod tests {
         layer.initialize(&input_layer);
 
         let mut mb = Minibatch::new(vec![2, 3, 3]);
+        let mut mbs = [mb];
 
         let z0 = 0.765;
         let z1 = 0.134;
 
-        mb.output[0] = Vector::from(vec![z0, z1]);
+        mbs[0].output[0] = Vector::from(vec![z0, z1]);
 
         // calculate a from z
-        mb.output[1] = layer.feedforward(&mb.output[0]);
-        let a0 = mb.output[1][0];
-        let a1 = mb.output[1][1];
-        let a2 = mb.output[1][2];
+        layer.feedforward(1, &mut mbs);
+        let a0 = mbs[0].output[1][0];
+        let a1 = mbs[0].output[1][1];
+        let a2 = mbs[0].output[1][2];
 
-        // C(a0, a1) = -3 * sin(a0) + 5 * cos(a1)
+        // C(a0, a1) = -3 * sin(a0) + 5 * cos(a1) + 7 * sin(a0 + a2)
 
         // set dC/da
         let dCda0 = -3.0 * a0.cos() + 7.0 * (a0 + a2).cos();
         let dCda1 = -5.0 * a1.sin();
         let dCda2 = 7.0 * (a0 + a2).cos();
-        mb.error[2] = Vector::from(vec![dCda0, dCda1, dCda2]);
+        mbs[0].error[2] = Vector::from(vec![dCda0, dCda1, dCda2]);
 
         // Act
-        layer.backprop(1, &mut mb);
+        layer.backprop(1, &mut mbs);
 
         // Assert
         let weights = layer.get_weights();
@@ -243,8 +251,7 @@ mod tests {
         // dCdz0 = dCda0 * da0dz0 + dCda1 * da1dz0 + dCda2 * da2dz0
         let dCdz0 = dCda0 * weights[(0, 0)] + dCda1 * weights[(1, 0)] + dCda2 * weights[(2, 0)];
         let dCdz1 = dCda0 * weights[(0, 1)] + dCda1 * weights[(1, 1)] + dCda2 * weights[(2, 1)];
-        assert_approx_eq!(dCdz0, mb.error[1][0], 1E-12);
-        assert_approx_eq!(dCdz1, mb.error[1][1], 1E-12);
+        assert_approx_eq!(dCdz0, mbs[0].error[1][0], 1E-12);
+        assert_approx_eq!(dCdz1, mbs[0].error[1][1], 1E-12);
     }
-
 }
