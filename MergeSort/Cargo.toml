@@ -1,5 +1,5 @@
 [package]
-name = "MergeSort"
+name = "merge_sort"
 version = "0.1.0"
 authors = ["Sven Schmidt <s.schmidt@questintegrity.com>"]
 edition = "2018"
