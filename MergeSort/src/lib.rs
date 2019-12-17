@@ -1,5 +1,40 @@
-// SS: make generic
 fn merge(data: &mut [f64], s1: usize, s2: usize, s3: usize) {
+    // SS: data[s1..=s2] is sorted, and so is data[s2+1..=s3]
+    // Merge them such that the result is sorted as well.
+    let l = s3 - s1 + 1;
+    let mut sorted = Vec::with_capacity(l);
+
+    let mut i = s1;
+    let mut j = s2 + 1;
+    let mut k = 0;
+
+    while i <= s2 && j <= s3 {
+        if data[i] <= data[j] {
+            sorted.push(data[i]);
+            i += 1;
+        } else {
+            sorted.push(data[j]);
+            j += 1;
+        }
+        k += 1;
+    }
+
+    while i <= s2 {
+        sorted.push(data[i]);
+        i += 1;
+        k += 1;
+    }
+
+    while j <= s3 {
+        sorted.push(data[j]);
+        j += 1;
+        k += 1;
+    }
+
+    data[s1..=s3].copy_from_slice(&sorted);
+}
+
+fn merge_in_place(data: &mut [f64], s1: usize, s2: usize, s3: usize) {
     // SS: data[s1..=s2] is sorted, and so is data[s2+1..=s3]
     // Merge them such that the result is sorted as well.
     let mut i = s1;
@@ -17,12 +52,15 @@ fn merge(data: &mut [f64], s1: usize, s2: usize, s3: usize) {
         if j > s3 {
             println!("j exhausted, advancing i, resetting j");
             i += 1;
-            j = if s2 + 1 < i { i + 1 } else { s2 + 1};
+            j = if s2 + 1 < i { i + 1 } else { s2 + 1 };
             continue;
         }
 
         if data[i] > data[j] {
-            println!("swapping data[{}] ({}) with data[{}] with {}", i, data[i], j, data[j]);
+            println!(
+                "swapping data[{}] ({}) with data[{}] with {}",
+                i, data[i], j, data[j]
+            );
             let tmp = data[i];
             data[i] = data[j];
             data[j] = tmp;
@@ -47,7 +85,7 @@ fn merge_sort(data: &mut [f64]) {
 fn merge_sort_internal(data: &mut [f64], low: usize, high: usize) {
     // SS: bounds are inclusive
     let mid = (high - low + 1) / 2;
-    if mid > 1 {
+    if mid >= 1 {
         merge_sort_internal(data, low, low + mid - 1);
         merge_sort_internal(data, low + mid, high);
         merge(data, low, low + mid - 1, high);
@@ -56,7 +94,7 @@ fn merge_sort_internal(data: &mut [f64], low: usize, high: usize) {
 
 #[cfg(test)]
 mod tests {
-    use crate::{merge, merge_sort};
+    use super::*;
     use rand::Rng;
 
     #[test]
@@ -129,13 +167,16 @@ mod tests {
     fn test5() {
         // Arrange
         let mut rng = rand::thread_rng();
-        let mut data = (1..100).map(|_| rng.gen::<f64>()).collect::<Vec<_>>();
+        let mut data = (1..14).map(|_| rng.gen::<f64>()).collect::<Vec<_>>();
 
         // Act
         merge_sort(&mut data[..]);
 
         // Assert
-        let t = data.iter().zip(data.iter().skip(1)).fold(true, |accum, (x, y)| accum && *x < *y);
+        let t = data
+            .iter()
+            .zip(data.iter().skip(1))
+            .fold(true, |accum, (x, y)| accum && *x < *y);
         assert_eq!(t, true);
     }
 }
