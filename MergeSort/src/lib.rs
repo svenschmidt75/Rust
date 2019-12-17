@@ -1,4 +1,3 @@
-
 // SS: make generic
 fn merge(data: &mut [f64], s1: usize, s2: usize, s3: usize) {
     // SS: data[s1..=s2] is sorted, and so is data[s2+1..=s3]
@@ -38,9 +37,11 @@ fn merge(data: &mut [f64], s1: usize, s2: usize, s3: usize) {
 
 fn merge_sort(data: &mut [f64]) {
     let mid = data.len() / 2;
-    merge_sort_internal(data, 0, mid - 1);
-    merge_sort_internal(data, mid, data.len() - 1);
-    merge(data, 0, mid - 1, data.len() - 1);
+    if mid > 1 {
+        merge_sort_internal(data, 0, mid - 1);
+        merge_sort_internal(data, mid, data.len() - 1);
+        merge(data, 0, mid - 1, data.len() - 1);
+    }
 }
 
 fn merge_sort_internal(data: &mut [f64], low: usize, high: usize) {
@@ -56,6 +57,7 @@ fn merge_sort_internal(data: &mut [f64], low: usize, high: usize) {
 #[cfg(test)]
 mod tests {
     use crate::{merge, merge_sort};
+    use rand::Rng;
 
     #[test]
     fn test1() {
@@ -121,5 +123,19 @@ mod tests {
         assert_eq!(38.0, data[4]);
         assert_eq!(43.0, data[5]);
         assert_eq!(82.0, data[6]);
+    }
+
+    #[test]
+    fn test5() {
+        // Arrange
+        let mut rng = rand::thread_rng();
+        let mut data = (1..100).map(|_| rng.gen::<f64>()).collect::<Vec<_>>();
+
+        // Act
+        merge_sort(&mut data[..]);
+
+        // Assert
+        let t = data.iter().zip(data.iter().skip(1)).fold(true, |accum, (x, y)| accum && *x < *y);
+        assert_eq!(t, true);
     }
 }
