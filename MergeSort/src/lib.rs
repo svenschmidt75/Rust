@@ -85,7 +85,10 @@ fn merge_sort(data: &mut [f64]) {
 fn merge_sort_internal(data: &mut [f64], low: usize, high: usize) {
     // SS: bounds are inclusive
     let mid = (high - low + 1) / 2;
+
+    // SS: check for termination condition for recursion
     if mid >= 1 {
+        // SS: recursion
         merge_sort_internal(data, low, low + mid - 1);
         merge_sort_internal(data, low + mid, high);
         merge(data, low, low + mid - 1, high);
