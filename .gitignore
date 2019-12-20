@@ -90,3 +90,5 @@ NeuralNetwork/MNIST/data/
 MergeSort/target/
 *.lock
 ThoughtsOnLifetimes/target/
+
+HeapSort/target/
