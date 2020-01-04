@@ -162,6 +162,8 @@ impl Stack {
         }
     }
 
+    // SS: push prepends a node at the current head
+    // O(1) runtime complexity
     fn push(&mut self, value: u64) {
         let mut node = Box::new(Node::new(value));
         let head = self.linked_list.head.take();
@@ -172,6 +174,8 @@ impl Stack {
         self.linked_list.head = Some(node);
     }
 
+    // SS: pop pops the head, and its next node becomes the new head
+    // O(1) runtime complexity
     fn pop(&mut self) -> Option<u64> {
         if self.linked_list.head.is_none() {
             None
