@@ -1,9 +1,10 @@
 use std::ops::Deref;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 struct Node {
     value: u64,
-    next: Option<Rc<Box<Node>>>,
+    next: Option<Rc<Node>>,
 }
 
 impl Node {
@@ -18,7 +19,7 @@ impl Node {
                 return current_node;
             } else {
                 let rc = current_node.next.as_mut().unwrap();
-                let n2 = Rc::get_mut(rc).unwrap().as_mut();
+                let n2 = Rc::get_mut(rc).unwrap();
                 current_node = n2;
             }
         }
@@ -40,14 +41,14 @@ impl Node {
         }
         match self.next {
             None => None,
-            Some(ref mut node) => Rc::get_mut(node).unwrap().as_mut().find_mut(value),
+            Some(ref mut node) => Rc::get_mut(node).unwrap().find_mut(value),
         }
     }
 
     fn remove(&mut self, value: u64) {
         let mut parent = self;
         while parent.next.is_some() && parent.next.as_ref().unwrap().value != value {
-            parent = Rc::get_mut(parent.next.as_mut().unwrap()).unwrap().as_mut();
+            parent = Rc::get_mut(parent.next.as_mut().unwrap()).unwrap();
         }
         if let Some(ref mut child) = parent.next {
             assert_eq!(child.value, value);
@@ -56,9 +57,9 @@ impl Node {
         }
     }
 
-    fn append(&mut self, value: u64) -> Rc<Box<Node>> {
+    fn append(&mut self, value: u64) -> Rc<Node> {
         let mut leaf = self.find_leaf_mut();
-        let node = Rc::new(Box::new(Node::new(value)));
+        let node = Rc::new(Node::new(value));
         leaf.next = Some(node.clone());
         node.clone()
     }
@@ -75,8 +76,8 @@ impl Node {
 }
 
 struct LinkedList {
-    head: Option<Rc<Box<Node>>>,
-    tail: Option<Rc<Box<Node>>>,
+    head: Option<Rc<Node>>,
+    tail: Option<Rc<Node>>,
 }
 
 impl LinkedList {
@@ -90,25 +91,30 @@ impl LinkedList {
     fn append(&mut self, value: u64) {
         match self.head {
             None => {
-                let node = Rc::new(Box::new(Node::new(value)));
+                let node = Rc::new(Node::new(value));
                 self.head = Some(node.clone());
-                self.tail = Some(node.clone());
+                self.tail = Some(node);
             }
             Some(ref mut node) => {
-                let new_tail = Rc::get_mut(node).unwrap().as_mut().append(value);
+                let new_tail = Rc::get_mut(node).unwrap().append(value);
                 self.tail = Some(new_tail);
             }
         }
     }
 
     fn prepend(&mut self, value: u64) {
-        let mut node = Box::new(Node::new(value));
+        let mut node = Node::new(value);
         let head = self.head.take();
         node.next = match head {
             None => None,
-            Some(node) => Some(node),
+            Some(ref next) => Some(next.clone()),
         };
-        self.head = Some(Rc::new(node));
+        let rc = Rc::new(node);
+        if head.is_none() {
+            // SS: set tail as well
+            self.tail = Some(rc.clone());
+        }
+        self.head = Some(rc.clone());
     }
 
     fn remove(&mut self, value: u64) {
@@ -182,7 +188,7 @@ impl Queue {
 
     fn enqueue(&mut self, value: u64) {
         // SS: prepend an element
-        self.linked_list.prepend(value);
+        self.linked_list.append(value);
     }
 
     fn dequeue(&mut self) -> Option<u64> {
@@ -207,7 +213,33 @@ impl Queue {
 
 #[cfg(test)]
 mod tests {
-    use crate::Queue;
+    use crate::{Queue, LinkedList};
+
+    #[test]
+    fn prepend_empty() {
+        // Arrange
+        let mut linked_list = LinkedList::new();
+
+        // Act
+        linked_list.prepend(1);
+        linked_list.prepend(2);
+
+        // Assert
+        assert_eq!(linked_list.length(), 2);
+    }
+
+    #[test]
+    fn append_empty() {
+        // Arrange
+        let mut linked_list = LinkedList::new();
+
+        // Act
+        linked_list.append(1);
+        linked_list.append(2);
+
+        // Assert
+        assert_eq!(linked_list.length(), 2);
+    }
 
     #[test]
     fn enqueue() {
