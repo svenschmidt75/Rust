@@ -186,11 +186,22 @@ impl Queue {
     }
 
     fn dequeue(&mut self) -> Option<u64> {
-        None
+        let mut head = self.linked_list.head.take();
+        match head {
+            None => None,
+            Some(ref mut rc) => {
+                // SS: set new head to next node
+                self.linked_list.head = rc.next.clone();
+                Some(rc.value)
+            }
+        }
     }
 
-    fn peek(&self) -> u64 {
-        0
+    fn peek(&self) -> Option<u64> {
+        match self.linked_list.head {
+            None => None,
+            Some(ref rc) => Some(rc.value),
+        }
     }
 }
 
@@ -207,7 +218,7 @@ mod tests {
         queue.enqueue(1);
 
         // Assert
-        assert_eq!(2 + 2, 4);
+        assert_eq!(queue.peek().unwrap(), 1);
     }
 
     #[test]
