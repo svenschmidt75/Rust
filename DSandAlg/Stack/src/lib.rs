@@ -96,6 +96,16 @@ impl LinkedList {
         }
     }
 
+    fn prepend(&mut self, value: u64) {
+        let mut node = Box::new(Node::new(value));
+        let head = self.head.take();
+        node.next = match head {
+            None => None,
+            Some(node) => Some(node),
+        };
+        self.head = Some(node);
+    }
+
     fn find(&self, value: u64) -> Option<&Node> {
         match self.head {
             None => None,
@@ -165,13 +175,7 @@ impl Stack {
     // SS: push prepends a node at the current head
     // O(1) runtime complexity
     fn push(&mut self, value: u64) {
-        let mut node = Box::new(Node::new(value));
-        let head = self.linked_list.head.take();
-        node.next = match head {
-            None => None,
-            Some(node) => Some(node),
-        };
-        self.linked_list.head = Some(node);
+        self.linked_list.prepend(value);
     }
 
     // SS: pop pops the head, and its next node becomes the new head
@@ -242,5 +246,20 @@ mod tests {
         // Assert
         assert_eq!(1, item);
         assert_eq!(0, stack.length());
+    }
+
+    #[test]
+    fn fifo() {
+        // Arrange
+        let mut stack = Stack::new();
+        stack.push(1);
+        stack.push(2);
+
+        // Act
+        let item = stack.pop().unwrap();
+
+        // Assert
+        assert_eq!(2, item);
+        assert_eq!(1, stack.length());
     }
 }
