@@ -1,10 +1,11 @@
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::borrow::{BorrowMut, Borrow};
 
 struct Node {
     value: u64,
-    next: Option<Rc<Node>>,
+    next: Option<Rc<RefCell<Node>>>,
 }
 
 impl Node {
@@ -18,9 +19,14 @@ impl Node {
             if current_node.next.is_none() {
                 return current_node;
             } else {
-                let rc = current_node.next.as_mut().unwrap();
-                let n2 = Rc::get_mut(rc).unwrap();
-                current_node = n2;
+                let mut a = current_node.next.as_ref().unwrap().clone();
+                let mut b = a.borrow_mut().get_mut();
+
+
+                current_node = b;
+
+
+
             }
         }
     }
@@ -31,7 +37,7 @@ impl Node {
         }
         match self.next {
             None => None,
-            Some(ref node) => node.find(value),
+            Some(ref node) => node.deref().borrow().find(value),
         }
     }
 
@@ -41,27 +47,30 @@ impl Node {
         }
         match self.next {
             None => None,
-            Some(ref mut node) => Rc::get_mut(node).unwrap().find_mut(value),
+            Some(ref node) => {
+                node.deref().borrow().find_mut(value)
+            },
         }
     }
 
     fn remove(&mut self, value: u64) {
+        // SS: find the parent node of the node to delete
         let mut parent = self;
-        while parent.next.is_some() && parent.next.as_ref().unwrap().value != value {
-            parent = Rc::get_mut(parent.next.as_mut().unwrap()).unwrap();
+        while parent.next.is_some() && parent.next.unwrap().deref().borrow().value != value {
+            parent = parent.next.unwrap().deref().borrow_mut().deref_mut();
         }
-        if let Some(ref mut child) = parent.next {
-            assert_eq!(child.value, value);
-            let child_next = Rc::get_mut(child).unwrap().next.take();
+        if let Some(ref child) = parent.next {
+//            assert_eq!(child.deref().value, value);
+            let child_next = child.deref().borrow_mut().next.take();
             parent.next = child_next;
         }
     }
 
-    fn append(&mut self, value: u64) -> Rc<Node> {
+    fn append(&mut self, value: u64) -> Rc<RefCell<Node>> {
         let mut leaf = self.find_leaf_mut();
-        let node = Rc::new(Node::new(value));
+        let node = Rc::new(RefCell::new(Node::new(value)));
         leaf.next = Some(node.clone());
-        node.clone()
+        node
     }
 
     fn print(&self) {
@@ -69,15 +78,15 @@ impl Node {
         match self.next {
             None => {}
             Some(ref next) => {
-                next.print();
+                next.deref().borrow().print();
             }
         }
     }
 }
 
 struct LinkedList {
-    head: Option<Rc<Node>>,
-    tail: Option<Rc<Node>>,
+    head: Option<Rc<RefCell<Node>>>,
+    tail: Option<Rc<RefCell<Node>>>,
 }
 
 impl LinkedList {
@@ -91,21 +100,21 @@ impl LinkedList {
     fn append(&mut self, value: u64) {
         match self.head {
             None => {
-                let node = Rc::new(Node::new(value));
+                let node = Rc::new(RefCell::new(Node::new(value)));
                 self.head = Some(node.clone());
                 self.tail = Some(node);
             }
-            Some(ref mut node) => {
-                let new_tail = Rc::get_mut(node).unwrap().append(value);
+            Some(ref node) => {
+                let new_tail = node.deref().borrow_mut().append(value);
                 self.tail = Some(new_tail);
             }
         }
     }
 
     fn prepend(&mut self, value: u64) {
-        let mut node = Node::new(value);
+        let mut node = RefCell::new(Node::new(value));
         let head = self.head.take();
-        node.next = match head {
+        node.borrow_mut().next = match head {
             None => None,
             Some(ref next) => Some(next.clone()),
         };
@@ -118,20 +127,17 @@ impl LinkedList {
     }
 
     fn remove(&mut self, value: u64) {
-        if let Some(ref mut head) = self.head {
-            if head.value == value {
+        if let Some(ref head) = self.head {
+            if head.deref().borrow().value == value {
                 // SS: remove head
 
                 // SS: next node after head
-                let next = Rc::get_mut(self.head.take().as_mut().unwrap())
-                    .unwrap()
-                    .next
-                    .take();
+                let next = self.head.unwrap().deref().borrow().next.take();
                 if let Some(n) = next {
                     self.head = Some(n);
                 }
             } else {
-                Rc::get_mut(head).unwrap().remove(value);
+                head.deref().borrow().remove(value);
             }
         }
     }
@@ -139,14 +145,16 @@ impl LinkedList {
     fn find(&self, value: u64) -> Option<&Node> {
         match self.head {
             None => None,
-            Some(ref node) => node.find(value),
+            Some(ref node) => node.deref().borrow().find(value),
         }
     }
 
     fn find_mut(&mut self, value: u64) -> Option<&mut Node> {
         match self.head {
             None => None,
-            Some(ref mut node) => Rc::get_mut(node).unwrap().find_mut(value),
+            Some(ref node) => {
+                node.deref().borrow_mut().find_mut(value)
+            },
         }
     }
 
@@ -155,10 +163,10 @@ impl LinkedList {
             0
         } else {
             let mut count = 1;
-            let mut node = self.head.as_ref().unwrap();
+            let mut node = self.head.unwrap().deref().borrow().deref();
             while node.next.is_some() {
                 count = count + 1;
-                node = node.next.as_ref().unwrap();
+                node = node.next.unwrap().deref().borrow().deref();
             }
             count
         }
@@ -168,7 +176,7 @@ impl LinkedList {
         match self.head {
             None => println!("empty"),
             Some(ref node) => {
-                node.print();
+                node.deref().borrow().print();
                 println!()
             }
         }
@@ -195,10 +203,10 @@ impl Queue {
         let mut head = self.linked_list.head.take();
         match head {
             None => None,
-            Some(ref mut rc) => {
+            Some(ref rc) => {
                 // SS: set new head to next node
-                self.linked_list.head = rc.next.clone();
-                Some(rc.value)
+                self.linked_list.head = rc.deref().borrow().next;
+                Some(rc.deref().borrow().value)
             }
         }
     }
@@ -206,7 +214,7 @@ impl Queue {
     fn peek(&self) -> Option<u64> {
         match self.linked_list.head {
             None => None,
-            Some(ref rc) => Some(rc.value),
+            Some(ref rc) => Some(rc.deref().borrow().value),
         }
     }
 }
