@@ -12,7 +12,7 @@ struct Node {
 }
 
 impl Node {
-    fn new(value: u64) -> Node {
+    fn new(value: u64) -> Self {
         Node { value, next: None }
     }
 
@@ -37,7 +37,7 @@ impl Node {
 }
 
 impl LinkedList {
-    fn new() -> LinkedList {
+    fn new() -> Self {
         LinkedList { head: None }
     }
 
@@ -69,19 +69,6 @@ impl LinkedList {
         }
     }
 
-    fn find_parent(&mut self, value: u64) -> Option<&mut Node> {
-        let mut child = self.head.as_mut().unwrap();
-        loop {
-            if child.next.is_none() {
-                return None;
-            }
-            if child.next.as_ref().unwrap().value == value {
-                return Some(child);
-            }
-            child = child.next.as_mut().unwrap();
-        }
-    }
-
     fn remove(&mut self, value: u64) {
         if let Some(_) = self.head {
             if self.head.as_ref().unwrap().value == value {
@@ -96,6 +83,19 @@ impl LinkedList {
                     p.next = next;
                 }
             }
+        }
+    }
+
+    fn find_parent(&mut self, value: u64) -> Option<&mut Node> {
+        let mut child = self.head.as_mut().unwrap();
+        loop {
+            if child.next.is_none() {
+                return None;
+            }
+            if child.next.as_ref().unwrap().value == value {
+                return Some(child);
+            }
+            child = child.next.as_mut().unwrap();
         }
     }
 
