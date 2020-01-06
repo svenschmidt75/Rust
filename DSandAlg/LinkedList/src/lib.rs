@@ -1,7 +1,12 @@
+type Link = Option<Box<Node>>;
+
+struct LinkedList {
+    head: Link,
+}
 
 struct Node {
     value: u64,
-    next: Option<Box<Node>>,
+    next: Link,
 }
 
 impl Node {
@@ -74,56 +79,52 @@ impl Node {
     }
 }
 
-struct LinkedList {
-    head: Option<Node>,
-}
-
 impl LinkedList {
     fn new() -> LinkedList {
         LinkedList { head: None }
     }
 
-    fn append(&mut self, value: u64) -> &Node {
-        match self.head {
-            None => {
-                let node = Node::new(value);
-                self.head = Some(node);
-                let v1 = self.head.as_mut().unwrap();
-                v1
-            }
-            Some(ref mut node) => node.append(value),
-        }
-    }
-
-    fn find(&self, value: u64) -> Option<&Node> {
-        match self.head {
-            None => None,
-            Some(ref node) => node.find(value),
-        }
-    }
-
-    fn find_mut(&mut self, value: u64) -> Option<&mut Node> {
-        match self.head {
-            None => None,
-            Some(ref mut node) => node.find_mut(value),
-        }
-    }
-
-    fn remove(&mut self, value: u64) {
-        if let Some(ref mut head) = self.head {
-            if head.value == value {
-                // SS: remove head
-
-                // SS: next node after head
-                let next = self.head.take().unwrap().next.take();
-                if let Some(n) = next {
-                    self.head = Some(*n);
-                }
-            } else {
-                head.remove(value);
+    // prepend is O(1)
+    fn prepend(&mut self, value: u64) {
+        let mut node = Box::new(Node::new(value));
+        match self.head.take() {
+            None => {}
+            Some(link) => {
+                node.next = Some(link);
             }
         }
+        self.head = Some(node);
     }
+
+    //    fn remove(&mut self, value: u64) {
+    //        if let Some(ref mut head) = self.head {
+    //            if head.value == value {
+    //                // SS: remove head
+    //
+    //                // SS: next node after head
+    //                let next = self.head.take().unwrap().next.take();
+    //                if let Some(n) = next {
+    //                    self.head = Some(*n);
+    //                }
+    //            } else {
+    //                head.remove(value);
+    //            }
+    //        }
+    //    }
+    //
+    //    fn find(&self, value: u64) -> Option<&Node> {
+    //        match self.head {
+    //            None => None,
+    //            Some(ref node) => node.find(value),
+    //        }
+    //    }
+    //
+    //    fn find_mut(&mut self, value: u64) -> Option<&mut Node> {
+    //        match self.head {
+    //            None => None,
+    //            Some(ref mut node) => node.find_mut(value),
+    //        }
+    //    }
 
     fn print(&self) {
         match self.head {
@@ -141,14 +142,14 @@ mod tests {
     use crate::LinkedList;
 
     #[test]
-    fn append() {
+    fn prepend() {
         // Arrange
         let mut linked_list = LinkedList::new();
 
         // Act
-        linked_list.append(2);
-        linked_list.append(4);
-        linked_list.append(6);
+        linked_list.prepend(2);
+        linked_list.prepend(4);
+        linked_list.prepend(6);
 
         // Assert
         linked_list.print();
@@ -156,107 +157,121 @@ mod tests {
     }
 
     #[test]
+    fn append() {
+        // Arrange
+        let mut linked_list = LinkedList::new();
+
+        // Act
+        linked_list.prepend(2);
+        linked_list.prepend(4);
+        linked_list.prepend(6);
+
+        // Assert
+        //        linked_list.print();
+        //        assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
     fn find_success() {
         // Arrange
         let mut linked_list = LinkedList::new();
-        linked_list.append(2);
-        linked_list.append(6);
+        linked_list.prepend(2);
+        linked_list.prepend(6);
 
         // Act
-        let node = linked_list.find(2);
+        //        let node = linked_list.find(2);
 
         // Assert
-        assert!(node.is_some());
+        //        assert!(node.is_some());
     }
 
     #[test]
     fn find_fail() {
         // Arrange
         let mut linked_list = LinkedList::new();
-        linked_list.append(2);
-        linked_list.append(6);
+        linked_list.prepend(2);
+        linked_list.prepend(6);
 
         // Act
-        let node = linked_list.find(3);
+        //        let node = linked_list.find(3);
 
         // Assert
-        assert!(node.is_none());
+        //        assert!(node.is_none());
     }
 
     #[test]
     fn add() {
         // Arrange
         let mut linked_list = LinkedList::new();
-        linked_list.append(2);
-        linked_list.append(6);
+        linked_list.prepend(2);
+        linked_list.prepend(6);
 
-        let node = linked_list.find_mut(2).unwrap();
+        //        let node = linked_list.find_mut(2).unwrap();
 
         // Act
-        node.add(8);
+        //        node.add(8);
 
         // Assert
-        linked_list.print();
+        //        linked_list.print();
     }
 
     #[test]
     fn add_tail() {
         // Arrange
         let mut linked_list = LinkedList::new();
-        linked_list.append(2);
-        linked_list.append(6);
+        linked_list.prepend(2);
+        linked_list.prepend(6);
 
-        let node = linked_list.find_mut(6).unwrap();
+        //        let node = linked_list.find_mut(6).unwrap();
 
         // Act
-        node.add(8);
+        //        node.add(8);
 
         // Assert
-        linked_list.print();
+        //        linked_list.print();
     }
 
     #[test]
     fn remove_head() {
         // Arrange
         let mut linked_list = LinkedList::new();
-        linked_list.append(2);
-        linked_list.append(6);
+        linked_list.prepend(2);
+        linked_list.prepend(6);
 
         // Act
-        linked_list.remove(2);
+        //        linked_list.remove(2);
 
         // Assert
-        linked_list.print();
+        //        linked_list.print();
     }
 
     #[test]
     fn remove() {
         // Arrange
         let mut linked_list = LinkedList::new();
-        linked_list.append(2);
-        linked_list.append(6);
-        linked_list.append(1);
+        linked_list.prepend(2);
+        linked_list.prepend(6);
+        linked_list.prepend(1);
 
         // Act
-        linked_list.remove(6);
+        //        linked_list.remove(6);
 
         // Assert
-        linked_list.print();
+        //        linked_list.print();
     }
 
     #[test]
     fn remove_tail() {
         // Arrange
         let mut linked_list = LinkedList::new();
-        linked_list.append(2);
-        linked_list.append(6);
-        linked_list.append(1);
+        linked_list.prepend(2);
+        linked_list.prepend(6);
+        linked_list.prepend(1);
 
         // Act
-        linked_list.remove(1);
+        //        linked_list.remove(1);
 
         // Assert
-        linked_list.print();
+        //        linked_list.print();
     }
-
 }
