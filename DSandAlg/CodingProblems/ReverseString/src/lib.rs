@@ -1,11 +1,18 @@
+use std::mem;
 
 fn reverse(input_str: &str) -> String {
     let mut m: Vec<char> = input_str.chars().collect();
-    for (i, c) in input_str.chars().enumerate() {
-        let index = m.len() - 1 - i;
-        m[index] = c;
+    for i in 0..(m.len() / 2) {
+        let idx = m.len() - 1 - i;
+        swap(&mut m, i, idx);
     }
     m.into_iter().collect()
+}
+
+fn swap(array: &mut [char], a: usize, b: usize) {
+    let tmp = array[a];
+    array[a] = array[b];
+    array[b] = tmp;
 }
 
 #[cfg(test)]
