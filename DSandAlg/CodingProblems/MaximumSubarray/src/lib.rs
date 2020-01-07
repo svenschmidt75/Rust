@@ -1,4 +1,5 @@
-use std::panic::resume_unwind;
+// https://leetcode.com/problems/maximum-subarray/description/
+// https://www.geeksforgeeks.org/largest-sum-contiguous-subarray/
 
 // Kadane’s algorithm
 fn maximum_subarray(array: &[i32]) -> i32 {
