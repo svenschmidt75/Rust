@@ -25,7 +25,9 @@ impl Queue {
         self.stack2.pop()
     }
 
-    fn peek(&self) -> Option<&u64> {
+    // SS: this should not be mut here, something like interior mutability should be used
+    // but cannot return a reference to something inside a RefCell...
+    fn peek(&mut self) -> Option<&u64> {
         if self.stack2.is_empty() {
             while self.stack1.is_empty() == false {
                 let item = self.stack1.pop();
@@ -42,7 +44,7 @@ mod tests {
     use crate::QueueWithStacks::Queue;
 
     #[test]
-    fn test() {
+    fn enqueue() {
         // Arrange
         let mut queue = Queue::new();
 
@@ -52,7 +54,25 @@ mod tests {
         queue.enqueue(3);
         queue.enqueue(4);
 
-        // Act
-        assert_eq!(queue.peek().unwrap(), &4);
+        // Assert
+        assert_eq!(queue.peek().unwrap(), &1);
     }
+
+    #[test]
+    fn dequeue() {
+        // Arrange
+        let mut queue = Queue::new();
+        queue.enqueue(1);
+        queue.enqueue(2);
+        queue.enqueue(3);
+        queue.enqueue(4);
+
+        // Act
+        let item = queue.dequeue();
+
+        // Assert
+        assert_eq!(item, 1);
+        assert_eq!(queue.peek().unwrap(), &2);
+    }
+
 }
