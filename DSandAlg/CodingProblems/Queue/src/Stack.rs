@@ -1,4 +1,31 @@
 
+pub(crate) struct Stack {
+    data: Vec<u64>
+}
+
+impl Stack {
+
+    pub(crate) fn new() -> Stack {
+        Stack {data: vec![] }
+    }
+
+    pub(crate) fn push(&mut self, item: u64) {
+        self.data.push(item);
+    }
+
+    pub(crate) fn pop(&mut self) -> u64 {
+        let item = self.data.pop().unwrap();
+        item
+    }
+
+    pub(crate) fn peek(&self) -> Option<&u64> {
+        self.data.last()
+    }
+
+    pub(crate) fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+}
 
 
 #[cfg(test)]
