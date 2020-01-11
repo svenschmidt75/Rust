@@ -1,40 +1,40 @@
 use crate::Stack::Stack;
 
 struct Queue {
-    stack1: Stack,
-    stack2: Stack,
+    enqueue_stack: Stack,
+    dequeue_stack: Stack,
 }
 
 impl Queue {
 
     fn new() -> Queue {
-        Queue {stack1: Stack::new(), stack2: Stack::new() }
+        Queue { enqueue_stack: Stack::new(), dequeue_stack: Stack::new() }
     }
 
     fn enqueue(&mut self, item: u64) {
-        self.stack1.push(item);
+        self.enqueue_stack.push(item);
     }
 
     fn dequeue(&mut self) -> u64 {
-        if self.stack2.is_empty() {
-            while self.stack1.is_empty() == false {
-                let item = self.stack1.pop();
-                self.stack2.push(item);
+        if self.dequeue_stack.is_empty() {
+            while self.enqueue_stack.is_empty() == false {
+                let item = self.enqueue_stack.pop();
+                self.dequeue_stack.push(item);
             }
         }
-        self.stack2.pop()
+        self.dequeue_stack.pop()
     }
 
     // SS: this should not be mut here, something like interior mutability should be used
     // but cannot return a reference to something inside a RefCell...
     fn peek(&mut self) -> Option<&u64> {
-        if self.stack2.is_empty() {
-            while self.stack1.is_empty() == false {
-                let item = self.stack1.pop();
-                self.stack2.push(item);
+        if self.dequeue_stack.is_empty() {
+            while self.enqueue_stack.is_empty() == false {
+                let item = self.enqueue_stack.pop();
+                self.dequeue_stack.push(item);
             }
         }
-        self.stack2.peek()
+        self.dequeue_stack.peek()
     }
 }
 
