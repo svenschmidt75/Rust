@@ -99,6 +99,39 @@ impl BinarySearchTree {
         }
     }
 
+    fn validate(&self) -> bool {
+        if self.root.is_none() {
+            true
+        } else {
+            let mut queue = VecDeque::new();
+            queue.push_front(self.root.as_ref().unwrap());
+            while queue.is_empty() == false {
+                let current_node = queue.pop_back().unwrap();
+                let v = current_node.left.as_ref().map_or_else(
+                    || true,
+                    |left| {
+                        queue.push_front(left);
+                        left.value <= current_node.value
+                    },
+                );
+                if v == false {
+                    return false;
+                }
+                let v = current_node.right.as_ref().map_or_else(
+                    || true,
+                    |right| {
+                        queue.push_front(right);
+                        right.value > current_node.value
+                    },
+                );
+                if v == false {
+                    return false;
+                }
+            }
+            true
+        }
+    }
+
     fn bfs_flatten(&self) -> Vec<i64> {
         if self.root.is_none() {
             vec![]
@@ -287,8 +320,6 @@ mod tests {
     fn bfs() {
         // Arrange
         let mut bst = BinarySearchTree::new();
-
-        // Act
         bst.insert(41);
         bst.insert(20);
         bst.insert(11);
@@ -300,8 +331,10 @@ mod tests {
         bst.insert(72);
         bst.insert(99);
 
-        // Assert
+        // Act
         let bfs_flattened = bst.bfs_flatten();
+
+        // Assert
         assert_eq!(bfs_flattened, vec![41, 20, 65, 11, 29, 50, 91, 32, 72, 99]);
     }
 
@@ -309,8 +342,6 @@ mod tests {
     fn bfs_recursive() {
         // Arrange
         let mut bst = BinarySearchTree::new();
-
-        // Act
         bst.insert(41);
         bst.insert(20);
         bst.insert(11);
@@ -322,12 +353,14 @@ mod tests {
         bst.insert(72);
         bst.insert(99);
 
-        // Assert
-        let bfs_flattened = bst.bfs_flatten();
+        // Act
         let mut bfs_flattened_recursive = Vec::<i64>::new();
         let mut queue = VecDeque::<&Node>::new();
         queue.push_back(bst.root.as_ref().unwrap());
         bst.bfs_flatten_recursive(&mut queue, &mut bfs_flattened_recursive);
+
+        // Assert
+        let bfs_flattened = bst.bfs_flatten();
         assert_eq!(bfs_flattened_recursive, bfs_flattened);
     }
 
@@ -335,8 +368,6 @@ mod tests {
     fn dfs_inorder() {
         // Arrange
         let mut bst = BinarySearchTree::new();
-
-        // Act
         bst.insert(41);
         bst.insert(20);
         bst.insert(11);
@@ -348,8 +379,10 @@ mod tests {
         bst.insert(72);
         bst.insert(99);
 
-        // Assert
+        // Act
         let dfs_inorder_flattened = bst.dfs_inorder();
+
+        // Assert
         assert_eq!(
             dfs_inorder_flattened,
             vec![11, 20, 29, 32, 41, 50, 65, 72, 91, 99]
@@ -369,8 +402,10 @@ mod tests {
         bst.insert(170);
 
         // Act
-        let dfs_inorder = bst.dfs_inorder();
         let dfs_inorder_iteratively = bst.dfs_inorder_iteratively();
+
+        // Assert
+        let dfs_inorder = bst.dfs_inorder();
         assert_eq!(dfs_inorder_iteratively, dfs_inorder);
     }
 
@@ -378,8 +413,6 @@ mod tests {
     fn dfs_preorder() {
         // Arrange
         let mut bst = BinarySearchTree::new();
-
-        // Act
         bst.insert(41);
         bst.insert(20);
         bst.insert(11);
@@ -391,8 +424,10 @@ mod tests {
         bst.insert(72);
         bst.insert(99);
 
-        // Assert
+        // Act
         let dfs_preorder_flattened = bst.dfs_preorder();
+
+        // Assert
         assert_eq!(
             dfs_preorder_flattened,
             vec![41, 20, 11, 29, 32, 65, 50, 91, 72, 99]
@@ -412,8 +447,10 @@ mod tests {
         bst.insert(170);
 
         // Act
-        let dfs_preorder = bst.dfs_preorder();
         let dfs_preorder_iteratively = bst.dfs_preorder_iteratively();
+
+        // Assert
+        let dfs_preorder = bst.dfs_preorder();
         assert_eq!(dfs_preorder_iteratively, dfs_preorder);
     }
 
@@ -421,8 +458,6 @@ mod tests {
     fn dfs_postorder() {
         // Arrange
         let mut bst = BinarySearchTree::new();
-
-        // Act
         bst.insert(41);
         bst.insert(20);
         bst.insert(11);
@@ -434,8 +469,10 @@ mod tests {
         bst.insert(72);
         bst.insert(99);
 
-        // Assert
+        // Act
         let dfs_postorder_flattened = bst.dfs_postorder();
+
+        // Assert
         assert_eq!(
             dfs_postorder_flattened,
             vec![11, 32, 29, 20, 50, 72, 99, 91, 65, 41]
@@ -455,8 +492,29 @@ mod tests {
         bst.insert(170);
 
         // Act
-        let dfs_postorder = bst.dfs_postorder();
         let dfs_postorder_iteratively = bst.dfs_postorder_iteratively();
+
+        // Assert
+        let dfs_postorder = bst.dfs_postorder();
         assert_eq!(dfs_postorder_iteratively, dfs_postorder);
+    }
+
+    #[test]
+    fn bast_validate_1() {
+        // Arrange
+        let mut bst = BinarySearchTree::new();
+        bst.insert(9);
+        bst.insert(4);
+        bst.insert(20);
+        bst.insert(1);
+        bst.insert(6);
+        bst.insert(15);
+        bst.insert(170);
+
+        // Act
+        let is_valid = bst.validate();
+
+        // Assert
+        assert!(is_valid);
     }
 }
