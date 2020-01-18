@@ -503,18 +503,25 @@ mod tests {
     fn bast_validate_1() {
         // Arrange
         let mut bst = BinarySearchTree::new();
-        bst.insert(9);
-        bst.insert(4);
-        bst.insert(20);
-        bst.insert(1);
-        bst.insert(6);
-        bst.insert(15);
-        bst.insert(170);
+        let rl = Some(Box::new(Node::new(3)));
+        let rr = Some(Box::new(Node::new(6)));
+
+        let mut r = Box::new(Node::new(4));
+        r.left = rl;
+        r.right = rr;
+
+        let l = Some(Box::new(Node::new(1)));
+
+        let mut root = Box::new(Node::new(5));
+        root.left = l;
+        root.right = Some(r);
+
+        bst.root = Some(root);
 
         // Act
         let is_valid = bst.validate();
 
         // Assert
-        assert!(is_valid);
+        assert_eq!(is_valid, false);
     }
 }
