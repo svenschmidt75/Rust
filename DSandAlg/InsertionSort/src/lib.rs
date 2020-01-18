@@ -1,5 +1,23 @@
-
 fn insertion_sort(a: &mut [f64]) {
+    // SS: Insertion sort, in-place, with O(N^2) runtime complexity,
+    // but O(1) memory
+    for i in 1..a.len() {
+        let cnt = i;
+        let mut j = 0;
+        while j < cnt && a[i - j] < a[i - j - 1] {
+            swap(a, i - j, i - j - 1);
+            j += 1;
+        }
+    }
+}
+
+fn swap(array: &mut [f64], a: usize, b: usize) {
+    let tmp = array[a];
+    array[a] = array[b];
+    array[b] = tmp;
+}
+
+fn insertion_sort_2(a: &mut [f64]) {
     // SS: Insertion sort, in-place, with O(N^2) runtime complexity,
     // but O(1) memory
     for i in 1..a.len() {
@@ -36,15 +54,31 @@ fn shift(a: &mut [f64], start: usize, end: usize) {
 
 #[cfg(test)]
 mod tests {
-    use crate::insertion_sort;
+    use crate::{insertion_sort, insertion_sort_2};
 
     #[test]
-    fn it_works() {
+    fn test_1() {
         // Arrange
         let mut a = [64.0, 25.0, 12.0, 22.0, 11.0];
 
         // Act
         insertion_sort(&mut a);
+
+        // Assert
+        assert_eq!(a[0], 11.0);
+        assert_eq!(a[1], 12.0);
+        assert_eq!(a[2], 22.0);
+        assert_eq!(a[3], 25.0);
+        assert_eq!(a[4], 64.0);
+    }
+
+    #[test]
+    fn test_2() {
+        // Arrange
+        let mut a = [64.0, 25.0, 12.0, 22.0, 11.0];
+
+        // Act
+        insertion_sort_2(&mut a);
 
         // Assert
         assert_eq!(a[0], 11.0);
