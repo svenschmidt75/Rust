@@ -122,6 +122,22 @@ impl BinarySearchTree {
         }
     }
 
+    fn bfs_flatten_recursive(&self, queue: &mut VecDeque<&Node>, values: &mut Vec<i64>) {
+        if queue.is_empty() == false {
+            let current_node = queue.pop_back().unwrap();
+            values.push(current_node.value);
+            current_node
+                .left
+                .as_ref()
+                .map(|left_child| queue.push_front(left_child));
+            current_node
+                .right
+                .as_ref()
+                .map(|right_child| queue.push_front(right_child));
+            self.bfs_flatten_recursive(queue, values);
+        }
+    }
+
     fn dfs_inorder(&self) -> Vec<i64> {
         self.root
             .as_ref()
@@ -129,13 +145,45 @@ impl BinarySearchTree {
     }
 
     fn dfs_inorder_iteratively(&self) -> Vec<i64> {
-        let mut current_node = self.root.as_ref();
-        let mut stack = vec![];
-        stack.push(current_node);
-        while stack.is_empty() == false {
-            current_node = stack.pop().unwrap();
+        if self.root.is_none() {
+            return Vec::<i64>::new();
         }
-        vec![]
+
+        let mut values = vec![];
+        let mut current_node = self.root.as_ref().unwrap();
+        let mut node_stack = vec![];
+        node_stack.push(current_node);
+        let mut child_pos_stack = vec![];
+        child_pos_stack.push(0);
+        while node_stack.is_empty() == false {
+            current_node = node_stack.pop().unwrap();
+            let child_pos = child_pos_stack.pop().unwrap();
+            if child_pos == 0 {
+                current_node.left.as_ref().map_or_else(
+                    || values.push(current_node.value),
+                    |left| {
+                        node_stack.push(current_node);
+                        child_pos_stack.push(1);
+
+                        node_stack.push(left);
+                        child_pos_stack.push(0);
+                    },
+                );
+            } else if child_pos == 1 {
+                values.push(current_node.value);
+                current_node.right.as_ref().map_or_else(
+                    || values.push(current_node.value),
+                    |right| {
+                        node_stack.push(current_node);
+                        child_pos_stack.push(2);
+
+                        node_stack.push(right);
+                        child_pos_stack.push(0);
+                    },
+                );
+            }
+        }
+        values
     }
 
     fn dfs_preorder(&self) -> Vec<i64> {
@@ -144,10 +192,89 @@ impl BinarySearchTree {
             .map_or_else(|| vec![], |r| r.dfs_preorder())
     }
 
+    fn dfs_preorder_iteratively(&self) -> Vec<i64> {
+        if self.root.is_none() {
+            return Vec::<i64>::new();
+        }
+
+        let mut values = vec![];
+        let mut current_node = self.root.as_ref().unwrap();
+        let mut node_stack = vec![];
+        node_stack.push(current_node);
+        let mut child_pos_stack = vec![];
+        child_pos_stack.push(0);
+        while node_stack.is_empty() == false {
+            current_node = node_stack.pop().unwrap();
+            let child_pos = child_pos_stack.pop().unwrap();
+            if child_pos == 0 {
+                values.push(current_node.value);
+                current_node.left.as_ref().map(|left| {
+                    node_stack.push(current_node);
+                    child_pos_stack.push(1);
+
+                    node_stack.push(left);
+                    child_pos_stack.push(0);
+                });
+            } else if child_pos == 1 {
+                current_node.right.as_ref().map(|right| {
+                    node_stack.push(current_node);
+                    child_pos_stack.push(2);
+
+                    node_stack.push(right);
+                    child_pos_stack.push(0);
+                });
+            }
+        }
+        values
+    }
+
     fn dfs_postorder(&self) -> Vec<i64> {
         self.root
             .as_ref()
             .map_or_else(|| vec![], |r| r.dfs_postorder())
+    }
+
+    fn dfs_postorder_iteratively(&self) -> Vec<i64> {
+        if self.root.is_none() {
+            return Vec::<i64>::new();
+        }
+
+        let mut values = vec![];
+        let mut current_node = self.root.as_ref().unwrap();
+        let mut node_stack = vec![];
+        node_stack.push(current_node);
+        let mut child_pos_stack = vec![];
+        child_pos_stack.push(0);
+        while node_stack.is_empty() == false {
+            current_node = node_stack.pop().unwrap();
+            let child_pos = child_pos_stack.pop().unwrap();
+            if child_pos == 0 {
+                current_node.left.as_ref().map_or_else(
+                    || values.push(current_node.value),
+                    |left| {
+                        node_stack.push(current_node);
+                        child_pos_stack.push(1);
+
+                        node_stack.push(left);
+                        child_pos_stack.push(0);
+                    },
+                );
+            } else if child_pos == 1 {
+                current_node.right.as_ref().map_or_else(
+                    || values.push(current_node.value),
+                    |right| {
+                        node_stack.push(current_node);
+                        child_pos_stack.push(2);
+
+                        node_stack.push(right);
+                        child_pos_stack.push(0);
+                    },
+                );
+            } else {
+                values.push(current_node.value);
+            }
+        }
+        values
     }
 }
 
@@ -179,6 +306,32 @@ mod tests {
     }
 
     #[test]
+    fn bfs_recursive() {
+        // Arrange
+        let mut bst = BinarySearchTree::new();
+
+        // Act
+        bst.insert(41);
+        bst.insert(20);
+        bst.insert(11);
+        bst.insert(29);
+        bst.insert(32);
+        bst.insert(65);
+        bst.insert(50);
+        bst.insert(91);
+        bst.insert(72);
+        bst.insert(99);
+
+        // Assert
+        let bfs_flattened = bst.bfs_flatten();
+        let mut bfs_flattened_recursive = Vec::<i64>::new();
+        let mut queue = VecDeque::<&Node>::new();
+        queue.push_back(bst.root.as_ref().unwrap());
+        bst.bfs_flatten_recursive(&mut queue, &mut bfs_flattened_recursive);
+        assert_eq!(bfs_flattened_recursive, bfs_flattened);
+    }
+
+    #[test]
     fn dfs_inorder() {
         // Arrange
         let mut bst = BinarySearchTree::new();
@@ -201,6 +354,24 @@ mod tests {
             dfs_inorder_flattened,
             vec![11, 20, 29, 32, 41, 50, 65, 72, 91, 99]
         );
+    }
+
+    #[test]
+    fn dfs_inorder_iteratively() {
+        // Arrange
+        let mut bst = BinarySearchTree::new();
+        bst.insert(9);
+        bst.insert(4);
+        bst.insert(20);
+        bst.insert(1);
+        bst.insert(6);
+        bst.insert(15);
+        bst.insert(170);
+
+        // Act
+        let dfs_inorder = bst.dfs_inorder();
+        let dfs_inorder_iteratively = bst.dfs_inorder_iteratively();
+        assert_eq!(dfs_inorder_iteratively, dfs_inorder);
     }
 
     #[test]
@@ -229,6 +400,24 @@ mod tests {
     }
 
     #[test]
+    fn dfs_preorder_iteratively() {
+        // Arrange
+        let mut bst = BinarySearchTree::new();
+        bst.insert(9);
+        bst.insert(4);
+        bst.insert(20);
+        bst.insert(1);
+        bst.insert(6);
+        bst.insert(15);
+        bst.insert(170);
+
+        // Act
+        let dfs_preorder = bst.dfs_preorder();
+        let dfs_preorder_iteratively = bst.dfs_preorder_iteratively();
+        assert_eq!(dfs_preorder_iteratively, dfs_preorder);
+    }
+
+    #[test]
     fn dfs_postorder() {
         // Arrange
         let mut bst = BinarySearchTree::new();
@@ -253,4 +442,21 @@ mod tests {
         );
     }
 
+    #[test]
+    fn dfs_postorder_iteratively() {
+        // Arrange
+        let mut bst = BinarySearchTree::new();
+        bst.insert(9);
+        bst.insert(4);
+        bst.insert(20);
+        bst.insert(1);
+        bst.insert(6);
+        bst.insert(15);
+        bst.insert(170);
+
+        // Act
+        let dfs_postorder = bst.dfs_postorder();
+        let dfs_postorder_iteratively = bst.dfs_postorder_iteratively();
+        assert_eq!(dfs_postorder_iteratively, dfs_postorder);
+    }
 }
