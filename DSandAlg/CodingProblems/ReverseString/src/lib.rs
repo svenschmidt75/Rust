@@ -15,9 +15,22 @@ fn swap(array: &mut [char], a: usize, b: usize) {
     array[b] = tmp;
 }
 
+fn reverse_recursive(input: &str) -> String {
+    if input.is_empty() {
+        String::new()
+    } else {
+        let m = input.chars().collect::<Vec<_>>();
+        format!(
+            "{}{}",
+            m[input.len() - 1],
+            reverse_recursive(&input[0..(input.len() - 1)])
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::reverse;
+    use crate::{reverse, reverse_recursive};
 
     #[test]
     fn test_reverse() {
@@ -26,6 +39,18 @@ mod tests {
 
         // Act
         let reversed = reverse(&string);
+
+        // Assert
+        assert_eq!("!poCoboR si eman ym ,iH", reversed);
+    }
+
+    #[test]
+    fn test_reverse_recursive() {
+        // Arrange
+        let string = "Hi, my name is RoboCop!";
+
+        // Act
+        let reversed = reverse_recursive(&string);
 
         // Assert
         assert_eq!("!poCoboR si eman ym ,iH", reversed);
