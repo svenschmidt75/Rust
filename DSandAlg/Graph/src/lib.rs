@@ -1,13 +1,19 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
+
+#[derive(PartialEq, Debug)]
+struct WeightedEdge(u64, u64, i64);
+
+struct Path(Vec<WeightedEdge>);
 
 struct Graph {
-    adjacency_list: HashMap<u64, Vec<(u64, i64)>>
+    adjacency_list: HashMap<u64, Vec<(u64, i64)>>,
 }
 
 impl Graph {
-
     fn new() -> Graph {
-        Graph { adjacency_list: HashMap::new() }
+        Graph {
+            adjacency_list: HashMap::new(),
+        }
     }
 
     fn add_vertex(&mut self, vertex: u64) {
@@ -27,22 +33,70 @@ impl Graph {
         adj_list.push((to_vertex, weight));
     }
 
-}
+    fn find_path_bfs(&self, from_vertex: u64, to_vertex: u64) -> Option<Path> {
+        // SS: Use BFS to find a path between two nodes. DFS is often more efficient for this.
+        // Note that BFS finds the shortest path in an unweighted graph, NOT all possible paths!!!
+        let mut shortest_path = VecDeque::new();
 
+        let mut queue = VecDeque::new();
+        let mut path = VecDeque::new();
+        let mut visited_vertices = HashSet::new();
+
+        let mut current_vertex = from_vertex;
+        path.push_back(current_vertex);
+        queue.push_back((current_vertex, path));
+
+        while queue.is_empty() == false {
+            let (current_vertex, path) = queue.pop_front().unwrap();
+
+            if visited_vertices.contains(&current_vertex) {
+                continue;
+            }
+
+            visited_vertices.insert(current_vertex);
+
+            if current_vertex == to_vertex {
+                // SS: done, we found a path
+                shortest_path.clone_from(&path);
+                break;
+            }
+
+            let adj_list = self.adjacency_list.get(&current_vertex).unwrap();
+            for (next_vertex, edge_weight) in adj_list {
+                let mut new_path = path.clone();
+                new_path.push_back(*next_vertex);
+                queue.push_back((*next_vertex, new_path));
+            }
+        }
+
+        if shortest_path.is_empty() {
+            None
+        } else {
+            let p = shortest_path
+                .iter()
+                .zip(shortest_path.iter().skip(1))
+                .map(|(&from, &to)| {
+                    let adj_list = self.adjacency_list.get(&from).unwrap();
+
+                    // SS: linear search
+                    let idx = adj_list.iter().position(|elem| elem.0 == to).unwrap();
+                    let weight = adj_list[idx].1;
+
+                    WeightedEdge(from, to, weight)
+                })
+                .collect::<Vec<_>>();
+            Some(Path(p))
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_create_computerphile() {
-        // SS: graph used in 'Dijkstra's Algorithm - Computerphile', https://www.youtube.com/watch?v=GazC3A4OQTE
-        // undirected, weighted, cyclic
-
-        // Arrange
+    fn create_graph() -> Graph {
         let mut graph = Graph::new();
 
-        // Act
         graph.add_vertex(0);
         graph.add_vertex(1);
         graph.add_vertex(2);
@@ -102,6 +156,37 @@ mod tests {
         graph.add_undirected_edge(10, 8, 4);
         graph.add_undirected_edge(10, 11, 4);
 
+        graph
+    }
+
+    #[test]
+    fn test_create_computerphile() {
+        // SS: graph used in 'Dijkstra's Algorithm - Computerphile', https://www.youtube.com/watch?v=GazC3A4OQTE
+        // undirected, weighted, cyclic
+
+        // Arrange
+        // Act
+        let graph = create_graph();
+
         // Assert
+    }
+
+    #[test]
+    fn test_bfs() {
+        // SS: graph used in 'Dijkstra's Algorithm - Computerphile', https://www.youtube.com/watch?v=GazC3A4OQTE
+        // undirected, weighted, cyclic
+
+        // Arrange
+        let graph = create_graph();
+
+        // Act
+        let shortest_path = graph.find_path_bfs(0, 7).unwrap();
+
+        // Assert
+        assert_eq!(shortest_path.0.len(), 4);
+        assert_eq!(shortest_path.0[0], WeightedEdge(0, 2, 2));
+        assert_eq!(shortest_path.0[1], WeightedEdge(2, 5, 1));
+        assert_eq!(shortest_path.0[2], WeightedEdge(5, 6, 2));
+        assert_eq!(shortest_path.0[3], WeightedEdge(6, 7, 2));
     }
 }
