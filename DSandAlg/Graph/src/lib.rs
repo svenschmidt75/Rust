@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet, VecDeque};
+use std::thread::current;
 
 #[derive(PartialEq, Debug)]
 struct WeightedEdge(u64, u64, i64);
@@ -40,6 +41,8 @@ impl Graph {
 
         let mut queue = VecDeque::new();
         let mut path = VecDeque::new();
+
+        // SS: since the graph may have cycles, we need to keep track of the vertices already visited
         let mut visited_vertices = HashSet::new();
 
         let mut current_vertex = from_vertex;
@@ -87,6 +90,69 @@ impl Graph {
                 .collect::<Vec<_>>();
             Some(Path(p))
         }
+    }
+
+    fn find_path_dfs(&self, from_vertex: u64, to_vertex: u64) -> Vec<Path> {
+        let mut paths = vec![];
+        let path = [];
+        let mut visited_vertices = HashSet::new();
+        self.find_path_dfs_internal(
+            from_vertex,
+            to_vertex,
+            &mut visited_vertices,
+            &path,
+            &mut paths,
+        );
+
+        let solutions = paths
+            .iter()
+            .map(|path| {
+                path.iter()
+                    .zip(path.iter().skip(1))
+                    .map(|(&from, &to)| {
+                        let adj_list = self.adjacency_list.get(&from).unwrap();
+
+                        // SS: linear search
+                        let idx = adj_list.iter().position(|elem| elem.0 == to).unwrap();
+                        let weight = adj_list[idx].1;
+
+                        WeightedEdge(from, to, weight)
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .map(|p| Path(p))
+            .collect::<Vec<_>>();
+        solutions
+    }
+
+    fn find_path_dfs_internal(
+        &self,
+        current_vertex: u64,
+        to_vertex: u64,
+        visited_vertices: &mut HashSet<u64>,
+        path: &[u64],
+        paths: &mut Vec<Vec<u64>>,
+    ) {
+        if visited_vertices.contains(&current_vertex) {
+            return;
+        }
+
+        let mut new_path = path.to_vec().clone();
+        new_path.push(current_vertex);
+        visited_vertices.insert(current_vertex);
+
+        if current_vertex == to_vertex {
+            // SS: we have a solution
+            paths.push(new_path.clone());
+        } else {
+            let adj_list = self.adjacency_list.get(&current_vertex).unwrap();
+            for (v, _) in adj_list {
+                self.find_path_dfs_internal(*v, to_vertex, visited_vertices, &new_path, paths);
+            }
+        }
+
+        // SS: backtrack
+        visited_vertices.remove(&current_vertex);
     }
 }
 
@@ -188,5 +254,20 @@ mod tests {
         assert_eq!(shortest_path.0[1], WeightedEdge(2, 5, 1));
         assert_eq!(shortest_path.0[2], WeightedEdge(5, 6, 2));
         assert_eq!(shortest_path.0[3], WeightedEdge(6, 7, 2));
+    }
+
+    #[test]
+    fn test_dfs() {
+        // SS: graph used in 'Dijkstra's Algorithm - Computerphile', https://www.youtube.com/watch?v=GazC3A4OQTE
+        // undirected, weighted, cyclic
+
+        // Arrange
+        let graph = create_graph();
+
+        // Act
+        let paths = graph.find_path_dfs(0, 7);
+
+        // Assert
+        assert_eq!(paths.len(), 11);
     }
 }
