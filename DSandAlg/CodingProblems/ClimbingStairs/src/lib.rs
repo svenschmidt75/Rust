@@ -21,7 +21,7 @@ fn climb_stairs_internal(n: i64, solutions: &mut u64) {
 }
 
 fn climb_stairs_memoize(n: i64) -> u64 {
-    // SS: terrible runtime performance, O(2^n), due to the two branches
+    // SS: using memoization to improve runtime from O(2^n) to O(n)
     if n == 0 {
         0
     } else {

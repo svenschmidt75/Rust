@@ -154,6 +154,15 @@ impl Graph {
         // SS: backtrack
         visited_vertices.remove(&current_vertex);
     }
+
+    fn test() {
+
+        let f = ||{
+            f();
+        };
+
+    }
+
 }
 
 #[cfg(test)]
