@@ -1,4 +1,5 @@
 fn max_subarray_sum(array: &[u64], width: u64) -> u64 {
+    // SS: O(N) time complexity
     if array.len() < width as usize {
         0
     } else {
