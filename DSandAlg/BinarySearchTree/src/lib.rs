@@ -100,6 +100,7 @@ impl BinarySearchTree {
     }
 
     fn validate(&self) -> bool {
+        // SS: using BFS
         if self.root.is_none() {
             true
         } else {
@@ -257,6 +258,34 @@ impl BinarySearchTree {
                     child_pos_stack.push(0);
                 });
             }
+        }
+        values
+    }
+
+    fn dfs_preorder_iteratively2(&self) -> Vec<i64> {
+        if self.root.is_none() {
+            return Vec::<i64>::new();
+        }
+
+        let mut values = vec![];
+        let mut current_node = self.root.as_ref().unwrap();
+        let mut node_stack = VecDeque::new();
+        node_stack.push_back(current_node);
+        while node_stack.is_empty() == false {
+            current_node = node_stack.pop_back().unwrap();
+
+            values.push(current_node.value);
+
+            // SS: we push the children in the opposite order onto the stack, i.e.
+            // 1st the right, then the left child, so we process them from "left-to-right"...
+
+            current_node.right.as_ref().map(|right| {
+                node_stack.push_back(right);
+            });
+
+            current_node.left.as_ref().map(|left| {
+                node_stack.push_back(left);
+            });
         }
         values
     }
@@ -448,6 +477,26 @@ mod tests {
 
         // Act
         let dfs_preorder_iteratively = bst.dfs_preorder_iteratively();
+
+        // Assert
+        let dfs_preorder = bst.dfs_preorder();
+        assert_eq!(dfs_preorder_iteratively, dfs_preorder);
+    }
+
+    #[test]
+    fn dfs_preorder_iteratively2() {
+        // Arrange
+        let mut bst = BinarySearchTree::new();
+        bst.insert(9);
+        bst.insert(4);
+        bst.insert(20);
+        bst.insert(1);
+        bst.insert(6);
+        bst.insert(15);
+        bst.insert(170);
+
+        // Act
+        let dfs_preorder_iteratively = bst.dfs_preorder_iteratively2();
 
         // Assert
         let dfs_preorder = bst.dfs_preorder();
