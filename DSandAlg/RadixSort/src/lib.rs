@@ -9,17 +9,8 @@ fn get_digit(num: i64, pos: usize) -> i64 {
 }
 
 fn number_of_digits(num: i64) -> i64 {
-    let mut cnt = 0;
-    let mut base = 1;
-    loop {
-        let d = num / base;
-        if d == 0 {
-            break;
-        }
-        cnt += 1;
-        base *= 10;
-    }
-    cnt
+    let num_log = (num.abs() as f64).log10() as i64;
+    num_log + 1
 }
 
 #[cfg(test)]
@@ -29,7 +20,7 @@ mod tests {
     #[test]
     fn test_number_of_digits1() {
         // Arrange
-        let number = 94671;
+        let number = -94671;
 
         // Act
         let digits = number_of_digits(number);
