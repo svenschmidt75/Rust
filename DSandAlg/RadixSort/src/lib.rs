@@ -1,10 +1,12 @@
 fn get_digit(num: i64, pos: usize) -> i64 {
-    let p1 = 10i64.pow(pos as u32 + 1);
-    let t1 = num / p1;
-    let t2 = num - t1 * p1;
+    let p1 = 10_i64.pow(pos as u32);
 
-    let p2 = 10i64.pow(pos as u32);
-    let digit = t2 / p2;
+    // SS: input: num=94671, pos=2
+    // SS: 94671 / 100 = 946
+    let t1 = num / p1;
+
+    // SS: 946 / 10 = 94.6, or 946 % 10 = 6
+    let digit = t1.abs() % 10;
     digit.abs()
 }
 
