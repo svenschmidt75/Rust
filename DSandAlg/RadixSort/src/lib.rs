@@ -1,3 +1,5 @@
+use std::cmp;
+
 fn get_digit(num: i64, pos: usize) -> i64 {
     let p1 = 10_i64.pow(pos as u32);
 
@@ -10,14 +12,116 @@ fn get_digit(num: i64, pos: usize) -> i64 {
     digit.abs()
 }
 
-fn number_of_digits(num: i64) -> i64 {
-    let num_log = (num.abs() as f64).log10() as i64;
-    num_log + 1
+fn number_of_digits(num: i64) -> usize {
+    if num == 0 {
+        1
+    } else {
+        let num_log = (num.abs() as f64).log10() as usize;
+        num_log + 1
+    }
+}
+
+fn largest_number_of_digits(input: &[i64]) -> usize {
+    if input.is_empty() {
+        0
+    } else {
+        let mut max = 0;
+        for i in 0..input.len() {
+            let digits = number_of_digits(input[i]);
+            max = cmp::max(max, digits);
+        }
+        max
+    }
+}
+
+fn radix_sort(input: &mut [i64]) {
+    // O(N * k) sort, k = largest number of digits in numbers
+    // space complexity: N items in bucket
+    let n_iterations = largest_number_of_digits(&input);
+
+    let mut buckets: [Vec<i64>; 10] = [
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+        Vec::with_capacity(10),
+    ];
+
+    // O(k) outer loop, k = max. digits
+    for k in 0..n_iterations {
+        // O(N) inner loop
+        for n in 0..input.len() {
+            let value = input[n];
+            let digit = get_digit(value, k);
+            let bucket = &mut buckets[digit as usize];
+            bucket.push(value);
+        }
+
+        // SS: restore array from buckets, reordering
+        let mut cnt = 0;
+
+        // SS: flatten out the buckets, O(1)
+        let tmp = buckets
+            .iter()
+            .flat_map(|x| x)
+            .map(|&x| x)
+            .collect::<Vec<_>>();
+        input.copy_from_slice(&tmp);
+
+        // O(1)
+        buckets.iter_mut().for_each(|x| x.clear());
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_radix_sort_1() {
+        // Arrange
+        let mut number = [23, 567, 89, 12234324, 90];
+
+        // Act
+        radix_sort(&mut number[..]);
+
+        // Assert
+        assert_eq!(&number, &[23, 89, 90, 567, 12234324]);
+    }
+
+    #[test]
+    fn test_radix_sort_2() {
+        // Arrange
+        let mut number = [
+            3221, 1, 10, 9680, 577, 9420, 7, 5622, 4793, 2030, 3138, 82, 2599, 743, 4127,
+        ];
+
+        // Act
+        radix_sort(&mut number[..]);
+
+        // Assert
+        assert_eq!(
+            &number,
+            &[1, 7, 10, 82, 577, 743, 2030, 2599, 3138, 3221, 4127, 4793, 5622, 9420, 9680]
+        );
+    }
+
+    #[test]
+    fn test_largest_number_of_digits() {
+        // Arrange
+        let number = [23, 567, 89, 12234324, 90];
+
+        // Act
+        let result = largest_number_of_digits(&number);
+
+        // Assert
+        assert_eq!(result, 8);
+    }
 
     #[test]
     fn test_number_of_digits1() {
