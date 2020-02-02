@@ -10,26 +10,18 @@ fn matrix_spiral(matrix: &[i64], nrows: usize, ncols: usize) -> Vec<i64> {
     let mut start_col: i64 = 0;
     let mut end_col: i64 = ncols as i64 - 1;
 
-    let mut row_direction: i64 = 1;
-    let mut col_direction: i64 = 0;
-
     let mut row: i64 = 0;
     let mut col: i64 = 0;
 
     let mut result = vec![];
 
     while start_row < end_row && start_col < end_col {
-        row = start_row;
-        col = start_col;
-
         // SS: stage 1, move in positive col direction
-        row_direction = 0;
-        col_direction = 1;
         while col <= end_col {
             let index = flat_index(row, col, ncols);
             let value = matrix[index];
             result.push(value);
-            col += col_direction;
+            col += 1;
         }
 
         start_row += 1;
@@ -37,13 +29,11 @@ fn matrix_spiral(matrix: &[i64], nrows: usize, ncols: usize) -> Vec<i64> {
         col = end_col;
 
         // SS: stage 2, move in positive row direction
-        row_direction = 1;
-        col_direction = 0;
         while row <= end_row {
             let index = flat_index(row, col, ncols);
             let value = matrix[index];
             result.push(value);
-            row += row_direction;
+            row += 1;
         }
 
         end_col -= 1;
@@ -51,13 +41,11 @@ fn matrix_spiral(matrix: &[i64], nrows: usize, ncols: usize) -> Vec<i64> {
         row = end_row;
 
         // SS: stage 3, move in negative col direction
-        row_direction = 0;
-        col_direction = -1;
         while col >= start_col {
             let index = flat_index(row, col, ncols);
             let value = matrix[index];
             result.push(value);
-            col += col_direction;
+            col -= 1;
         }
 
         end_row -= 1;
@@ -65,15 +53,16 @@ fn matrix_spiral(matrix: &[i64], nrows: usize, ncols: usize) -> Vec<i64> {
         col = start_col;
 
         // SS: stage 4, move in negative row direction
-        row_direction = -1;
-        col_direction = 0;
         while row >= start_row {
             let index = flat_index(row, col, ncols);
             let value = matrix[index];
             result.push(value);
-            row += row_direction;
+            row -= 1;
         }
+
         start_col += 1;
+        row += 1;
+        col = start_col;
     }
 
     result
