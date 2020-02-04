@@ -5,7 +5,7 @@ fn solve1(a: &str, b: &str) -> bool {
     if a.len() < 2 || a.len() != b.len() {
         false
     } else {
-        let mut avec = a.chars().into_iter().collect::<Vec<_>>();
+        let avec = a.chars().into_iter().collect::<Vec<_>>();
         let bvec = b.chars().into_iter().collect::<Vec<_>>();
 
         // SS: could use pointers here instead of physically swapping...
