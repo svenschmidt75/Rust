@@ -1,27 +1,19 @@
 // https://www.reddit.com/r/AlgoExpert/comments/evoh1a/day_6_20200129_problem_of_the_day_asked_by_airbnb/
 
-fn swap(input: &mut [char], a: usize, b: usize) {
-    let tmp = input[a];
-    input[a] = input[b];
-    input[b] = tmp;
-}
-
 fn solve1(a: &str, b: &str) -> bool {
-    // SS: runtime complexity: O(k1 * k2), where k1 = length(a), k2=length(b)
+    // SS: runtime complexity: O(k^2), where k = length(a) = length(b)
     if a.len() < 2 || a.len() != b.len() {
         false
     } else {
         let mut avec = a.chars().into_iter().collect::<Vec<_>>();
         let bvec = b.chars().into_iter().collect::<Vec<_>>();
 
+        // SS: could use pointers here instead of physically swapping...
         for i in 0..=(a.len() - 2) {
-            swap(&mut avec, i, i + 1);
-            if avec == bvec {
+            if avec[i] == bvec[i + 1] && avec[i + 1] == bvec[i] && &avec[i + 2..] == &bvec[i + 2..]
+            {
                 return true;
             }
-
-            // SS: restore
-            swap(&mut avec, i, i + 1);
         }
 
         false
