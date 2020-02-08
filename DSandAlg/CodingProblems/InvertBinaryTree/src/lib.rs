@@ -8,53 +8,52 @@ fn invert_binary_tree_1(bt: &BinarySearchTree) -> BinarySearchTree {
     // SS: invert tree using BF approach
 
     // SS: check for empty tree
+
     let mut inverted_bt = BinarySearchTree::new();
-    let mut root = Box::new(Node::new(bt.root.as_ref().unwrap().value));
+    let root = Box::new(Node::new(bt.root.as_ref().unwrap().value));
     inverted_bt.root = Some(root);
 
     let mut queue = VecDeque::new();
-    queue.push_front((bt.root.as_ref().unwrap(), inverted_bt.root.as_mut().unwrap()));
+    queue.push_front((
+        bt.root.as_ref().unwrap(),
+        inverted_bt.root.as_mut().unwrap(),
+    ));
     while queue.is_empty() == false {
         let (primary_node, secondary_node) = queue.pop_back().unwrap();
+        let left = &mut secondary_node.left;
+        let right = &mut secondary_node.right;
 
         // SS: duplicate nodes
-//        primary_node.left.as_ref().map(|l| {
-//            let mut n = Box::new(Node::new(l.value));
-//            secondary_node.right = Some(n);
-//
-//
-//            queue.push_front((l, secondary_node.right.as_mut().unwrap()));
-//        });
 
-        if primary_node.left.is_some() {
-            let l = primary_node.left.as_ref().unwrap();
-            let mut n = Box::new(Node::new(l.value));
-            secondary_node.right = Some(n);
-            queue.push_front((l, secondary_node.right.as_mut().unwrap()));
+        {
+            // SS: see https://users.rust-lang.org/t/variable-does-not-live-long-enough-with-closure/37935
+            let queue = &mut queue;
+            primary_node.left.as_ref().map(move |l| {
+                let n = Box::new(Node::new(l.value));
+                *right = Some(n);
+                queue.push_front((l, right.as_mut().unwrap()));
+            });
         }
 
-
-//        primary_node.right.as_ref().map(|r| {
-//            let n = Box::new(Node::new(r.value));
-//            secondary_node.right = Some(n);
-//        });
-        if primary_node.right.is_some() {
-            let l = primary_node.right.as_ref().unwrap();
-            let mut n = Box::new(Node::new(l.value));
-            secondary_node.left = Some(n);
-            queue.push_front((l, secondary_node.left.as_mut().unwrap()));
+        {
+            let queue = &mut queue;
+            primary_node.right.as_ref().map(move |r| {
+                let n = Box::new(Node::new(r.value));
+                *left = Some(n);
+                queue.push_front((r, left.as_mut().unwrap()));
+            });
         }
     }
 
     inverted_bt
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
+    // Solution flattening out, build-up
+    // Solution DFS, post-order, bottom-up
 
     #[test]
     fn bast_validate_1() {
