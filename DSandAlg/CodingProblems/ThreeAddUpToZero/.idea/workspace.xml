@@ -12,8 +12,9 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3d48f7b-fd3c-4c63-95e4-aac74df6d60f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="53eef685-741f-431c-956d-9c4451192f3c" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../NBshopsonMxMGrid/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../NBshopsonMxMGrid/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../TwoSubsetSum/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../TwoSubsetSum/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,9 +28,9 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
   </component>
   <component name="MacroExpansionManager">
-    <option name="directoryName" value="gmSwPpQa" />
+    <option name="directoryName" value="STgmiwLk" />
   </component>
-  <component name="ProjectId" id="1XlzNgqyXt3voju0MnmoZlZShVG" />
+  <component name="ProjectId" id="1Y0NQyudXoN6MNdrN1qSCNqt6YO" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -37,7 +38,6 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../TwoSubsetSum" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -49,7 +49,7 @@
   <component name="RunManager" selected="Cargo Command.Test lib::tests">
     <configuration name="Test lib::tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package NBshopsonMxMGrid --lib tests" />
+      <option name="command" value="test --package ThreeAddUpToZero --lib tests" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -62,7 +62,7 @@
     </configuration>
     <configuration name="Test tests::test1" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package NBshopsonMxMGrid --lib tests::test1 -- --exact" />
+      <option name="command" value="test --package ThreeAddUpToZero --lib tests::test1 -- --exact" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -75,7 +75,20 @@
     </configuration>
     <configuration name="Test tests::test2" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package NBshopsonMxMGrid --lib tests::test2 -- --exact" />
+      <option name="command" value="test --package ThreeAddUpToZero --lib tests::test2 -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test tests::test3" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package ThreeAddUpToZero --lib tests::test3 -- --exact" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -89,6 +102,7 @@
     <recent_temporary>
       <list>
         <item itemvalue="Cargo Command.Test lib::tests" />
+        <item itemvalue="Cargo Command.Test tests::test3" />
         <item itemvalue="Cargo Command.Test tests::test2" />
         <item itemvalue="Cargo Command.Test tests::test1" />
       </list>
@@ -103,13 +117,13 @@
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="a3d48f7b-fd3c-4c63-95e4-aac74df6d60f" name="Default Changelist" comment="" />
-      <created>1581635430545</created>
+      <changelist id="53eef685-741f-431c-956d-9c4451192f3c" name="Default Changelist" comment="" />
+      <created>1582075539514</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1581635430545</updated>
-      <workItem from="1581635431975" duration="4370000" />
-      <workItem from="1581994135051" duration="22000" />
+      <updated>1582075539514</updated>
+      <workItem from="1582075540813" duration="148000" />
+      <workItem from="1582075695770" duration="2191000" />
     </task>
     <servers />
   </component>
@@ -117,41 +131,41 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1703" y="573" width="732" height="783" key="FileChooserDialogImpl" timestamp="1581994154776">
+    <state x="1515" y="500" width="800" height="637" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1582075681441">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state x="1703" y="573" width="732" height="783" key="FileChooserDialogImpl/0.32.3840.1568@0.32.3840.1568" timestamp="1581994154776" />
-    <state width="3798" height="537" key="GridCell.Tab.0.bottom" timestamp="1581639423628">
+    <state x="1515" y="500" width="800" height="637" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.32.3840.1568@0.32.3840.1568" timestamp="1582075681441" />
+    <state width="3798" height="438" key="GridCell.Tab.0.bottom" timestamp="1582077275251">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1581639423628" />
-    <state width="3798" height="537" key="GridCell.Tab.0.center" timestamp="1581639423627">
+    <state width="3798" height="438" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1582077275251" />
+    <state width="3798" height="438" key="GridCell.Tab.0.center" timestamp="1582077275249">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1581639423627" />
-    <state width="3798" height="537" key="GridCell.Tab.0.left" timestamp="1581639423626">
+    <state width="3798" height="438" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1582077275249" />
+    <state width="3798" height="438" key="GridCell.Tab.0.left" timestamp="1582077275248">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1581639423626" />
-    <state width="3798" height="537" key="GridCell.Tab.0.right" timestamp="1581639423627">
+    <state width="3798" height="438" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1582077275248" />
+    <state width="3798" height="438" key="GridCell.Tab.0.right" timestamp="1582077275250">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1581639423627" />
-    <state width="3798" height="537" key="GridCell.Tab.1.bottom" timestamp="1581639423629">
+    <state width="3798" height="438" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1582077275250" />
+    <state width="3798" height="537" key="GridCell.Tab.1.bottom" timestamp="1582076994143">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1581639423629" />
-    <state width="3798" height="537" key="GridCell.Tab.1.center" timestamp="1581639423628">
+    <state width="3798" height="537" key="GridCell.Tab.1.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1582076994143" />
+    <state width="3798" height="537" key="GridCell.Tab.1.center" timestamp="1582076994143">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.center/0.32.3840.1568@0.32.3840.1568" timestamp="1581639423628" />
-    <state width="3798" height="537" key="GridCell.Tab.1.left" timestamp="1581639423628">
+    <state width="3798" height="537" key="GridCell.Tab.1.center/0.32.3840.1568@0.32.3840.1568" timestamp="1582076994143" />
+    <state width="3798" height="537" key="GridCell.Tab.1.left" timestamp="1582076994143">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.left/0.32.3840.1568@0.32.3840.1568" timestamp="1581639423628" />
-    <state width="3798" height="537" key="GridCell.Tab.1.right" timestamp="1581639423629">
+    <state width="3798" height="537" key="GridCell.Tab.1.left/0.32.3840.1568@0.32.3840.1568" timestamp="1582076994143" />
+    <state width="3798" height="537" key="GridCell.Tab.1.right" timestamp="1582076994143">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.right/0.32.3840.1568@0.32.3840.1568" timestamp="1581639423629" />
+    <state width="3798" height="537" key="GridCell.Tab.1.right/0.32.3840.1568@0.32.3840.1568" timestamp="1582076994143" />
   </component>
 </project>

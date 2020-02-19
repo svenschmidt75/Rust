@@ -1,3 +1,5 @@
+// https://www.reddit.com/r/AlgoExpert/comments/esswgd/day_3_20200123_problem_of_the_day_asked_by/
+
 fn find_subsets(array: &[u64]) -> Vec<(Vec<u64>, Vec<u64>)> {
     let mut solutions = vec![];
     find_subsets_rec(array.len() - 1, array, &[], &[array[0]], &mut solutions);
