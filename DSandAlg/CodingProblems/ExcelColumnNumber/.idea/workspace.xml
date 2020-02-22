@@ -12,8 +12,8 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="53eef685-741f-431c-956d-9c4451192f3c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="48ee319d-4272-4e3c-adff-254650945b89" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../ThreeAddUpToZero/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ThreeAddUpToZero/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,9 +27,9 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
   </component>
   <component name="MacroExpansionManager">
-    <option name="directoryName" value="STgmiwLk" />
+    <option name="directoryName" value="qHTcRozl" />
   </component>
-  <component name="ProjectId" id="1Y0NQyudXoN6MNdrN1qSCNqt6YO" />
+  <component name="ProjectId" id="1Y8nhGqdc0mw7ydJK5ph37m1QQ0" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -38,18 +38,12 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
-    <property name="node.js.detected.package.eslint" value="true" />
-    <property name="node.js.detected.package.tslint" value="true" />
-    <property name="node.js.path.for.package.eslint" value="project" />
-    <property name="node.js.path.for.package.tslint" value="project" />
-    <property name="node.js.selected.package.eslint" value="(autodetect)" />
-    <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
   </component>
-  <component name="RunManager" selected="Cargo Command.Test lib::tests">
+  <component name="RunManager" selected="Cargo Command.Test tests::test4">
     <configuration name="Test lib::tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package ThreeAddUpToZero --lib tests" />
+      <option name="command" value="test --package ExcelColumnNumber --lib tests" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -62,7 +56,7 @@
     </configuration>
     <configuration name="Test tests::test1" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package ThreeAddUpToZero --lib tests::test1 -- --exact" />
+      <option name="command" value="test --package ExcelColumnNumber --lib tests::test1 -- --exact" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -75,7 +69,7 @@
     </configuration>
     <configuration name="Test tests::test2" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package ThreeAddUpToZero --lib tests::test2 -- --exact" />
+      <option name="command" value="test --package ExcelColumnNumber --lib tests::test2 -- --exact" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -86,9 +80,9 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test tests::test3" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+    <configuration name="Test tests::test4" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package ThreeAddUpToZero --lib tests::test3 -- --exact" />
+      <option name="command" value="test --package ExcelColumnNumber --lib tests::test4 -- --exact" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -101,8 +95,8 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo Command.Test tests::test4" />
         <item itemvalue="Cargo Command.Test lib::tests" />
-        <item itemvalue="Cargo Command.Test tests::test3" />
         <item itemvalue="Cargo Command.Test tests::test2" />
         <item itemvalue="Cargo Command.Test tests::test1" />
       </list>
@@ -110,22 +104,18 @@
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
-    <option name="version" value="2" />
   </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="53eef685-741f-431c-956d-9c4451192f3c" name="Default Changelist" comment="" />
-      <created>1582075539514</created>
+      <changelist id="48ee319d-4272-4e3c-adff-254650945b89" name="Default Changelist" comment="" />
+      <created>1582333206375</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1582075539514</updated>
-      <workItem from="1582075540813" duration="148000" />
-      <workItem from="1582075695770" duration="2215000" />
-      <workItem from="1582331940956" duration="41000" />
-      <workItem from="1582333175672" duration="31000" />
+      <updated>1582333206375</updated>
+      <workItem from="1582333207620" duration="1474000" />
     </task>
     <servers />
   </component>
@@ -133,45 +123,37 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1515" y="500" width="800" height="637" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1582075681441">
+    <state width="3798" height="537" key="GridCell.Tab.0.bottom" timestamp="1582334675787">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state x="1515" y="500" width="800" height="637" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.32.3840.1568@0.32.3840.1568" timestamp="1582075681441" />
-    <state width="3798" height="537" key="GridCell.Tab.0.bottom" timestamp="1582077917989">
+    <state width="3798" height="537" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1582334675787" />
+    <state width="3798" height="537" key="GridCell.Tab.0.center" timestamp="1582334675785">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1582077917989" />
-    <state width="3798" height="537" key="GridCell.Tab.0.center" timestamp="1582077917989">
+    <state width="3798" height="537" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1582334675785" />
+    <state width="3798" height="537" key="GridCell.Tab.0.left" timestamp="1582334675784">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1582077917989" />
-    <state width="3798" height="537" key="GridCell.Tab.0.left" timestamp="1582077917989">
+    <state width="3798" height="537" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1582334675784" />
+    <state width="3798" height="537" key="GridCell.Tab.0.right" timestamp="1582334675787">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1582077917989" />
-    <state width="3798" height="537" key="GridCell.Tab.0.right" timestamp="1582077917989">
+    <state width="3798" height="537" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1582334675787" />
+    <state width="3798" height="537" key="GridCell.Tab.1.bottom" timestamp="1582334675791">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1582077917989" />
-    <state width="3798" height="537" key="GridCell.Tab.1.bottom" timestamp="1582077917989">
+    <state width="3798" height="537" key="GridCell.Tab.1.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1582334675791" />
+    <state width="3798" height="537" key="GridCell.Tab.1.center" timestamp="1582334675789">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1582077917989" />
-    <state width="3798" height="537" key="GridCell.Tab.1.center" timestamp="1582077917989">
+    <state width="3798" height="537" key="GridCell.Tab.1.center/0.32.3840.1568@0.32.3840.1568" timestamp="1582334675789" />
+    <state width="3798" height="537" key="GridCell.Tab.1.left" timestamp="1582334675788">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.center/0.32.3840.1568@0.32.3840.1568" timestamp="1582077917989" />
-    <state width="3798" height="537" key="GridCell.Tab.1.left" timestamp="1582077917989">
+    <state width="3798" height="537" key="GridCell.Tab.1.left/0.32.3840.1568@0.32.3840.1568" timestamp="1582334675788" />
+    <state width="3798" height="537" key="GridCell.Tab.1.right" timestamp="1582334675790">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.left/0.32.3840.1568@0.32.3840.1568" timestamp="1582077917989" />
-    <state width="3798" height="537" key="GridCell.Tab.1.right" timestamp="1582077917989">
-      <screen x="0" y="32" width="3840" height="1568" />
-    </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.right/0.32.3840.1568@0.32.3840.1568" timestamp="1582077917989" />
-    <state x="1503" y="561" width="824" height="515" key="IDE.errors.dialog" timestamp="1582331960074">
-      <screen x="0" y="32" width="3840" height="1568" />
-    </state>
-    <state x="1503" y="561" width="824" height="515" key="IDE.errors.dialog/0.32.3840.1568@0.32.3840.1568" timestamp="1582331960074" />
+    <state width="3798" height="537" key="GridCell.Tab.1.right/0.32.3840.1568@0.32.3840.1568" timestamp="1582334675790" />
   </component>
 </project>
