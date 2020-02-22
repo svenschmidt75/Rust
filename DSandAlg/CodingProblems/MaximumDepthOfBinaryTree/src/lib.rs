@@ -10,6 +10,7 @@ fn maximum_depth(bt: &BinarySearchTree) -> u8 {
 }
 
 fn maximum_depth_internal(bt: &Option<Box<Node>>, depth: u8) -> u8 {
+    // SS: using DF approach
     match bt {
         None => depth,
         Some(ref node) => {
