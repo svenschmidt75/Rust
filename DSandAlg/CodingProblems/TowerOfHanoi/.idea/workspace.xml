@@ -12,7 +12,10 @@
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1c135e4e-bdb7-49e4-9eac-61b3c016f4bc" name="Default Changelist" comment="" />
+    <list default="true" id="1c135e4e-bdb7-49e4-9eac-61b3c016f4bc" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,8 +46,9 @@
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
-  <component name="RunManager" selected="Cargo Command.Bench lib::tests">
+  <component name="RunManager" selected="Cargo Command.Test tests::hanoi_with_steps_test">
     <configuration name="Bench lib::tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="bench --package TowerOfHanoi --lib tests" />
@@ -71,6 +75,32 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Test tests::hanoi_with_steps" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package TowerOfHanoi --lib tests::hanoi_with_steps -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test tests::hanoi_with_steps_test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package TowerOfHanoi --lib tests::hanoi_with_steps_test -- --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Test tests::it_works" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="test --package TowerOfHanoi --lib tests::it_works -- --exact" />
@@ -86,9 +116,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo Command.Test tests::hanoi_with_steps_test" />
+        <item itemvalue="Cargo Command.Test tests::hanoi_with_steps" />
+        <item itemvalue="Cargo Command.Test lib::tests" />
         <item itemvalue="Cargo Command.Bench lib::tests" />
         <item itemvalue="Cargo Command.Test tests::it_works" />
-        <item itemvalue="Cargo Command.Test lib::tests" />
       </list>
     </recent_temporary>
   </component>
@@ -110,6 +142,9 @@
       <workItem from="1582465747541" duration="470000" />
       <workItem from="1582469129914" duration="1631000" />
       <workItem from="1582593327711" duration="30000" />
+      <workItem from="1582986956584" duration="1518000" />
+      <workItem from="1583587199769" duration="44000" />
+      <workItem from="1583597660267" duration="172000" />
     </task>
     <servers />
   </component>
@@ -117,22 +152,22 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state width="3798" height="438" key="GridCell.Tab.0.bottom" timestamp="1582475877346">
+    <state width="3798" height="438" key="GridCell.Tab.0.bottom" timestamp="1583587243585">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="438" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1582475877346" />
-    <state width="3798" height="438" key="GridCell.Tab.0.center" timestamp="1582475877344">
+    <state width="3798" height="438" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1583587243585" />
+    <state width="3798" height="438" key="GridCell.Tab.0.center" timestamp="1583587243584">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="438" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1582475877344" />
-    <state width="3798" height="438" key="GridCell.Tab.0.left" timestamp="1582475877343">
+    <state width="3798" height="438" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1583587243584" />
+    <state width="3798" height="438" key="GridCell.Tab.0.left" timestamp="1583587243584">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="438" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1582475877343" />
-    <state width="3798" height="438" key="GridCell.Tab.0.right" timestamp="1582475877346">
+    <state width="3798" height="438" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1583587243584" />
+    <state width="3798" height="438" key="GridCell.Tab.0.right" timestamp="1583587243585">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="438" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1582475877346" />
+    <state width="3798" height="438" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1583587243585" />
     <state width="3798" height="537" key="GridCell.Tab.1.bottom" timestamp="1582387574257">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
@@ -149,5 +184,9 @@
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
     <state width="3798" height="537" key="GridCell.Tab.1.right/0.32.3840.1568@0.32.3840.1568" timestamp="1582387574256" />
+    <state x="1424" y="450" width="992" height="737" key="SettingsEditor" timestamp="1582986977174">
+      <screen x="0" y="32" width="3840" height="1568" />
+    </state>
+    <state x="1424" y="450" width="992" height="737" key="SettingsEditor/0.32.3840.1568@0.32.3840.1568" timestamp="1582986977174" />
   </component>
 </project>
