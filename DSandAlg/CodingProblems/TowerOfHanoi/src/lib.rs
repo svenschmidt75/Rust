@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn hanoi_with_steps_test() {
         // Arrange
-        let n = 3;
+        let n = 4;
 
         // Act
         hanoi_with_steps(n, "A", "C", "B");
