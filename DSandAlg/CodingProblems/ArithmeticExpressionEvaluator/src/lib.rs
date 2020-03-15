@@ -41,6 +41,8 @@ impl Node {
     }
 
     fn evaluate(&self) -> Option<f64> {
+        // SS: DFS post-order traversal
+        
         match self {
             Leaf(leaf) => Some(*leaf),
             Node::NonLeaf(nonleaf) => {

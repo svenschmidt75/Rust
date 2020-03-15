@@ -13,7 +13,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="329ca4ad-e707-452f-bb4e-7e959552f1eb" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../TowerOfHanoi/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../TowerOfHanoi/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,6 +37,8 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
     <property name="node.js.detected.package.eslint" value="true" />
@@ -82,6 +85,7 @@
   </component>
   <component name="RustProjectSettings">
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+    <option name="version" value="2" />
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -93,7 +97,9 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1584191114225</updated>
-      <workItem from="1584191115553" duration="1884000" />
+      <workItem from="1584191115553" duration="2076000" />
+      <workItem from="1584193218902" duration="19000" />
+      <workItem from="1584282881505" duration="12000" />
     </task>
     <servers />
   </component>
@@ -101,48 +107,41 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state width="3798" height="438" key="GridCell.Tab.0.bottom" timestamp="1584192979410">
+    <state x="1703" y="573" width="424" height="491" key="FileChooserDialogImpl" timestamp="1584193114010">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="438" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1584192979410" />
-    <state width="3798" height="438" key="GridCell.Tab.0.center" timestamp="1584192979409">
+    <state x="1703" y="573" width="424" height="491" key="FileChooserDialogImpl/0.32.3840.1568@0.32.3840.1568" timestamp="1584193114010" />
+    <state width="3798" height="537" key="GridCell.Tab.0.bottom" timestamp="1584193191399">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="438" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1584192979409" />
-    <state width="3798" height="438" key="GridCell.Tab.0.left" timestamp="1584192979409">
+    <state width="3798" height="537" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1584193191399" />
+    <state width="3798" height="537" key="GridCell.Tab.0.center" timestamp="1584193191399">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="438" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1584192979409" />
-    <state width="3798" height="438" key="GridCell.Tab.0.right" timestamp="1584192979409">
+    <state width="3798" height="537" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1584193191399" />
+    <state width="3798" height="537" key="GridCell.Tab.0.left" timestamp="1584193191399">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="438" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1584192979409" />
-    <state width="3798" height="537" key="GridCell.Tab.1.bottom" timestamp="1584192968246">
+    <state width="3798" height="537" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1584193191399" />
+    <state width="3798" height="537" key="GridCell.Tab.0.right" timestamp="1584193191399">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1584192968246" />
-    <state width="3798" height="537" key="GridCell.Tab.1.center" timestamp="1584192968246">
+    <state width="3798" height="537" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1584193191399" />
+    <state width="3798" height="537" key="GridCell.Tab.1.bottom" timestamp="1584193191399">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.center/0.32.3840.1568@0.32.3840.1568" timestamp="1584192968246" />
-    <state width="3798" height="537" key="GridCell.Tab.1.left" timestamp="1584192968246">
+    <state width="3798" height="537" key="GridCell.Tab.1.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1584193191399" />
+    <state width="3798" height="537" key="GridCell.Tab.1.center" timestamp="1584193191399">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.left/0.32.3840.1568@0.32.3840.1568" timestamp="1584192968246" />
-    <state width="3798" height="537" key="GridCell.Tab.1.right" timestamp="1584192968246">
+    <state width="3798" height="537" key="GridCell.Tab.1.center/0.32.3840.1568@0.32.3840.1568" timestamp="1584193191399" />
+    <state width="3798" height="537" key="GridCell.Tab.1.left" timestamp="1584193191399">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
-    <state width="3798" height="537" key="GridCell.Tab.1.right/0.32.3840.1568@0.32.3840.1568" timestamp="1584192968246" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/lib.rs</url>
-          <line>46</line>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <state width="3798" height="537" key="GridCell.Tab.1.left/0.32.3840.1568@0.32.3840.1568" timestamp="1584193191399" />
+    <state width="3798" height="537" key="GridCell.Tab.1.right" timestamp="1584193191399">
+      <screen x="0" y="32" width="3840" height="1568" />
+    </state>
+    <state width="3798" height="537" key="GridCell.Tab.1.right/0.32.3840.1568@0.32.3840.1568" timestamp="1584193191399" />
   </component>
 </project>
