@@ -10,18 +10,14 @@ fn next_permutation(input: &[i32]) -> Vec<i32> {
         ordered
     } else {
         ordered.sort();
-        next_permutation_internal(input, &ordered)
+        match next_permutation_internal(input, &ordered, 0) {
+            (true, result) => result,
+            _ => ordered.to_vec(),
+        }
     }
 }
 
-fn next_permutation_internal(input: &[i32], sorted: &[i32]) -> Vec<i32> {
-    match next_permutation_internal_2(input, sorted, 0) {
-        (true, result) => result,
-        _ => sorted.to_vec(),
-    }
-}
-
-fn next_permutation_internal_2(input: &[i32], sorted: &[i32], index: usize) -> (bool, Vec<i32>) {
+fn next_permutation_internal(input: &[i32], sorted: &[i32], index: usize) -> (bool, Vec<i32>) {
     if index == input.len() - 2 {
         // SS: only two left, swap order
         (
@@ -29,13 +25,14 @@ fn next_permutation_internal_2(input: &[i32], sorted: &[i32], index: usize) -> (
             vec![input[index + 1], input[index]],
         )
     } else {
-        let (success, value) = next_permutation_internal_2(input, sorted, index + 1);
+        let (success, value) = next_permutation_internal(input, sorted, index + 1);
         if success == false {
             // SS: we need to replace input[index] with the next higher value
-            // and append the remaining values in sorted order
+            // and append the all values after it in ascending order
             let mut ordered = input[index..].to_vec();
             ordered.sort();
 
+            // SS: find position of input[index]
             let index = ordered.iter().position(|&v| v == input[index]).unwrap();
             if index == ordered.len() - 1 {
                 // SS: there is no higher value
@@ -51,7 +48,7 @@ fn next_permutation_internal_2(input: &[i32], sorted: &[i32], index: usize) -> (
                 (true, result)
             }
         } else {
-            let mut result = input[index..index + 1].to_vec();
+            let mut result = vec![input[index]];
             value.into_iter().for_each(|v| result.push(v));
             (true, result)
         }
