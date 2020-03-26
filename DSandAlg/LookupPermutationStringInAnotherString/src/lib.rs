@@ -4,7 +4,7 @@
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 
-fn find_permuations<'a>(s: &str, b: &'a str) -> Vec<&'a str> {
+fn find_permutations<'a>(s: &str, b: &'a str) -> Vec<&'a str> {
     assert!(s.len() < b.len());
 
     // SS: find all permutations os smaller string s in string b
@@ -29,7 +29,7 @@ fn find_permuations<'a>(s: &str, b: &'a str) -> Vec<&'a str> {
     for i in 0..(bc.len() - s.len() + 1) {
         // SS: check up to the next s.len() chars in b...
         let substr = &b[i..(i + s.len())];
-        if is_permuation(substr, &hash) {
+        if is_permutation(substr, &hash) {
             results.push(substr);
         }
     }
@@ -37,7 +37,7 @@ fn find_permuations<'a>(s: &str, b: &'a str) -> Vec<&'a str> {
     results
 }
 
-fn is_permuation(a: &str, frequency_map: &HashMap<char, u32>) -> bool {
+fn is_permutation(a: &str, frequency_map: &HashMap<char, u32>) -> bool {
     let mut current_hash = frequency_map.clone();
     for c in a.chars() {
         match current_hash.get_mut(&c) {
@@ -58,7 +58,7 @@ fn is_permuation(a: &str, frequency_map: &HashMap<char, u32>) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::find_permuations;
+    use crate::find_permutations;
 
     #[test]
     fn test1() {
@@ -67,7 +67,7 @@ mod tests {
         let b = "cbabadcbbabbcbabaabccbabc";
 
         // Act
-        let results = find_permuations(s, b);
+        let results = find_permutations(s, b);
 
         // Act
         assert_eq!(results.len(), 7);
