@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 struct Graph {
     adjacency_list: HashMap<u32, Vec<u32>>,
@@ -24,46 +24,34 @@ impl Graph {
         self.add_directed_edge(vertex2, vertex1);
     }
 
-    fn find_path(&self, from_vertex: u32, to_vertex: u32) -> Vec<u32> {
-        let mut path = vec![];
+    fn find_vertices_of_distance_k(&self, start_vertex: u32, k: u32) -> Vec<u32> {
+        // SS: find all vertices that are k vertices distance away.
+        // We use breadth-search approach...
+        let mut result = vec![];
 
+        let mut queue = VecDeque::new();
+        queue.push_front((start_vertex, k));
+
+        // SS: during graph traversal, always need to keep track of visited
+        // vertices due to possible cycles...
         let mut visited = HashSet::new();
-        visited.insert(from_vertex);
+        visited.insert(start_vertex);
 
-        self.dfs_recursive(from_vertex, to_vertex, &mut path, &mut visited);
-
-        path
-    }
-
-    fn dfs_recursive(
-        &self,
-        vertex: u32,
-        to_vertex: u32,
-        path: &mut Vec<u32>,
-        visited: &mut HashSet<u32>,
-    ) {
-        path.push(vertex);
-        if vertex == to_vertex {
-            // SS: we found a path
-            return;
-        }
-
-        let adj_list = self.adjacency_list.get(&vertex).unwrap();
-        for v in adj_list {
-            if visited.contains(&v) == false {
-                visited.contains(v);
-                self.dfs_recursive(*v, to_vertex, path, visited);
-
-                // SS: found a path?
-                if path[path.len() - 1] == to_vertex {
-                    // SS: yes, found a path
-                    return;
+        while queue.is_empty() == false {
+            let (vertex, d) = queue.pop_back().unwrap();
+            if d == 0 {
+                result.push(vertex);
+            } else {
+                let adj_list = &self.adjacency_list[&vertex];
+                for v in adj_list {
+                    if visited.contains(v) == false {
+                        visited.insert(*v);
+                        queue.push_front((*v, d - 1));
+                    }
                 }
             }
         }
-
-        // SS: dead end, remove vertex from path
-        path.remove(path.len() - 1);
+        result
     }
 }
 
@@ -117,41 +105,26 @@ mod tests {
     }
 
     #[test]
-    fn graph1_path_from_0_to_10() {
+    fn graph1_distance_2_from_0() {
         // Arrange
         let g = create_graph1();
 
         // Act
-        let path = g.find_path(0, 10);
+        let vertices = g.find_vertices_of_distance_k(0, 2);
 
         // Assert
-        assert_eq!(path[0], 0);
-        assert_eq!(*path.last().unwrap(), 10);
+        assert_eq!(vertices, vec![5, 3, 4, 7]);
     }
 
     #[test]
-    fn graph1_path_from_2_to_12() {
+    fn graph1_distance_3_from_8() {
         // Arrange
         let g = create_graph1();
 
         // Act
-        let path = g.find_path(2, 12);
+        let vertices = g.find_vertices_of_distance_k(8, 3);
 
         // Assert
-        assert_eq!(path[0], 2);
-        assert_eq!(*path.last().unwrap(), 12);
-    }
-
-    #[test]
-    fn graph1_path_from_8_to_2() {
-        // Arrange
-        let g = create_graph1();
-
-        // Act
-        let path = g.find_path(8, 2);
-
-        // Assert
-        // SS: there is no path
-        assert_eq!(path.len(), 0);
+        assert_eq!(vertices, vec![9]);
     }
 }
