@@ -54,12 +54,42 @@ fn get_bit(m: u32, pos: usize) -> bool {
     m & (1u32 << pos as u32) > 0
 }
 
+fn longest2(input: u32) -> usize {
+    // SS: runtime O(bits), O(1) memory
+    let mbits = (input as f64).log2() as usize;
+    let mut start = 0;
+    let mut state = false;
+    let mut zero = 0;
+    let mut nzero = 0;
+    let mut max = 0;
+    for current in 0..=mbits {
+        let bit = get_bit(input, current);
+        if state == false && bit {
+            start = current;
+            state = true;
+        } else if state && bit == false {
+            nzero += 1;
+            if nzero == 2 {
+                max = cmp::max(max, current - start);
+                nzero = 1;
+                start = zero + 1;
+            }
+            // SS: remember the position of the last 0
+            zero = current;
+        }
+    }
+    if state {
+        max = cmp::max(max, mbits - start + 1);
+    }
+    max
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::longest;
+    use super::*;
 
     #[test]
-    fn test1() {
+    fn test11() {
         // Arrange
         let num = 0b11011101111;
 
@@ -71,7 +101,7 @@ mod tests {
     }
 
     #[test]
-    fn test2() {
+    fn test12() {
         // Arrange
         let num = 0b110111001111;
 
@@ -80,5 +110,53 @@ mod tests {
 
         // Assert
         assert_eq!(max, 6);
+    }
+
+    #[test]
+    fn test13() {
+        // Arrange
+        let num = 0b1111101101111;
+
+        // Act
+        let max = longest(num);
+
+        // Assert
+        assert_eq!(max, 8);
+    }
+
+    #[test]
+    fn test21() {
+        // Arrange
+        let num = 0b11011101111;
+
+        // Act
+        let max = longest2(num);
+
+        // Assert
+        assert_eq!(max, 8);
+    }
+
+    #[test]
+    fn test22() {
+        // Arrange
+        let num = 0b110111001111;
+
+        // Act
+        let max = longest2(num);
+
+        // Assert
+        assert_eq!(max, 6);
+    }
+
+    #[test]
+    fn test23() {
+        // Arrange
+        let num = 0b1111101101111;
+
+        // Act
+        let max = longest2(num);
+
+        // Assert
+        assert_eq!(max, 8);
     }
 }
