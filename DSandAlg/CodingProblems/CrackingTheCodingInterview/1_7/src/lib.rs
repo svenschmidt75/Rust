@@ -2,6 +2,7 @@
 // 6th ed, p. 91, ex. 1.7
 
 fn rotate(input: &mut [i32], n: usize) {
+    // SS: rotate array clock-wise by 90 degree, in-place
     let rows = n / 2;
     for i in 0..rows {
         for j in i..(n - i - 1) {
