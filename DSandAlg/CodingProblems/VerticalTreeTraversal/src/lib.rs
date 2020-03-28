@@ -26,7 +26,6 @@ impl Node {
             self.right.as_ref().unwrap().inorder_traversal(output);
         }
     }
-
 }
 
 struct BinaryTree {
@@ -82,7 +81,35 @@ impl BinaryTree {
         }
         result
     }
+}
 
+fn vertical_view(bt: &BinaryTree) -> Vec<Vec<&str>> {
+    let mut result = vec![];
+    if bt.root.is_some() {
+        // SS: traverse in depth-first to find the column for each element
+        let mut tmp_result = vec![];
+        vertical_view_internal(&mut tmp_result, bt.root.as_ref().unwrap(), 0);
+
+        let &(min, _) = tmp_result.iter().min_by_key(|(column, _)| *column).unwrap();
+        let &(max, _) = tmp_result.iter().max_by_key(|(column, _)| *column).unwrap();
+        result = vec![vec![]; (max - min + 1) as usize];
+
+        for (column, node_value) in tmp_result {
+            let idx = (column - min) as usize;
+            result[idx].push(node_value);
+        }
+    }
+    result
+}
+
+fn vertical_view_internal<'a>(result: &mut Vec<(i32, &'a str)>, node: &'a Node, column: i32) {
+    result.push((column, &node.value));
+    if node.left.is_some() {
+        vertical_view_internal(result, node.left.as_ref().unwrap(), column - 1);
+    }
+    if node.right.is_some() {
+        vertical_view_internal(result, node.right.as_ref().unwrap(), column + 1);
+    }
 }
 
 #[cfg(test)]
@@ -93,7 +120,9 @@ mod tests {
     #[test]
     fn construct_tree1() {
         // Arrange
-        let input = ["1", "2", "3", "N", "N", "4", "6", "N", "5", "N", "N", "7", "N"];
+        let input = [
+            "1", "2", "3", "N", "N", "4", "6", "N", "5", "N", "N", "7", "N",
+        ];
 
         // Act
         let bt = BinaryTree::construct_tree_from_inorder(&input);
@@ -101,5 +130,39 @@ mod tests {
 
         // Assert
         assert_eq!(inorder, vec!["2", "1", "4", "7", "5", "3", "6"]);
+    }
+
+    #[test]
+    fn vertical_view_tree1() {
+        // Arrange
+        let input = [
+            "1", "2", "3", "N", "N", "4", "6", "N", "5", "N", "N", "7", "N",
+        ];
+        let bt = BinaryTree::construct_tree_from_inorder(&input);
+
+        // Act
+        let vertical_view = vertical_view(&bt);
+
+        // Assert
+        assert_eq!(
+            vertical_view,
+            vec![vec!["2"], vec!["1", "4", "7"], vec!["3", "5"], vec!["6"]]
+        );
+    }
+
+    #[test]
+    fn vertical_view_tree2() {
+        // Arrange
+        let input = ["1", "2", "3", "4", "5", "N", "6"];
+        let bt = BinaryTree::construct_tree_from_inorder(&input);
+
+        // Act
+        let vertical_view = vertical_view(&bt);
+
+        // Assert
+        assert_eq!(
+            vertical_view,
+            vec![vec!["4"], vec!["2"], vec!["1", "5"], vec!["3"], vec!["6"]]
+        );
     }
 }
