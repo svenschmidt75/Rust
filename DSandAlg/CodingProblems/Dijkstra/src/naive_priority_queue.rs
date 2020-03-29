@@ -24,18 +24,6 @@ impl PriorityQueue {
     pub(crate) fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
-
-    pub(crate) fn update(&mut self, element: u64, new_priority: i64) {
-        let index = self.data.iter().position(|(_, b)| *b == element).unwrap();
-        self.data.remove(index);
-        self.enqueue(new_priority, element);
-    }
-
-    pub(crate) fn find(&self, element: u64) -> i64 {
-        let index = self.data.iter().position(|(_, b)| *b == element).unwrap();
-        let (priority, _) = self.data[index];
-        priority
-    }
 }
 
 #[cfg(test)]
@@ -58,23 +46,6 @@ mod tests {
         let (priority, element) = pq.dequeue();
         assert_eq!(element, 1);
 
-        let (priority, element) = pq.dequeue();
-        assert_eq!(element, 2);
-    }
-
-    #[test]
-    fn test_update() {
-        // Arrange
-        let mut pq = PriorityQueue::new();
-        pq.enqueue(7, 1);
-        pq.enqueue(19, 2);
-        pq.enqueue(2, 3);
-
-        // Act
-        pq.update(2, 4);
-
-        // Assert
-        pq.dequeue();
         let (priority, element) = pq.dequeue();
         assert_eq!(element, 2);
     }

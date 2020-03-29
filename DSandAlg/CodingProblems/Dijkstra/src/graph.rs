@@ -43,24 +43,25 @@ impl Graph {
         // back to the start.
         let mut path: HashMap<u64, u64> = HashMap::new();
 
+        // SS: to store the shortest distances from the start vertex to all other nodes
+        let mut distances = HashMap::new();
+
         // SS: insert all vertices with initial priorities
         let mut pq = PriorityQueue::new();
         self.adjacency_list.iter().for_each(|(v, edges)| {
             if *v == from_vertex {
                 pq.enqueue(0, from_vertex);
+                distances.insert(v, 0);
             } else {
                 pq.enqueue(std::i64::MAX, *v);
+                distances.insert(v, std::i64::MAX);
             }
         });
 
-        let mut distance_shortest_path = 0;
-
-        while pq.is_empty() == false && visited.len() < self.adjacency_list.len() {
-            let (priority, vertex) = pq.dequeue();
+        while pq.is_empty() == false {
+            let (_, vertex) = pq.dequeue();
 
             if vertex == to_vertex {
-                distance_shortest_path = priority;
-
                 // SS: we're done
                 break;
             }
@@ -75,14 +76,17 @@ impl Graph {
                         continue;
                     }
                     // SS: calculate new distance
-                    let new_priority = priority + *neighbor_priority;
-                    let old_priority = pq.find(*neighbor_vertex);
-                    if new_priority < old_priority {
-                        // SS: update the distance from the start vertex to this neighbor
-                        pq.update(*neighbor_vertex, new_priority);
+                    let new_shortest_distance = distances[&vertex] + *neighbor_priority;
+                    let previous_shortest_distance = distances[neighbor_vertex];
+                    if new_shortest_distance < previous_shortest_distance {
+                        // SS: insert neighbor with new priority
+                        pq.enqueue(new_shortest_distance, *neighbor_vertex);
 
                         // SS: update the neighbor with the "parent"
                         *path.entry(*neighbor_vertex).or_insert(std::u64::MAX) = vertex;
+
+                        // SS: update shortest distance to neighbor
+                        *distances.get_mut(&neighbor_vertex).unwrap() = new_shortest_distance;
                     }
                 }
             }
@@ -98,6 +102,8 @@ impl Graph {
         }
         shortest_path.push(from_vertex);
         shortest_path.reverse();
+
+        let distance_shortest_path = distances[&to_vertex];
 
         (distance_shortest_path, shortest_path)
     }
