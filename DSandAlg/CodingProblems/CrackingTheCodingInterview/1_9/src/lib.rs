@@ -13,6 +13,8 @@ fn is_rotation(s1: &str, s2: &str) -> bool {
         // s2 = "waterbottle";
         let s1_input = s1.chars().collect::<Vec<_>>();
         let s2_input = s2.chars().collect::<Vec<_>>();
+
+        // SS: naive implementation, O(s1 * s2)
         for i in 0..s1.len() {
             let idx = s1.len() - 1 - i;
             if s1_input[idx] == s2_input[0] {
