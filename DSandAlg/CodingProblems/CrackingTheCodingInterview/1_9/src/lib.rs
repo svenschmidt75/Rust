@@ -2,6 +2,9 @@
 // 6th ed, p. 91, ex. 1.9
 
 fn is_rotation(s1: &str, s2: &str) -> bool {
+    // SS: Turns out an easier solution is to concatenate s2 to itself,
+    // then check if s1 is a substring of that concatenation...
+
     if s1.len() != s2.len() || s1.len() == 0 {
         false
     } else {
