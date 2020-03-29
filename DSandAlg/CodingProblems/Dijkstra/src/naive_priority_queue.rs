@@ -10,7 +10,7 @@ impl PriorityQueue {
         PriorityQueue { data: vec![] }
     }
 
-    pub fn enqueue(&mut self, priority: i64, element: u64) {
+    pub fn enqueue(&mut self, element: u64, priority: i64) {
         self.data.push((priority, element));
         self.data.sort_by_key(|(p, _)| *p);
     }
@@ -34,9 +34,9 @@ mod tests {
     fn test_pq() {
         // Arrange
         let mut pq = PriorityQueue::new();
-        pq.enqueue(7, 1);
-        pq.enqueue(19, 2);
-        pq.enqueue(2, 3);
+        pq.enqueue(1, 7);
+        pq.enqueue(2, 19);
+        pq.enqueue(3, 2);
 
         // Act
         // Assert

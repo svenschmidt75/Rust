@@ -50,10 +50,10 @@ impl Graph {
         let mut pq = PriorityQueue::new();
         self.adjacency_list.iter().for_each(|(v, edges)| {
             if *v == from_vertex {
-                pq.enqueue(0, from_vertex);
+                pq.enqueue(from_vertex, 0);
                 distances.insert(v, 0);
             } else {
-                pq.enqueue(std::i64::MAX, *v);
+                pq.enqueue(*v, std::i64::MAX);
                 distances.insert(v, std::i64::MAX);
             }
         });
@@ -79,8 +79,12 @@ impl Graph {
                     let new_shortest_distance = distances[&vertex] + *neighbor_priority;
                     let previous_shortest_distance = distances[neighbor_vertex];
                     if new_shortest_distance < previous_shortest_distance {
+
+                        // SS: This tripped me up. We don;t actually modify the priority of an existing item in the PQ,
+                        // rather, we just insert it again, with updated (i.e. smaller) priority...
+
                         // SS: insert neighbor with new priority
-                        pq.enqueue(new_shortest_distance, *neighbor_vertex);
+                        pq.enqueue(*neighbor_vertex, new_shortest_distance);
 
                         // SS: update the neighbor with the "parent"
                         *path.entry(*neighbor_vertex).or_insert(std::u64::MAX) = vertex;
