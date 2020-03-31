@@ -37,51 +37,60 @@ impl BinarySearchTree {
     }
 
     fn find_path_recursive(parent: &Node, from: i64, to: i64, path: &mut Vec<i64>) -> bool {
-        // SS: base case for recursion
-        if parent.value == from || parent.value == to {
+        // SS: post-order depth-first
+        let mut left_path = vec![];
+        let mut left_result = false;
+        if parent.left.is_some() {
+            left_result = BinarySearchTree::find_path_recursive(
+                parent.left.as_ref().unwrap(),
+                from,
+                to,
+                &mut left_path,
+            );
+        }
+
+        let mut right_path = vec![];
+        let mut right_result = false;
+        if parent.right.is_some() {
+            right_result = BinarySearchTree::find_path_recursive(
+                parent.right.as_ref().unwrap(),
+                from,
+                to,
+                &mut right_path,
+            );
+        }
+
+        let mut add_parents = left_result || right_result;
+
+        if left_path.is_empty() == false && right_path.is_empty() == false {
+            // SS: path extends between both subtrees, here, we are at 1st common root
+            path.append(&mut left_path);
             path.push(parent.value);
-            true
+            right_path.reverse();
+            path.append(&mut right_path);
+            add_parents = false;
+        } else if parent.value == from || parent.value == to {
+            let is_start = left_path.is_empty() && right_path.is_empty();
+            let is_end = left_path.is_empty() && right_path.is_empty() == false
+                || left_path.is_empty() == false && right_path.is_empty();
+            add_parents = is_start || !is_end;
+
+            // SS: when the path is only one vertex, do not add parents
+            if from == to {
+                add_parents = false;
+            }
+            path.append(&mut left_path);
+            path.append(&mut right_path);
+            path.push(parent.value);
         } else {
-            let mut left_path = vec![];
-            let mut left_result = false;
-            if parent.left.is_some() {
-                left_result = BinarySearchTree::find_path_recursive(
-                    parent.left.as_ref().unwrap(),
-                    from,
-                    to,
-                    &mut left_path,
-                );
-            }
-
-            let mut right_path = vec![];
-            let mut right_result = false;
-            if parent.right.is_some() {
-                right_result = BinarySearchTree::find_path_recursive(
-                    parent.right.as_ref().unwrap(),
-                    from,
-                    to,
-                    &mut right_path,
-                );
-            }
-
-            // SS: if both left_path and right_path are non-empty, this is the 1st common ancestor
-            if left_path.is_empty() == false && right_path.is_empty() == false {
-                path.append(&mut left_path);
+            path.append(&mut left_path);
+            path.append(&mut right_path);
+            if add_parents {
                 path.push(parent.value);
-
-                // SS: add right_path in reversed order
-                right_path.reverse();
-                path.append(&mut right_path);
-                false
-            } else {
-                path.append(&mut left_path);
-                path.append(&mut right_path);
-                if left_result || right_result {
-                    path.push(parent.value);
-                }
-                left_result || right_result
             }
         }
+
+        add_parents
     }
 }
 
@@ -89,9 +98,7 @@ impl BinarySearchTree {
 mod tests {
     use super::*;
 
-    #[test]
-    fn bt_find_path() {
-        // Arrange
+    fn create_tree() -> BinarySearchTree {
         let mut bst = BinarySearchTree::new();
 
         let lrl = Box::new(Node::new(8));
@@ -147,10 +154,66 @@ mod tests {
 
         bst.root = Some(root);
 
+        bst
+    }
+
+    #[test]
+    fn bt_find_path_different_subtrees() {
+        // Arrange
+        let bst = create_tree();
+
         // Act
         let path = bst.find_path(14, 12);
 
         // // Assert
         assert_eq!(path, vec![14, 10, 6, 3, 7, 12]);
+    }
+
+    #[test]
+    fn bt_find_path_different_subtrees_2() {
+        // Arrange
+        let bst = create_tree();
+
+        // Act
+        let path = bst.find_path(8, 17);
+
+        // // Assert
+        assert_eq!(path, vec![8, 5, 2, 1, 3, 6, 10, 14, 17]);
+    }
+
+    #[test]
+    fn bt_find_path_left_right_subtree() {
+        // Arrange
+        let bst = create_tree();
+
+        // Act
+        let path = bst.find_path(17, 3);
+
+        // // Assert
+        assert_eq!(path, vec![17, 14, 10, 6, 3]);
+    }
+
+    #[test]
+    fn bt_find_path_right_subtree() {
+        // Arrange
+        let bst = create_tree();
+
+        // Act
+        let path = bst.find_path(14, 6);
+
+        // // Assert
+        assert_eq!(path, vec![14, 10, 6]);
+    }
+
+    #[test]
+    fn bt_find_path_single_vertex() {
+        // Arrange
+        let bst = create_tree();
+
+        // Act
+        let path = bst.find_path(14, 14);
+
+        // // Assert
+        assert_eq!(path, vec![14]);
     }
 }
