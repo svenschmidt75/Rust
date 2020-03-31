@@ -33,6 +33,10 @@ impl BinarySearchTree {
     }
 
     fn is_balanced(&self) -> bool {
+        // SS: Instead of explicitly calculating the heights, we could have a method
+        // that terminates early when there is an unbalanced subtree.
+        // Runtime is O(v) as we are calculating the height for every node.
+
         if self.root.is_none() {
             true
         } else {
