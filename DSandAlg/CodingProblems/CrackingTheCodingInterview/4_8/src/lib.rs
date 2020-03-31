@@ -1,3 +1,6 @@
+// Cracking the Coding Interview
+// 6th ed, p. 110, ex. 4.8
+
 use std::cmp;
 use std::collections::VecDeque;
 
@@ -26,71 +29,61 @@ impl BinarySearchTree {
         BinarySearchTree { root: None }
     }
 
-    fn find_path(&self, from: i64, to: i64) -> Vec<i64> {
+    fn find_first_common_ancestor(&self, node1: i64, node2: i64) -> Option<i64> {
         if self.root.is_none() {
-            vec![]
+            None
         } else {
-            let mut path = vec![];
-            BinarySearchTree::find_path_recursive(self.root.as_ref().unwrap(), from, to, &mut path);
-            path
+            let mut ancestor = 0i64;
+            BinarySearchTree::find_first_common_ancestor_recursive(
+                self.root.as_ref().unwrap(),
+                node1,
+                node2,
+                &mut ancestor,
+            );
+            Some(ancestor)
         }
     }
 
-    fn find_path_recursive(parent: &Node, from: i64, to: i64, path: &mut Vec<i64>) -> bool {
-        // SS: post-order depth-first
-        let mut left_path = vec![];
-        let mut left_result = false;
+    fn find_first_common_ancestor_recursive(
+        parent: &Node,
+        node1: i64,
+        node2: i64,
+        ancestor: &mut i64,
+    ) -> bool {
+        let mut left_subtree_contains_node = false;
         if parent.left.is_some() {
-            left_result = BinarySearchTree::find_path_recursive(
+            left_subtree_contains_node = BinarySearchTree::find_first_common_ancestor_recursive(
                 parent.left.as_ref().unwrap(),
-                from,
-                to,
-                &mut left_path,
+                node1,
+                node2,
+                ancestor,
             );
         }
 
-        let mut right_path = vec![];
-        let mut right_result = false;
+        let mut right_subtree_contains_node = false;
         if parent.right.is_some() {
-            right_result = BinarySearchTree::find_path_recursive(
+            right_subtree_contains_node = BinarySearchTree::find_first_common_ancestor_recursive(
                 parent.right.as_ref().unwrap(),
-                from,
-                to,
-                &mut right_path,
+                node1,
+                node2,
+                ancestor,
             );
         }
 
-        let mut add_parents = left_result || right_result;
+        let mut add = left_subtree_contains_node || right_subtree_contains_node;
 
-        if left_path.is_empty() == false && right_path.is_empty() == false {
-            // SS: path extends between both subtrees, here, we are at 1st common root
-            path.append(&mut left_path);
-            path.push(parent.value);
-            right_path.reverse();
-            path.append(&mut right_path);
-            add_parents = false;
-        } else if parent.value == from || parent.value == to {
-            let is_start = left_path.is_empty() && right_path.is_empty();
-            let is_end = left_path.is_empty() && right_path.is_empty() == false
-                || left_path.is_empty() == false && right_path.is_empty();
-            add_parents = is_start || !is_end;
-
-            // SS: when the path is only one vertex, do not add parents
-            if from == to {
-                add_parents = false;
+        if parent.value == node1 || parent.value == node2 {
+            if left_subtree_contains_node || right_subtree_contains_node || node1 == node2 {
+                *ancestor = parent.value;
             }
-            path.append(&mut left_path);
-            path.append(&mut right_path);
-            path.push(parent.value);
-        } else {
-            path.append(&mut left_path);
-            path.append(&mut right_path);
-            if add_parents {
-                path.push(parent.value);
-            }
+            add = true;
+        } else if left_subtree_contains_node && right_subtree_contains_node {
+            // SS: this is the common ancestor
+            *ancestor = parent.value;
+            add = false;
         }
 
-        add_parents
+        add
     }
 }
 
@@ -163,10 +156,10 @@ mod tests {
         let bst = create_tree();
 
         // Act
-        let path = bst.find_path(14, 12);
+        let result = bst.find_first_common_ancestor(14, 12).unwrap();
 
         // Assert
-        assert_eq!(path, vec![14, 10, 6, 3, 7, 12]);
+        assert_eq!(result, 3);
     }
 
     #[test]
@@ -175,10 +168,10 @@ mod tests {
         let bst = create_tree();
 
         // Act
-        let path = bst.find_path(8, 17);
+        let result = bst.find_first_common_ancestor(8, 17).unwrap();
 
         // Assert
-        assert_eq!(path, vec![8, 5, 2, 1, 3, 6, 10, 14, 17]);
+        assert_eq!(result, 1);
     }
 
     #[test]
@@ -187,10 +180,10 @@ mod tests {
         let bst = create_tree();
 
         // Act
-        let path = bst.find_path(17, 3);
+        let result = bst.find_first_common_ancestor(17, 3).unwrap();
 
         // Assert
-        assert_eq!(path, vec![17, 14, 10, 6, 3]);
+        assert_eq!(result, 3);
     }
 
     #[test]
@@ -199,10 +192,10 @@ mod tests {
         let bst = create_tree();
 
         // Act
-        let path = bst.find_path(14, 6);
+        let result = bst.find_first_common_ancestor(14, 6).unwrap();
 
         // Assert
-        assert_eq!(path, vec![14, 10, 6]);
+        assert_eq!(result, 6);
     }
 
     #[test]
@@ -211,9 +204,9 @@ mod tests {
         let bst = create_tree();
 
         // Act
-        let path = bst.find_path(14, 14);
+        let result = bst.find_first_common_ancestor(14, 14).unwrap();
 
         // Assert
-        assert_eq!(path, vec![14]);
+        assert_eq!(result, 14);
     }
 }
