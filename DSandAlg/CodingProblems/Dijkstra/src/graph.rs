@@ -79,7 +79,6 @@ impl Graph {
                     let new_shortest_distance = distances[&vertex] + *neighbor_priority;
                     let previous_shortest_distance = distances[neighbor_vertex];
                     if new_shortest_distance < previous_shortest_distance {
-
                         // SS: This tripped me up. We don;t actually modify the priority of an existing item in the PQ,
                         // rather, we just insert it again, with updated (i.e. smaller) priority...
 
@@ -243,5 +242,30 @@ mod tests {
         // Assert
         assert_eq!(distance, 7);
         assert_eq!(shortest_path, vec![0, 2, 5, 6, 7]);
+    }
+
+    #[test]
+    fn shortest_path_3() {
+        // Arrange
+        let mut g = Graph::new();
+        g.add_vertex(0);
+        g.add_vertex(1);
+        g.add_vertex(2);
+
+        // (0, 1, 4)
+        g.add_undirected_edge(0, 1, 4);
+
+        // (0, 2, 1)
+        g.add_undirected_edge(0, 2, 1);
+
+        // (2, 1, 1)
+        g.add_undirected_edge(2, 1, 1);
+
+        // Act
+        let (distance, shortest_path) = g.shortest_path(0, 1);
+
+        // Assert
+        assert_eq!(distance, 2);
+        assert_eq!(shortest_path, vec![0, 2, 1]);
     }
 }
