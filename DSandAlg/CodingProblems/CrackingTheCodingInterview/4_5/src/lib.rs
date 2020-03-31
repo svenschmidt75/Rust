@@ -1,7 +1,7 @@
 // Cracking the Coding Interview
-// 6th ed, p. 110, ex. 4.4
+// 6th ed, p. 110, ex. 4.5
 
-// https://leetcode.com/problems/balanced-binary-tree/
+// https://leetcode.com/problems/validate-binary-search-tree/
 
 use std::cmp;
 use std::collections::VecDeque;
