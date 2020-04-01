@@ -19,55 +19,18 @@
 
         public int? InOrderSuccessor(Node node)
         {
-            if (node == Root)
+            if (node.Right != null)
             {
-                // SS: descend down the right subtree
-                var n = DescendInOrder(Root.Right);
-                return n?.Value;
+                return DescendInOrder(node.Right).Value;
             }
-            
-            if (node.IsLeaf())
-            {
-                if (node.Parent.Left == node)
-                {
-                    return node.Parent.Value;
-                }
 
-                // SS: node is right child of parent
-                while (node.Parent != null && node.Parent.Right == node)
-                {
-                    node = node.Parent;
-                }
-                
-                // SS: either root or in left subtree
-                if (node.Parent == null)
-                {
-                    // SS: node is root, no sucessor
-                    return null;
-                }
-                
+            if (node.Parent.Left == node)
+            {
                 return node.Parent.Value;
             }
-            else
-            {
-                // SS: node is not a leaf node
-                if (node.Right != null)
-                {
-                    var n = DescendInOrder(node.Right);
-                    return n?.Value;
-                }
-                else
-                {
-                    if (node.Parent.Left == node)
-                    {
-                        return node.Parent.Value;
-                    }
-                    
-                    // SS: node is right child and node does not have a right subtree, so
-                    // return null
-                    return null;
-                }
-            }
+
+            return node.Parent.Parent?.Value;
+
         }
 
         private Node DescendInOrder(Node node)
