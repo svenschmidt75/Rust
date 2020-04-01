@@ -151,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn bt_find_path_different_subtrees() {
+    fn find_ancestor_different_subtrees() {
         // Arrange
         let bst = create_tree();
 
@@ -163,7 +163,7 @@ mod tests {
     }
 
     #[test]
-    fn bt_find_path_different_subtrees_2() {
+    fn find_ancestor_different_subtrees_2() {
         // Arrange
         let bst = create_tree();
 
@@ -175,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn bt_find_path_left_right_subtree() {
+    fn find_ancestor_left_right_subtree() {
         // Arrange
         let bst = create_tree();
 
@@ -187,7 +187,7 @@ mod tests {
     }
 
     #[test]
-    fn bt_find_path_right_subtree() {
+    fn find_ancestor_right_subtree() {
         // Arrange
         let bst = create_tree();
 
@@ -199,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn bt_find_path_single_vertex() {
+    fn find_ancestor_single_vertex() {
         // Arrange
         let bst = create_tree();
 
