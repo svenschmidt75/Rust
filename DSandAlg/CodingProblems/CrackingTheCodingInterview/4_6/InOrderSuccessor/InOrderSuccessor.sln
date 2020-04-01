@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InOrderSuccessor", "InOrderSuccessor\InOrderSuccessor.csproj", "{57A492E6-4B10-4D02-BD90-FB24F87FAD6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InOrderSuccessor.Test", "InOrderSuccessor.Test\InOrderSuccessor.Test.csproj", "{627E725E-9E4E-4D7D-B356-8588E9F51918}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{57A492E6-4B10-4D02-BD90-FB24F87FAD6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57A492E6-4B10-4D02-BD90-FB24F87FAD6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57A492E6-4B10-4D02-BD90-FB24F87FAD6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57A492E6-4B10-4D02-BD90-FB24F87FAD6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{627E725E-9E4E-4D7D-B356-8588E9F51918}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{627E725E-9E4E-4D7D-B356-8588E9F51918}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{627E725E-9E4E-4D7D-B356-8588E9F51918}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{627E725E-9E4E-4D7D-B356-8588E9F51918}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
