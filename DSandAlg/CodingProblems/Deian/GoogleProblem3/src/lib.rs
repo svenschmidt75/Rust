@@ -145,6 +145,18 @@ mod tests {
     }
 
     #[test]
+    fn test14() {
+        // Arrange
+        let obstacles = [false, true, true, true, false, true, false, false];
+
+        // Act
+        let hash_solution = has_solution_1(&obstacles, 5, 5);
+
+        // Assert
+        assert_eq!(hash_solution, false);
+    }
+
+    #[test]
     fn test21() {
         // Arrange
         let obstacles = [
@@ -184,6 +196,18 @@ mod tests {
 
         // Act
         let hash_solution = has_solution_2(&obstacles, 5, 5);
+
+        // Assert
+        assert_eq!(hash_solution, false);
+    }
+
+    #[test]
+    fn test24() {
+        // Arrange
+        let obstacles = [false, true, true, true, false, true, false, false];
+
+        // Act
+        let hash_solution = has_solution_2(&obstacles, 4, 4);
 
         // Assert
         assert_eq!(hash_solution, false);
