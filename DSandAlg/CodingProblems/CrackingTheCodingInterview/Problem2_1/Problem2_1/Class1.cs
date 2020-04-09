@@ -17,6 +17,10 @@ namespace Problem2_1
         public void RemoveDuplicates1()
         {
             // SS: remove duplicate nodes from a linked list
+            // SS: If a temp. buffer is not allowed, we can, for each node,
+            // search to the end and remove duplicate nodes along the way.
+            // This approach has runtime O(n^2)
+            
             if (Head == null) return;
 
             var values = new HashSet<int>();
