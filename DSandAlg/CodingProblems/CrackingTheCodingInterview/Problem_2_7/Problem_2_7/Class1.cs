@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
-namespace Problem2_7
+namespace Problem_2_7
 {
     public class Node
     {
