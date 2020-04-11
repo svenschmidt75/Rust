@@ -20,13 +20,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1683665f-b433-4393-91f2-ad8fe96f5ca7" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../Problem2_3/.idea/.idea.Problem2_3/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Problem2_3/.idea/.idea.Problem2_3/.idea/indexLayout.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Problem2_3/.idea/.idea.Problem2_3/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Problem2_3/.idea/.idea.Problem2_3/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../Problem2_3/.idea/.idea.Problem2_3/riderModule.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Problem_2_7/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Problem_2_7/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Problem_2_7/Class1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Problem_2_7/Class1.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/.idea/.idea.Problem2_4.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/.idea/contentModel.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/.idea/indexLayout.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/.idea/projectSettingsUpdater.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../Problem2_4/.idea/.idea.Problem2_4/riderModule.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +80,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1586474328460</updated>
-      <workItem from="1586474336944" duration="1828000" />
+      <workItem from="1586474336944" duration="1965000" />
     </task>
     <servers />
   </component>
