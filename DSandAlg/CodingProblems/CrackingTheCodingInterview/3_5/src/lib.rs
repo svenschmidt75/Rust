@@ -46,7 +46,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test11() {
+    fn test1() {
         // Arrange
         let mut stack = VecDeque::new();
         stack.push_back(3);
@@ -64,5 +64,18 @@ mod tests {
         assert_eq!(4, stack.pop_back().unwrap());
         assert_eq!(5, stack.pop_back().unwrap());
         assert_eq!(7, stack.pop_back().unwrap());
+    }
+
+    #[test]
+    fn test_single_item_in_stack() {
+        // Arrange
+        let mut stack = VecDeque::new();
+        stack.push_back(3);
+
+        // Act
+        sort_stack(&mut stack);
+
+        // Assert
+        assert_eq!(3, stack.pop_back().unwrap());
     }
 }
