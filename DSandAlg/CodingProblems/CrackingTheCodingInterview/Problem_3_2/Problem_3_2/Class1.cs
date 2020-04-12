@@ -31,9 +31,13 @@ namespace Problem_3_2
              * N/2 + N/4 + N/8 + N/16 + ... to update the min element.
              * In total, 2N, so on average, the cost to update the min element after popping off an item
              * is O(2N / N) => O(1) amortized time.
+             *
+             * If we can use extra space, every time we push an element onto the stack, we push the min
+             * element on a separate stack. When we pop, we pop the min element.
+             * Min() points to the top of the stack.
              */
 
-            // SS: Method 2: Push the item together with an index pointing to the current min element
+            // SS: Method 3: Push the item together with an index pointing to the current min element
             if (_minIndex == -1)
             {
                 _minIndex = _position;
