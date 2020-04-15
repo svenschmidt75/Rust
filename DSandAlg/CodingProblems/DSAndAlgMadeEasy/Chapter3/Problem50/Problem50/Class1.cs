@@ -132,6 +132,8 @@ namespace Problem50
         {
             get
             {
+                // SS: this is an O(1) approach
+                
                 var deltaLength = _descendingList.Length - _ascendingList.Length;
                 if (deltaLength == 0)
                 {
