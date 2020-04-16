@@ -51,16 +51,42 @@ fn generate_partitions(
 fn optimal_solution(input: &[i64], k: i64) -> i64 {
     // SS: O(N log N) solution utilizing binary search
 
+    0
+}
 
+fn generate_and_validate(input: &input[i64], partition: (usize, usize), sum: i64) -> bool {
+    
+
+
+}
+
+fn find_partition_with_sum(input: &[i64], sum: i64) -> Vec<(usize, usize)> {
+    let mut result = vec![];
+    for i in 0..input.len() {
+        let mut s = input[i];
+        let mut j = i + 1;
+        while j < input.len() && s < sum {
+            s += input[j];
+            j += 1;
+        }
+        if j == input.len() || s > sum{
+            continue;
+        }
+        assert_eq!(sum, s);
+
+        // SS: [start, end)
+        result.push((i, j));
+    }
+    result
 }
 
 
 #[cfg(test)]
 mod tests {
-    use crate::brute_force;
+    use crate::{brute_force, find_partition_with_sum};
 
     #[test]
-    fn test1() {
+    fn test_brute_force() {
         // Arrange
         let input = [10, 1, 2, 5, 7, 8, 10];
 
@@ -70,4 +96,18 @@ mod tests {
         // Assert
         assert_eq!(max_min_sum, 12);
     }
+
+    #[test]
+    fn test_find_sum() {
+        // Arrange
+        let input = [10, 1, 2, 5, 7, 8, 10];
+
+        // Act
+        let result = find_partition_with_sum(&input, 8);
+
+        // Assert
+        assert_eq!(result[0], (1, 4));
+        assert_eq!(result[1], (5, 6));
+    }
+
 }
