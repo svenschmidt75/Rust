@@ -48,19 +48,80 @@ fn generate_partitions(
 }
 
 
-fn optimal_solution(input: &[i64], k: i64) -> i64 {
+fn optimal_solution(input: &[u64], k: i64) -> u64 {
     // SS: O(N log N) solution utilizing binary search
 
+    let partitions = find_partition_with_sum(input, 8);
+    let valid = generate_and_validate(input, partitions[0], 8, k);
+
+    println!("{:?}", valid);
+
     0
-}
-
-fn generate_and_validate(input: &input[i64], partition: (usize, usize), sum: i64) -> bool {
-    
-
 
 }
 
-fn find_partition_with_sum(input: &[i64], sum: i64) -> Vec<(usize, usize)> {
+fn generate_and_validate(input: &[u64], partition: (usize, usize), sum: u64, k: i64) -> bool {
+    // SS: we have two sets of numbers to partition,
+    // 1. the set before the start of `partition`, and the set after.
+    // Example: input = [10, 1, 2, 5, 7, 8, 10], partition: (1, 4], sum=8, then
+    // the two sets are [0, 1] and (4, 7).
+    // These two sets have to form k partitions in total...
+    let mut remaining_partitions = k - 1;
+    if partition.1 < input.len() {
+        // SS: leave one for the end
+        remaining_partitions -= 1;
+    }
+
+    let mut idx = 0;
+    while remaining_partitions > 0 {
+        let mut s = 0;
+        while idx < partition.0 && s < sum {
+            s += input[idx];
+            idx += 1;
+        }
+
+        if idx == partition.0 {
+            if s < sum {
+                // SS: the partition starting before `partition` has sum smaller than `sum`,
+                // so no solution
+                return false;
+            }
+
+            // SS: cannot generate any more partitions
+            break;
+        } else if s > sum {
+            remaining_partitions -= 1;
+            idx -= 1;
+        }
+    }
+
+    idx = partition.1;
+    while remaining_partitions > 0 {
+        let mut s = 0;
+        while idx < input.len() && s < sum {
+            s += input[idx];
+            idx += 1;
+        }
+
+        if idx == input.len() {
+            if s < sum {
+                // SS: the partition starting after `partition` has sum smaller than `sum`,
+                // so no solution
+                return false;
+            }
+
+            // SS: cannot generate any more partitions
+            break;
+        } else if s > sum {
+            remaining_partitions -= 1;
+            idx -= 1;
+        }
+    }
+
+    true
+}
+
+fn find_partition_with_sum(input: &[u64], sum: u64) -> Vec<(usize, usize)> {
     let mut result = vec![];
     for i in 0..input.len() {
         let mut s = input[i];
@@ -83,7 +144,7 @@ fn find_partition_with_sum(input: &[i64], sum: i64) -> Vec<(usize, usize)> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{brute_force, find_partition_with_sum};
+    use crate::{brute_force, find_partition_with_sum, generate_and_validate};
 
     #[test]
     fn test_brute_force() {
@@ -108,6 +169,18 @@ mod tests {
         // Assert
         assert_eq!(result[0], (1, 4));
         assert_eq!(result[1], (5, 6));
+    }
+
+    #[test]
+    fn test_validate_partition() {
+        // Arrange
+        let input = [10, 1, 2, 5, 7, 8, 10];
+
+        // Act
+        let is_valid = generate_and_validate(&input, (1, 4), 8, 3);
+
+        // Assert
+        assert_eq!(is_valid, true);
     }
 
 }
