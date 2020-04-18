@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
 fn can_be_made_into_palindrome_1(input: &str) -> bool {
+    // SS: O(N) runtime, where N = string length
+    // O(N) space complexity
+
     let mut frequency_map = HashMap::new();
 
     for c in input.chars() {
@@ -28,6 +31,9 @@ fn can_be_made_into_palindrome_1(input: &str) -> bool {
 }
 
 fn can_be_made_into_palindrome_2(input: &str) -> bool {
+    // SS: O(N) runtime, where N = string length
+    // O(N) space complexity
+
     // SS: we assume the string consists of ASCII chars
     // an is lower-case
     let mut buffer: [u8; 26] = [0; 26];
