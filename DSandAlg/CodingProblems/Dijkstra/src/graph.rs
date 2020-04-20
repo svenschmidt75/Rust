@@ -293,6 +293,61 @@ mod tests {
         graph
     }
 
+    fn create_graph_3() -> Graph {
+        // Udemy - https://www.udemy.com/course/algorithms-and-data-structures-in-python/
+        let mut graph = Graph::new();
+
+        graph.add_vertex(0); // A
+        graph.add_vertex(1); // B
+        graph.add_vertex(2); // C
+        graph.add_vertex(3); // D
+        graph.add_vertex(4); // E
+        graph.add_vertex(5); // F
+        graph.add_vertex(6); // G
+        graph.add_vertex(7); // H
+
+        // (A, B, 5)
+        // (A, H, 8)
+        // (A, E, 9)
+        graph.add_directed_edge(0, 1, 5);
+        graph.add_directed_edge(0, 7, 8);
+        graph.add_directed_edge(0, 4, 9);
+
+        // (B, C, 12)
+        // (B, D, 15)
+        // (B, H, 4)
+        graph.add_directed_edge(1, 2, 12);
+        graph.add_directed_edge(1, 3, 15);
+        graph.add_directed_edge(1, 7, 4);
+
+        // (C, D, 3)
+        // (C, G, 11)
+        graph.add_directed_edge(2, 3, 3);
+        graph.add_directed_edge(2, 6, 11);
+
+        // (D, G, 9)
+        graph.add_directed_edge(3, 6, 9);
+
+        // (E, F, 4)
+        // (E, G, 20)
+        // (E, H, 5)
+        graph.add_directed_edge(4, 5, 4);
+        graph.add_directed_edge(4, 6, 20);
+        graph.add_directed_edge(4, 7, 5);
+
+        // (F, C, 1)
+        // (F, G, 13)
+        graph.add_directed_edge(5, 2, 1);
+        graph.add_directed_edge(5, 6, 13);
+
+        // (H, C, 7)
+        // (H, F, 6)
+        graph.add_directed_edge(7, 2, 7);
+        graph.add_directed_edge(7, 5, 6);
+
+        graph
+    }
+
     #[test]
     fn shortest_path_1() {
         // Arrange
@@ -342,5 +397,18 @@ mod tests {
         // Assert
         assert_eq!(distance, 2);
         assert_eq!(shortest_path, vec![0, 2, 1]);
+    }
+
+    #[test]
+    fn shortest_path_4() {
+        // Arrange
+        let g = create_graph_3();
+
+        // Act
+        let (distance, shortest_path) = g.shortest_path2(0, 6);
+
+        // Assert
+        assert_eq!(distance, 25);
+        assert_eq!(shortest_path, vec![0, 4, 5, 2, 6]);
     }
 }
