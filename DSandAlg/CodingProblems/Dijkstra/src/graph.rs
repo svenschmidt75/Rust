@@ -35,7 +35,7 @@ impl Graph {
         adj_list.push((to_vertex, weight));
     }
 
-    fn shortest_path(&self, from_vertex: u64, to_vertex: u64) -> (i64, Vec<u64>) {
+    fn shortest_path1(&self, from_vertex: u64, to_vertex: u64) -> (i64, Vec<u64>) {
         // SS: Dijkstra's shortest path
         let mut visited = HashSet::new();
 
@@ -79,7 +79,7 @@ impl Graph {
                     let new_shortest_distance = distances[&vertex] + *neighbor_priority;
                     let previous_shortest_distance = distances[neighbor_vertex];
                     if new_shortest_distance < previous_shortest_distance {
-                        // SS: This tripped me up. We don;t actually modify the priority of an existing item in the PQ,
+                        // SS: This tripped me up. We don't actually modify the priority of an existing item in the PQ,
                         // rather, we just insert it again, with updated (i.e. smaller) priority...
 
                         // SS: insert neighbor with new priority
@@ -91,6 +91,81 @@ impl Graph {
                         // SS: update shortest distance to neighbor
                         *distances.get_mut(&neighbor_vertex).unwrap() = new_shortest_distance;
                     }
+                }
+            }
+        }
+
+        // SS: we should have found the shortest path
+        // Trace path backwards
+        let mut shortest_path = vec![to_vertex];
+        let mut parent = path[&to_vertex];
+        while parent != from_vertex {
+            shortest_path.push(parent);
+            parent = path[&parent];
+        }
+        shortest_path.push(from_vertex);
+        shortest_path.reverse();
+
+        let distance_shortest_path = distances[&to_vertex];
+
+        (distance_shortest_path, shortest_path)
+    }
+
+    fn shortest_path2(&self, from_vertex: u64, to_vertex: u64) -> (i64, Vec<u64>) {
+        // SS: Dijkstra's shortest path
+        let mut visited = HashSet::new();
+
+        // SS: Contains a child-parent relationship, to trace the shortest path
+        // back to the start.
+        let mut path: HashMap<u64, u64> = HashMap::new();
+
+        // SS: to store the shortest distances from the start vertex to all other nodes
+        let mut distances = HashMap::new();
+        self.adjacency_list.iter().for_each(|(v, edges)| {
+            distances.insert(v, std::i64::MAX);
+        });
+        distances.insert(&from_vertex, 0);
+
+        // SS: insert all vertices with initial priorities
+        let mut pq = PriorityQueue::new();
+
+        // SS: we don't have to add all vertices to the PQ, rather, we add them as we see
+        // them...
+        pq.enqueue(from_vertex, 0);
+
+        while pq.is_empty() == false {
+            let (_, vertex) = pq.dequeue();
+
+            if vertex == to_vertex {
+                // SS: we're done
+                break;
+            }
+
+            visited.insert(vertex);
+
+            // SS: check all of vertex's neighbors and update their distances
+            // from the start vertex, from_vertex
+            for (neighbor_vertex, neighbor_priority) in &self.adjacency_list[&vertex] {
+                if visited.contains(neighbor_vertex) {
+                    continue;
+                }
+
+                // SS: calculate new distance
+                let new_shortest_distance = distances[&vertex] + *neighbor_priority;
+                let previous_shortest_distance = distances[neighbor_vertex];
+                if new_shortest_distance < previous_shortest_distance {
+                    // SS: This tripped me up. We don't actually modify the priority of an existing item in the PQ,
+                    // rather, we just insert it again, with updated (i.e. smaller) priority...
+
+                    // SS: insert neighbor with new priority
+                    pq.enqueue(*neighbor_vertex, new_shortest_distance);
+
+                    // SS: update the neighbor with the "parent"
+                    *path.entry(*neighbor_vertex).or_insert(std::u64::MAX) = vertex;
+
+                    // SS: update shortest distance to neighbor
+                    *distances.entry(&neighbor_vertex).or_insert(std::i64::MAX) =
+                        new_shortest_distance;
                 }
             }
         }
@@ -224,7 +299,7 @@ mod tests {
         let g = create_graph_1();
 
         // Act
-        let (distance, shortest_path) = g.shortest_path(0, 4);
+        let (distance, shortest_path) = g.shortest_path1(0, 4);
 
         // Assert
         assert_eq!(distance, 6);
@@ -237,7 +312,7 @@ mod tests {
         let g = create_graph_2();
 
         // Act
-        let (distance, shortest_path) = g.shortest_path(0, 7);
+        let (distance, shortest_path) = g.shortest_path1(0, 7);
 
         // Assert
         assert_eq!(distance, 7);
@@ -262,7 +337,7 @@ mod tests {
         g.add_undirected_edge(2, 1, 1);
 
         // Act
-        let (distance, shortest_path) = g.shortest_path(0, 1);
+        let (distance, shortest_path) = g.shortest_path1(0, 1);
 
         // Assert
         assert_eq!(distance, 2);
