@@ -28,30 +28,19 @@ impl Graph {
         adj_list.push(to_vertex);
     }
 
-    fn topological_sort(&self, start_vertex: u64) -> Vec<u64> {
+    fn topological_sort(&self) -> Vec<u64> {
         let mut sorted_vertices_stack = VecDeque::new();
-        let mut not_visited = self
-            .adjacency_list
-            .iter()
-            .map(|(vertex, _)| *vertex)
-            .collect::<HashSet<_>>();
 
-        // SS: depth-first
-        self.topological_sort_internal(start_vertex, &mut not_visited, &mut sorted_vertices_stack);
+        let mut visited = HashSet::new();
 
-        let mut remaining = not_visited
-            .iter()
-            .map(|&vertex| vertex)
-            .collect::<VecDeque<u64>>();
+        for (&vertex, _) in &self.adjacency_list {
+            if visited.contains(&vertex) {
+                continue;
+            }
+            visited.insert(vertex);
 
-        // SS: process all remaining vertices
-        while remaining.is_empty() == false {
-            let vertex = remaining.pop_back().unwrap();
-            self.topological_sort_internal(vertex, &mut not_visited, &mut sorted_vertices_stack);
-            remaining = not_visited
-                .iter()
-                .map(|&vertex| vertex)
-                .collect::<VecDeque<u64>>();
+            // SS: depth-first
+            self.topological_sort_internal(vertex, &mut visited, &mut sorted_vertices_stack);
         }
 
         sorted_vertices_stack.into_iter().rev().collect()
@@ -60,18 +49,19 @@ impl Graph {
     fn topological_sort_internal(
         &self,
         vertex: u64,
-        not_visited: &mut HashSet<u64>,
+        visited: &mut HashSet<u64>,
         sorted_vertices_stack: &mut VecDeque<u64>,
     ) {
-        not_visited.remove(&vertex);
         let neighbors = self.adjacency_list.get(&vertex).unwrap();
         for &neighbor in neighbors {
-            if not_visited.contains(&neighbor) == false {
+            if visited.contains(&neighbor) {
                 // SS: vertex already visited, skip
                 continue;
             }
+            visited.insert(neighbor);
+
             // SS: `neighbor` depends on `vertex`, so process first
-            self.topological_sort_internal(neighbor, not_visited, sorted_vertices_stack);
+            self.topological_sort_internal(neighbor, visited, sorted_vertices_stack);
         }
         sorted_vertices_stack.push_back(vertex);
     }
@@ -126,7 +116,7 @@ mod tests {
         let g = create_graph_1();
 
         // Act
-        let sorted_vertices = g.topological_sort(0);
+        let sorted_vertices = g.topological_sort();
 
         // Assert
         assert_eq!(sorted_vertices, vec![1, 3, 0, 2, 4, 7, 5, 6]);
