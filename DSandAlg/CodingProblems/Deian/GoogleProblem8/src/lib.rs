@@ -12,6 +12,8 @@
  */
 
 fn create_clip_min(clips: &[(i64, i64)]) -> Vec<(i64, i64)> {
+    // SS: check for empty
+
     // SS: sort clips w.r.t. start time
     // O(N log N)
     let mut sorted = clips.to_owned();
@@ -21,6 +23,9 @@ fn create_clip_min(clips: &[(i64, i64)]) -> Vec<(i64, i64)> {
 
     let mut current_max = sorted[0].0;
     let mut i = 0;
+
+    // SS: Although we have 2 nested loops, since we only "paint" each element once,
+    // the runtime is O(N), NOT O(N^2)!!!
     while i < sorted.len() {
         let mut clip1 = sorted[i];
         if clip1.1 <= current_max {
