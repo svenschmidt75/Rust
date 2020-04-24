@@ -62,7 +62,7 @@ fn create_clip_min(clips: &[(i64, i64)]) -> Vec<(i64, i64)> {
     min_clips
 }
 
-fn follow_up_problem(clips: &[(i64, i64)]) -> Vec<(i64, i64)> {
+fn follow_up_problem_set_covering(clips: &[(i64, i64)]) -> Vec<(i64, i64)> {
     // SS: check for empty
 
     /* Follow-up: Construct a clip covering the full duration of the game while minimizing the sum of lengths of all clips.
@@ -103,8 +103,8 @@ fn follow_up_problem(clips: &[(i64, i64)]) -> Vec<(i64, i64)> {
             max_coverage = coverage;
             best_set = set.clone();
         } else if coverage == max_coverage && overlap < min_overlap {
-            best_set = set.clone();
             min_overlap = overlap;
+            best_set = set.clone();
         }
     };
 
@@ -149,8 +149,10 @@ fn create<F>(
     max: i64,
     index: usize,
     set: Vec<(i64, i64)>,
-    check: &mut F) where F: FnMut(&Vec<(i64, i64)>,
-) {
+    check: &mut F,
+) where
+    F: FnMut(&Vec<(i64, i64)>),
+{
     if index == clips.len() {
         // SS: check set for optimality
         check(&set);
@@ -168,7 +170,7 @@ fn create<F>(
 
 #[cfg(test)]
 mod tests {
-    use crate::create_clip_min;
+    use super::*;
 
     #[test]
     fn test_min_1() {
@@ -194,5 +196,31 @@ mod tests {
         // Assert
         assert_eq!(min_clips.len(), 2);
         assert_eq!(min_clips, vec![(0, 3), (2, 5)]);
+    }
+
+    #[test]
+    fn test_min_3() {
+        // Arrange
+        let clips = [(1, 2), (4, 5), (0, 3), (3, 5)];
+
+        // Act
+        let min_clips = follow_up_problem_set_covering(&clips);
+
+        // Assert
+        assert_eq!(min_clips.len(), 2);
+        assert_eq!(min_clips, vec![(0, 3), (3, 5)]);
+    }
+
+    #[test]
+    fn test_min_4() {
+        // Arrange
+        let clips = [(0, 2), (1, 2), (2, 4), (3, 5)];
+
+        // Act
+        let min_clips = follow_up_problem_set_covering(&clips);
+
+        // Assert
+        assert_eq!(min_clips.len(), 3);
+        assert_eq!(min_clips, vec![(0, 2), (2, 4), (3, 5)]);
     }
 }
