@@ -208,37 +208,42 @@ struct Node {
     split_value: u64,
     left: Option<Box<Node>>,
     right: Option<Box<Node>>,
+    point: Option<(u64, u64)>
 }
 
 impl Node {
     fn new (level: u8, split_value: u64) -> Node {
-        Node {level, split_value, left: None, right: None}
+        Node {level, split_value, left: None, right: None, point: None}
     }
 }
 
-fn create_node(sorted_by_x: &[(u64, u64)], sorted_by_y: &[(u64, u64)], level: u8, (xmin_idx, xmax_idx): (u64, u64), (ymin_idx, ymax_idx): (u64, u64)) -> Option<Box<Node>> {
-    if level % 2 == 0 {
+fn create_node(ys: &[(u64, u64)], level: u8, (xmin_idx, xmax_idx): (u64, u64), (ymin_idx, ymax_idx): (u64, u64)) -> Option<Box<Node>> {
+    if ys.is_empty() {
+        None
+    } else if level % 2 == 0 {
         // SS: on even levels, we split x (i.e. by column) into [xmin, mid), [mid, xmax)
-        let mid_idx = (xmax_idx + xmin_idx) / 2;
-        if xmin_idx == mid_idx {
-            None
+        let mid_idx = ys.len() / 2;
+        if mid_idx == 0 {
+            // SS: leaf node
+            let mut node = Node::new(level, xmin_idx);
+            node.point = Some(ys[0]);
+            Some(Box::new(node))
         } else {
+            let split_value = ys[mid_idx as usize - 1].1;
+
             let mut left_nodes = vec![];
-            let mut i = xmin_idx;
-            while i < mid_idx {
-                left_nodes.push(sorted_by_x[i as usize]);
-                i += 1;
-            }
-
             let mut right_nodes = vec![];
-            while i < xmax_idx {
-                right_nodes.push(sorted_by_x[i as usize]);
-                i += 1;
+            for i in 0..ys.len() {
+                let y = ys[i as usize];
+                if y.1 <= split_value {
+                    left_nodes.push(y);
+                } else {
+                    right_nodes.push(y);
+                }
             }
 
-            let split_value = sorted_by_x[mid_idx as usize - 1].1;
-            let left = create_node(sorted_by_x, sorted_by_y, level + 1,(xmin_idx, mid_idx), (ymin_idx, ymax_idx));
-            let right = create_node(sorted_by_x, sorted_by_y, level + 1,(mid_idx, xmax_idx), (ymin_idx, ymax_idx));
+            let left = create_node(&left_nodes, level + 1, (xmin_idx, xmin_idx + mid_idx as u64), (ymin_idx, ymax_idx));
+            let right = create_node(&right_nodes, level + 1, (xmin_idx + mid_idx as u64, xmax_idx), (ymin_idx, ymax_idx));
             let mut node = Node::new(level, split_value);
             node.left = left;
             node.right = right;
@@ -246,33 +251,34 @@ fn create_node(sorted_by_x: &[(u64, u64)], sorted_by_y: &[(u64, u64)], level: u8
         }
     } else {
         // SS: on odd levels, we split y (i.e. by rows) into [ymin, mid), [mid, ymax)
-        let mid_idx = (ymax_idx + ymin_idx) / 2;
-        if ymin_idx == mid_idx {
-            None
+        let mid_idx = ys.len() / 2;
+        if mid_idx == 0 {
+            // SS: leaf node
+            let mut node = Node::new(level, ymin_idx);
+            node.point = Some(ys[0]);
+            Some(Box::new(node))
         } else {
+            let split_value = ys[mid_idx as usize - 1].0;
+
             let mut up_nodes = vec![];
-            let mut i = ymin_idx;
-            while i < mid_idx {
-                up_nodes.push(sorted_by_y[i as usize]);
-                i += 1;
-            }
-
             let mut down_nodes = vec![];
-            while i < ymax_idx {
-                down_nodes.push(sorted_by_y[i as usize]);
-                i += 1;
+            for i in 0..ys.len() {
+                let y = ys[i as usize];
+                if y.0 <= split_value {
+                    up_nodes.push(y);
+                } else {
+                    down_nodes.push(y);
+                }
             }
 
-            let split_value = sorted_by_y[mid_idx as usize - 1].0;
-            let left = create_node(sorted_by_x, sorted_by_y, level + 1,(xmin_idx, xmax_idx), (ymin_idx, mid_idx));
-            let right = create_node(sorted_by_x, sorted_by_y, level + 1,(xmin_idx, xmax_idx), (mid_idx, ymax_idx));
+            let left = create_node(&up_nodes, level + 1, (xmin_idx, xmax_idx), (ymin_idx, ymin_idx + mid_idx as u64));
+            let right = create_node(&down_nodes, level + 1, (xmin_idx, xmax_idx), (ymin_idx + mid_idx as u64, ymax_idx));
             let mut node = Node::new(level, split_value);
             node.left = left;
             node.right = right;
             Some(Box::new(node))
         }
     }
-
 }
 
 fn create_kdtree(ys: &[(u64, u64)]) -> Option<Box<Node>> {
@@ -290,7 +296,7 @@ fn create_kdtree(ys: &[(u64, u64)]) -> Option<Box<Node>> {
     let ymin = sorted_by_y[0].1;
     let ymax = sorted_by_y[sorted_by_x.len() - 1].1 + 1;
 
-    create_node(&sorted_by_x, &sorted_by_y, 0, (0, sorted_by_x.len() as u64), (0, sorted_by_y.len() as u64))
+    create_node(ys, 0, (0, sorted_by_x.len() as u64), (0, sorted_by_y.len() as u64))
 }
 
 fn follow_up_2(xs: &[(u64, u64)], ys: &[(u64, u64)]) -> u64 {
