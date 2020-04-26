@@ -92,7 +92,7 @@ fn find_min_manhattan_distance(grid: &[u8], nrows: usize, ncols: usize) -> u64 {
     0
 }
 
-fn visit(
+fn follow_up_1_visit(
     vertex: i64,
     cum_dst: u64,
     visited: HashSet<i64>,
@@ -133,7 +133,7 @@ fn visit(
         let mut v = visited.clone();
         v.insert(neighbor);
 
-        let distance = visit(neighbor, cum_dst + dst, v, distances);
+        let distance = follow_up_1_visit(neighbor, cum_dst + dst, v, distances);
         min_cum_dst = cmp::min(min_cum_dst, distance);
 
         i += 1;
@@ -145,6 +145,7 @@ fn visit(
 fn follow_up_1(start: (i64, i64), x: (i64, i64), y: (i64, i64), z: (i64, i64)) -> u64 {
     /* Pick up 3 persons x, y and z from any start point s.t. the distance
      * travelled is minimal...
+     * Implemented as greedy algorithm: at each vertex, follow the smallest edge...
      */
 
     // SS: pre-compute distances (i.e. effectively the edges of a graph)
@@ -198,8 +199,116 @@ fn follow_up_1(start: (i64, i64), x: (i64, i64), y: (i64, i64), z: (i64, i64)) -
     let mut visited = HashSet::new();
     visited.insert(0);
 
-    visit(0, 0, visited, &distances)
+    follow_up_1_visit(0, 0, visited, &distances)
 }
+
+
+struct Node {
+    level: u8,
+    split_value: u64,
+    left: Option<Box<Node>>,
+    right: Option<Box<Node>>,
+}
+
+impl Node {
+    fn new (level: u8, split_value: u64) -> Node {
+        Node {level, split_value, left: None, right: None}
+    }
+}
+
+fn create_node(sorted_by_x: &[(u64, u64)], sorted_by_y: &[(u64, u64)], level: u8, (xmin_idx, xmax_idx): (u64, u64), (ymin_idx, ymax_idx): (u64, u64)) -> Option<Box<Node>> {
+    if level % 2 == 0 {
+        // SS: on even levels, we split x (i.e. by column) into [xmin, mid), [mid, xmax)
+        let mid_idx = (xmax_idx + xmin_idx) / 2;
+        if xmin_idx == mid_idx {
+            None
+        } else {
+            let mut left_nodes = vec![];
+            let mut i = xmin_idx;
+            while i < mid_idx {
+                left_nodes.push(sorted_by_x[i as usize]);
+                i += 1;
+            }
+
+            let mut right_nodes = vec![];
+            while i < xmax_idx {
+                right_nodes.push(sorted_by_x[i as usize]);
+                i += 1;
+            }
+
+            let split_value = sorted_by_x[mid_idx as usize - 1].1;
+            let left = create_node(sorted_by_x, sorted_by_y, level + 1,(xmin_idx, mid_idx), (ymin_idx, ymax_idx));
+            let right = create_node(sorted_by_x, sorted_by_y, level + 1,(mid_idx, xmax_idx), (ymin_idx, ymax_idx));
+            let mut node = Node::new(level, split_value);
+            node.left = left;
+            node.right = right;
+            Some(Box::new(node))
+        }
+    } else {
+        // SS: on odd levels, we split y (i.e. by rows) into [ymin, mid), [mid, ymax)
+        let mid_idx = (ymax_idx + ymin_idx) / 2;
+        if ymin_idx == mid_idx {
+            None
+        } else {
+            let mut up_nodes = vec![];
+            let mut i = ymin_idx;
+            while i < mid_idx {
+                up_nodes.push(sorted_by_y[i as usize]);
+                i += 1;
+            }
+
+            let mut down_nodes = vec![];
+            while i < ymax_idx {
+                down_nodes.push(sorted_by_y[i as usize]);
+                i += 1;
+            }
+
+            let split_value = sorted_by_y[mid_idx as usize - 1].0;
+            let left = create_node(sorted_by_x, sorted_by_y, level + 1,(xmin_idx, xmax_idx), (ymin_idx, mid_idx));
+            let right = create_node(sorted_by_x, sorted_by_y, level + 1,(xmin_idx, xmax_idx), (mid_idx, ymax_idx));
+            let mut node = Node::new(level, split_value);
+            node.left = left;
+            node.right = right;
+            Some(Box::new(node))
+        }
+    }
+
+}
+
+fn create_kdtree(ys: &[(u64, u64)]) -> Option<Box<Node>> {
+    // SS: O(y log y)
+    let mut sorted_by_x = ys.to_owned();
+    sorted_by_x.sort_by_key(|&(x, y)| y);
+
+    // SS: O(y log y)
+    let mut sorted_by_y = ys.to_owned();
+    sorted_by_y.sort_by_key(|&(x, y)| x);
+
+    let xmin = sorted_by_x[0].0;
+    let xmax = sorted_by_x[sorted_by_x.len() - 1].0 + 1;
+
+    let ymin = sorted_by_y[0].1;
+    let ymax = sorted_by_y[sorted_by_x.len() - 1].1 + 1;
+
+    create_node(&sorted_by_x, &sorted_by_y, 0, (0, sorted_by_x.len() as u64), (0, sorted_by_y.len() as u64))
+}
+
+fn follow_up_2(xs: &[(u64, u64)], ys: &[(u64, u64)]) -> u64 {
+    /* Given a set of xs and ys, find the smallest Manhattan distance
+     * between any one x and y.
+     * Create kd-tree for the ys and implement closest neighbor search
+     * for each x in xs.
+     * Total runtime:
+    */
+
+    let root = create_kdtree(ys);
+
+    println!("Test");
+
+    0
+}
+
+
 
 #[cfg(test)]
 mod tests {
@@ -236,6 +345,19 @@ mod tests {
 
         // Act
         let min_distance = follow_up_1((0, 0), (3, 1), (1, 3), (2, 2));
+
+        // Assert
+        assert_eq!(min_distance, 8);
+    }
+
+    #[test]
+    fn problem3_test1() {
+        // Arrange
+        let xs = [(0, 0), (1, 2)];
+        let ys = [(1, 1), (3, 1), (4, 2), (3, 4)];
+
+        // Act
+        let min_distance = follow_up_2(&xs, &ys);
 
         // Assert
         assert_eq!(min_distance, 8);
