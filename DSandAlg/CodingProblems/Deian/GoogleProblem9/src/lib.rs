@@ -202,35 +202,49 @@ fn follow_up_1(start: (i64, i64), x: (i64, i64), y: (i64, i64), z: (i64, i64)) -
     follow_up_1_visit(0, 0, visited, &distances)
 }
 
-
 struct Node {
     level: u8,
-    split_value: u64,
+    split_value: i64,
     left: Option<Box<Node>>,
     right: Option<Box<Node>>,
-    point: Option<(u64, u64)>
+    point: Option<(i64, i64)>,
 }
 
 impl Node {
-    fn new (level: u8, split_value: u64) -> Node {
-        Node {level, split_value, left: None, right: None, point: None}
+    fn new(level: u8, split_value: i64) -> Node {
+        Node {
+            level,
+            split_value,
+            left: None,
+            right: None,
+            point: None,
+        }
     }
 }
 
-fn create_node(ys: &[(u64, u64)], level: u8, (xmin_idx, xmax_idx): (u64, u64), (ymin_idx, ymax_idx): (u64, u64)) -> Option<Box<Node>> {
+fn create_node(
+    ys: &[(i64, i64)],
+    level: u8,
+    (xmin_idx, xmax_idx): (i64, i64),
+    (ymin_idx, ymax_idx): (i64, i64),
+) -> Option<Box<Node>> {
+    // SS: remove code duplication...
+
+    // SS: We construct the kd-tree such that a each point has its own leaf node.
+
     if ys.is_empty() {
         None
     } else if level % 2 == 0 {
         // SS: on even levels, we split x (i.e. by column) into [xmin, mid), [mid, xmax)
-        let mid_idx = ys.len() / 2;
+        let mid_idx = (ys.len() / 2) as i64;
         if mid_idx == 0 {
             // SS: leaf node
             let mut node = Node::new(level, xmin_idx);
             node.point = Some(ys[0]);
             Some(Box::new(node))
         } else {
+            // SS: partition points into two halves according to split value
             let split_value = ys[mid_idx as usize - 1].1;
-
             let mut left_nodes = vec![];
             let mut right_nodes = vec![];
             for i in 0..ys.len() {
@@ -242,24 +256,34 @@ fn create_node(ys: &[(u64, u64)], level: u8, (xmin_idx, xmax_idx): (u64, u64), (
                 }
             }
 
-            let left = create_node(&left_nodes, level + 1, (xmin_idx, xmin_idx + mid_idx as u64), (ymin_idx, ymax_idx));
-            let right = create_node(&right_nodes, level + 1, (xmin_idx + mid_idx as u64, xmax_idx), (ymin_idx, ymax_idx));
+            let left = create_node(
+                &left_nodes,
+                level + 1,
+                (xmin_idx, xmin_idx + mid_idx),
+                (ymin_idx, ymax_idx),
+            );
+            let right = create_node(
+                &right_nodes,
+                level + 1,
+                (xmin_idx + mid_idx, xmax_idx),
+                (ymin_idx, ymax_idx),
+            );
             let mut node = Node::new(level, split_value);
             node.left = left;
             node.right = right;
             Some(Box::new(node))
         }
     } else {
-        // SS: on odd levels, we split y (i.e. by rows) into [ymin, mid), [mid, ymax)
-        let mid_idx = ys.len() / 2;
+        // SS: on odd levels, we split y (i.e. by row) into [ymin, mid), [mid, ymax)
+        let mid_idx = (ys.len() / 2) as i64;
         if mid_idx == 0 {
             // SS: leaf node
             let mut node = Node::new(level, ymin_idx);
             node.point = Some(ys[0]);
             Some(Box::new(node))
         } else {
+            // SS: partition points into two halves according to split value
             let split_value = ys[mid_idx as usize - 1].0;
-
             let mut up_nodes = vec![];
             let mut down_nodes = vec![];
             for i in 0..ys.len() {
@@ -271,8 +295,18 @@ fn create_node(ys: &[(u64, u64)], level: u8, (xmin_idx, xmax_idx): (u64, u64), (
                 }
             }
 
-            let left = create_node(&up_nodes, level + 1, (xmin_idx, xmax_idx), (ymin_idx, ymin_idx + mid_idx as u64));
-            let right = create_node(&down_nodes, level + 1, (xmin_idx, xmax_idx), (ymin_idx + mid_idx as u64, ymax_idx));
+            let left = create_node(
+                &up_nodes,
+                level + 1,
+                (xmin_idx, xmax_idx),
+                (ymin_idx, ymin_idx + mid_idx),
+            );
+            let right = create_node(
+                &down_nodes,
+                level + 1,
+                (xmin_idx, xmax_idx),
+                (ymin_idx + mid_idx, ymax_idx),
+            );
             let mut node = Node::new(level, split_value);
             node.left = left;
             node.right = right;
@@ -281,40 +315,104 @@ fn create_node(ys: &[(u64, u64)], level: u8, (xmin_idx, xmax_idx): (u64, u64), (
     }
 }
 
-fn create_kdtree(ys: &[(u64, u64)]) -> Option<Box<Node>> {
-    // SS: O(y log y)
-    let mut sorted_by_x = ys.to_owned();
-    sorted_by_x.sort_by_key(|&(x, y)| y);
+fn nearest_neighbor(
+    node: &Node,
+    (row, col): (i64, i64),
+    level: u8,
+    dst: &mut u64,
+    best: &mut (i64, i64),
+) {
+    if node.point.is_some() {
+        // SS: leaf node
+        let manhattan_dst = get_manhattan_distance_from_pair(node.point.unwrap(), (row, col));
+        if manhattan_dst < *dst {
+            *dst = manhattan_dst;
+            *best = node.point.unwrap();
+        }
+    } else if level % 2 == 0 {
+        // SS: split x axis
+        if col - *dst as i64 <= node.split_value as i64 {
+            // SS: search left subtree
+            if node.left.is_some() {
+                nearest_neighbor(
+                    node.left.as_ref().unwrap(),
+                    (row, col),
+                    level + 1,
+                    dst,
+                    best,
+                );
+            }
+        }
 
-    // SS: O(y log y)
-    let mut sorted_by_y = ys.to_owned();
-    sorted_by_y.sort_by_key(|&(x, y)| x);
+        if col + *dst as i64 > node.split_value as i64 {
+            // SS: search right subtree
+            if node.right.is_some() {
+                nearest_neighbor(
+                    node.right.as_ref().unwrap(),
+                    (row, col),
+                    level + 1,
+                    dst,
+                    best,
+                );
+            }
+        }
+    } else {
+        // SS: split y axis
+        if row - *dst as i64 <= node.split_value as i64 {
+            // SS: search left subtree
+            if node.left.is_some() {
+                nearest_neighbor(
+                    node.left.as_ref().unwrap(),
+                    (row, col),
+                    level + 1,
+                    dst,
+                    best,
+                );
+            }
+        }
 
-    let xmin = sorted_by_x[0].0;
-    let xmax = sorted_by_x[sorted_by_x.len() - 1].0 + 1;
-
-    let ymin = sorted_by_y[0].1;
-    let ymax = sorted_by_y[sorted_by_x.len() - 1].1 + 1;
-
-    create_node(ys, 0, (0, sorted_by_x.len() as u64), (0, sorted_by_y.len() as u64))
+        if row + *dst as i64 > node.split_value as i64 {
+            // SS: search right subtree
+            if node.right.is_some() {
+                nearest_neighbor(
+                    node.right.as_ref().unwrap(),
+                    (row, col),
+                    level + 1,
+                    dst,
+                    best,
+                );
+            }
+        }
+    }
 }
 
-fn follow_up_2(xs: &[(u64, u64)], ys: &[(u64, u64)]) -> u64 {
+fn create_kdtree(ys: &[(i64, i64)]) -> Option<Box<Node>> {
+    create_node(ys, 0, (0, ys.len() as i64), (0, ys.len() as i64))
+}
+
+fn follow_up_2(xs: &[(i64, i64)], ys: &[(i64, i64)]) -> u64 {
     /* Given a set of xs and ys, find the smallest Manhattan distance
      * between any one x and y.
      * Create kd-tree for the ys and implement closest neighbor search
      * for each x in xs.
      * Total runtime:
-    */
+     *   construction of kd-tree: O(Y log Y)
+     *   nearest neighbor search: O(X log Y)
+     * => O( (X + Y) log Y)
+     */
 
-    let root = create_kdtree(ys);
+    let root = create_kdtree(ys).unwrap();
 
-    println!("Test");
+    let mut global_best = 2 * ys.len() as u64;
+    let mut best = (0, 0);
+    for &x in xs {
+        let mut dst = global_best;
+        nearest_neighbor(&root, x, 0, &mut dst, &mut best);
+        global_best = cmp::min(global_best, dst);
+    }
 
-    0
+    global_best
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -366,6 +464,6 @@ mod tests {
         let min_distance = follow_up_2(&xs, &ys);
 
         // Assert
-        assert_eq!(min_distance, 8);
+        assert_eq!(min_distance, 1);
     }
 }
