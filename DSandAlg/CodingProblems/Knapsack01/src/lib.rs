@@ -1,7 +1,7 @@
 use std::cmp;
 
 fn knapsack(weights: &[u32], profits: &[u32], knapsack_capacity: i32, item_index: usize) -> u32 {
-    // SS: Divide & Conquor approach
+    // SS: Divide & Conquor approach, runtime is O(2^n) worst-case, where n = number of items
 
     // SS: base case for recursion
     if knapsack_capacity <= 0 || item_index == weights.len() {
