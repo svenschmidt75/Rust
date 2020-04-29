@@ -2,7 +2,9 @@ use std::cmp;
 
 fn knapsack(weights: &[u32], profits: &[u32], knapsack_capacity: i32, item_index: usize) -> u32 {
     // SS: Divide & Conquor approach
-    if knapsack_capacity <= 0 || item_index < 0 || item_index == weights.len() {
+
+    // SS: base case for recursion
+    if knapsack_capacity <= 0 || item_index == weights.len() {
         0
     } else {
         let mut profit1 = 0;
