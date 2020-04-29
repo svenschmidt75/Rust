@@ -31,8 +31,7 @@ mod tests {
     use crate::longest_common_subsequence;
 
     #[test]
-    fn test1()
-    {
+    fn test1() {
         // Assert
         let s1 = "elephant";
         let s2 = "eretpat";
@@ -43,5 +42,4 @@ mod tests {
         // Assert
         assert_eq!(longest_cnt, 5);
     }
-
 }
