@@ -38,6 +38,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../LongestCommonSubstring" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -47,7 +48,7 @@
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
     <property name="settings.editor.selected.configurable" value="MTCustomThemeConfigurable" />
   </component>
-  <component name="RunManager" selected="Cargo Command.Test tests::hanoi_with_steps_test">
+  <component name="RunManager" selected="Cargo Command.Test lib::tests">
     <configuration name="Bench lib::tests" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="bench --package TowerOfHanoi --lib tests" />
@@ -115,9 +116,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Cargo Command.Test lib::tests" />
         <item itemvalue="Cargo Command.Test tests::hanoi_with_steps_test" />
         <item itemvalue="Cargo Command.Test tests::hanoi_with_steps" />
-        <item itemvalue="Cargo Command.Test lib::tests" />
         <item itemvalue="Cargo Command.Bench lib::tests" />
         <item itemvalue="Cargo Command.Test tests::it_works" />
       </list>
@@ -146,6 +147,7 @@
       <workItem from="1583597660267" duration="273000" />
       <workItem from="1583603179550" duration="975000" />
       <workItem from="1584190956395" duration="158000" />
+      <workItem from="1588254576363" duration="434000" />
     </task>
     <servers />
   </component>
@@ -153,26 +155,31 @@
     <option name="version" value="2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1594" y="282" width="896" height="1061" key="FileChooserDialogImpl" timestamp="1584191074345">
-      <screen x="0" y="32" width="3840" height="1568" />
+    <state x="1063" y="223" width="896" height="1061" key="FileChooserDialogImpl" timestamp="1588255008982">
+      <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1594" y="282" width="896" height="1061" key="FileChooserDialogImpl/0.32.3840.1568@0.32.3840.1568" timestamp="1584191074345" />
-    <state width="3798" height="438" key="GridCell.Tab.0.bottom" timestamp="1583605321098">
-      <screen x="0" y="32" width="3840" height="1568" />
+    <state x="1063" y="223" key="FileChooserDialogImpl/3840.5.2560.1400/0.0.2560.1400@0.0.2560.1400" timestamp="1588255008982" />
+    <state width="1258" height="393" key="GridCell.Tab.0.bottom" timestamp="1588255010162">
+      <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="3798" height="438" key="GridCell.Tab.0.bottom/0.32.3840.1568@0.32.3840.1568" timestamp="1583605321098" />
-    <state width="3798" height="438" key="GridCell.Tab.0.center" timestamp="1583605321097">
-      <screen x="0" y="32" width="3840" height="1568" />
+    <state width="1258" height="393" key="GridCell.Tab.0.bottom/3840.5.2560.1400/0.0.2560.1400@0.0.2560.1400" timestamp="1588255010162" />
+    <state width="1258" height="393" key="GridCell.Tab.0.center" timestamp="1588255010161">
+      <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="3798" height="438" key="GridCell.Tab.0.center/0.32.3840.1568@0.32.3840.1568" timestamp="1583605321097" />
-    <state width="3798" height="438" key="GridCell.Tab.0.left" timestamp="1583605321097">
-      <screen x="0" y="32" width="3840" height="1568" />
+    <state width="1258" height="393" key="GridCell.Tab.0.center/3840.5.2560.1400/0.0.2560.1400@0.0.2560.1400" timestamp="1588255010161" />
+    <state width="1258" height="393" key="GridCell.Tab.0.left" timestamp="1588255010160">
+      <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="3798" height="438" key="GridCell.Tab.0.left/0.32.3840.1568@0.32.3840.1568" timestamp="1583605321097" />
-    <state width="3798" height="438" key="GridCell.Tab.0.right" timestamp="1583605321098">
-      <screen x="0" y="32" width="3840" height="1568" />
+    <state width="1258" height="393" key="GridCell.Tab.0.left/3840.5.2560.1400/0.0.2560.1400@0.0.2560.1400" timestamp="1588255010160" />
+    <state width="1258" height="393" key="GridCell.Tab.0.right" timestamp="1588255010161">
+      <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="3798" height="438" key="GridCell.Tab.0.right/0.32.3840.1568@0.32.3840.1568" timestamp="1583605321098" />
+    <state width="1258" height="393" key="GridCell.Tab.0.right/3840.5.2560.1400/0.0.2560.1400@0.0.2560.1400" timestamp="1588255010161" />
     <state width="3798" height="537" key="GridCell.Tab.1.bottom" timestamp="1582387574257">
       <screen x="0" y="32" width="3840" height="1568" />
     </state>
