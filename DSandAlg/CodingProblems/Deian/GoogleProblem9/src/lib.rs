@@ -414,6 +414,88 @@ fn follow_up_2(xs: &[(i64, i64)], ys: &[(i64, i64)]) -> u64 {
     global_best
 }
 
+fn original_problem_memoization(grid: &[u8], nrows: usize, ncols: usize) -> u64 {
+    // SS: use a memoization approach
+    // We do two passes: left-right, top-bottom and right-left, bottom-top.
+    // At each cell, we store two values: distance from closest x and distance
+    // from closest y.
+    // The solution is given by the smallest x or y at an x or y cell.
+    // Runtime is O(R * C), R=rows, C=columns
+
+    let mut memoization_grid = vec![0; nrows * ncols * 2];
+
+    // SS: 1st pass
+    // The update rule for the first pass is:
+    // cell[j, i] = min(cell[j, i - 1], cell[j - 1, i])
+
+    let mut closest_y_dist = i32::MAX;
+
+    for j in 0..nrows {
+        let mut closest_x_dist = i32::MAX;
+
+        for i in 0..ncols {
+            let grid_index = j * ncols + i;
+            let memoization_grid_index = (j * 2 * ncols) + 2 * i;
+
+            let cell = grid[grid_index];
+            if cell == 1 {
+                // SS: X
+                closest_x_dist = 0;
+            } else {
+                let mut value = closest_x_dist;
+
+                if j == 0 && i > 0 {
+                    // SS: 1st row
+
+                    // cell[row, col - 1]
+                    let memoization_grid_index = 2 * (i - 1);
+                    let cell = memoization_grid[memoization_grid_index];
+                    closest_x_dist = cell;
+                    if cell < i32::MAX {
+                        closest_x_dist += 1;
+                    }
+                } else if j > 0 && i == 0 {
+                    // SS: 1st column
+
+                    // cell[row - 1, col]
+                    let memoization_grid_index = (j - 1) * 2 * ncols;
+                    let cell = memoization_grid[memoization_grid_index];
+                    closest_x_dist = cell;
+                    if cell < i32::MAX {
+                        closest_x_dist += 1;
+                    }
+                }
+                else if i > 0 && j > 0
+                {
+                    // cell[row - 1, col]
+                    let memoization_grid_index = ((j - 1) * 2 * ncols) + 2 * i;
+                    let cell1 = memoization_grid[memoization_grid_index];
+
+                    // cell[row, col - 1]
+                    let memoization_grid_index = (j * 2 * ncols) + 2 * (i - 1);
+                    let cell2 = memoization_grid[memoization_grid_index];
+
+                    if cell1 == i32::MAX && cell2 == i32::MAX {
+                        value = i32::MAX;
+                    } else {
+                        value = cmp::min(cell1, cell2);
+                        value = cmp::min(closest_x_dist, value) + 1;
+                    }
+                }
+
+                closest_x_dist = value;
+            }
+
+            memoization_grid[memoization_grid_index] = closest_x_dist;
+
+            println!("({}, {}) = {}", j, i, closest_x_dist);
+        }
+
+    }
+
+    0
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -427,6 +509,24 @@ mod tests {
 
         // Act
         let min_distance = find_min_manhattan_distance(&grid, 5, 5);
+
+        // Assert
+        assert_eq!(min_distance, 3);
+    }
+
+    #[test]
+    fn problem1_test2() {
+        // Arrange
+        let grid = [
+            0, 0, 0, 0, 0, 1,
+            0, 1, 0, 0, 0, 0,
+            0, 0, 0, 2, 0, 0,
+            0, 0, 0, 0, 0, 2,
+            0, 0, 1, 0, 0, 0,
+        ];
+
+        // Act
+        let min_distance = original_problem_memoization(&grid, 5, 6);
 
         // Assert
         assert_eq!(min_distance, 3);

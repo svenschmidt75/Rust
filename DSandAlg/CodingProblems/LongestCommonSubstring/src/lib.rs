@@ -31,7 +31,7 @@ fn lcs(s1: &str, s2: &str, i1: usize, i2: usize, longest: u64) -> u64 {
 }
 
 fn lcs_bottom_up(s1: &str, s2: &str) -> u64 {
-    // SS: Divide and Conquer, runtime is O(2^n), n=min(s1.length, s2.length)
+    // SS: DP, bottom-up approach, runtime is O(s1 * s2)
     let mut grid = vec![vec![0; s1.len() + 1]; s2.len() + 1];
 
     for i in 0..s1.len() {
