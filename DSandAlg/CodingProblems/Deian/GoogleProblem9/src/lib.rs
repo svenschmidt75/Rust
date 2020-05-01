@@ -424,76 +424,191 @@ fn original_problem_memoization(grid: &[u8], nrows: usize, ncols: usize) -> u64 
 
     let mut memoization_grid = vec![0; nrows * ncols * 2];
 
+    let mut smallest_distance = i32::MAX;
+
     // SS: 1st pass
     // The update rule for the first pass is:
     // cell[j, i] = min(cell[j, i - 1], cell[j - 1, i])
-
-    let mut closest_y_dist = i32::MAX;
 
     for j in 0..nrows {
         let mut closest_x_dist = i32::MAX;
 
         for i in 0..ncols {
+            let mut closest_y_dist = i32::MAX;
+
             let grid_index = j * ncols + i;
-            let memoization_grid_index = (j * 2 * ncols) + 2 * i;
 
             let cell = grid[grid_index];
+
             if cell == 1 {
                 // SS: X
                 closest_x_dist = 0;
             } else {
-                let mut value = closest_x_dist;
+                let mut cell1 = closest_x_dist;
+                let mut cell2 = closest_x_dist;
 
-                if j == 0 && i > 0 {
-                    // SS: 1st row
-
-                    // cell[row, col - 1]
-                    let memoization_grid_index = 2 * (i - 1);
-                    let cell = memoization_grid[memoization_grid_index];
-                    closest_x_dist = cell;
-                    if cell < i32::MAX {
-                        closest_x_dist += 1;
-                    }
-                } else if j > 0 && i == 0 {
-                    // SS: 1st column
-
-                    // cell[row - 1, col]
-                    let memoization_grid_index = (j - 1) * 2 * ncols;
-                    let cell = memoization_grid[memoization_grid_index];
-                    closest_x_dist = cell;
-                    if cell < i32::MAX {
-                        closest_x_dist += 1;
-                    }
-                }
-                else if i > 0 && j > 0
-                {
-                    // cell[row - 1, col]
-                    let memoization_grid_index = ((j - 1) * 2 * ncols) + 2 * i;
-                    let cell1 = memoization_grid[memoization_grid_index];
-
+                if i > 0 {
                     // cell[row, col - 1]
                     let memoization_grid_index = (j * 2 * ncols) + 2 * (i - 1);
-                    let cell2 = memoization_grid[memoization_grid_index];
+                    cell1 = memoization_grid[memoization_grid_index];
+                }
 
-                    if cell1 == i32::MAX && cell2 == i32::MAX {
-                        value = i32::MAX;
-                    } else {
-                        value = cmp::min(cell1, cell2);
-                        value = cmp::min(closest_x_dist, value) + 1;
-                    }
+                if j > 0 {
+                    // cell[row - 1, col]
+                    let memoization_grid_index = ((j - 1) * 2 * ncols) + 2 * i;
+                    cell2 = memoization_grid[memoization_grid_index];
+                }
+
+                let value = cmp::min(closest_x_dist, cell1);
+                let mut value = cmp::min(value, cell2);
+                if value < i32::MAX {
+                    value += 1;
                 }
 
                 closest_x_dist = value;
             }
 
+            let memoization_grid_index = (j * 2 * ncols) + 2 * i;
             memoization_grid[memoization_grid_index] = closest_x_dist;
 
-            println!("({}, {}) = {}", j, i, closest_x_dist);
-        }
+            if cell == 1 {
+                smallest_distance = cmp::min(smallest_distance, closest_y_dist);
+            }
 
+            // SS: check y
+            if cell == 2 {
+                // SS: Y
+                closest_y_dist = 0;
+            } else {
+                let mut cell1 = closest_y_dist;
+                let mut cell2 = closest_y_dist;
+
+                if i > 0 {
+                    // cell[row, col - 1]
+                    let memoization_grid_index = (j * 2 * ncols) + 2 * (i - 1) + 1;
+                    cell1 = memoization_grid[memoization_grid_index];
+                }
+
+                if j > 0 {
+                    // cell[row - 1, col]
+                    let memoization_grid_index = ((j - 1) * 2 * ncols) + 2 * i + 1;
+                    cell2 = memoization_grid[memoization_grid_index];
+                }
+
+                let value = cmp::min(closest_y_dist, cell1);
+                let mut value = cmp::min(value, cell2);
+                if value < i32::MAX {
+                    value += 1;
+                }
+
+                closest_y_dist = value;
+            }
+
+            let memoization_grid_index = (j * 2 * ncols) + 2 * i + 1;
+            memoization_grid[memoization_grid_index] = closest_y_dist;
+
+            if cell == 2 {
+                smallest_distance = cmp::min(smallest_distance, closest_x_dist);
+            }
+
+            //            println!("({}, {}) = ({}, {})", j, i, closest_x_dist, closest_y_dist);
+        }
     }
 
-    0
+    //    println!("Smallest distance after 1st pass: {}", smallest_distance);
+
+    // SS: 2nd pass
+    // The update rule for the second pass is:
+    // cell[j, i] = min(cell[j, i + 1], cell[j + 1, i])
+
+    for j in 0..nrows {
+        let mut closest_x_dist = i32::MAX;
+
+        for i in 0..ncols {
+            let mut closest_y_dist = i32::MAX;
+
+            let grid_index = j * ncols + i;
+
+            let cell = grid[grid_index];
+
+            if cell == 1 {
+                // SS: X
+                closest_x_dist = 0;
+            } else {
+                let mut cell1 = closest_x_dist;
+                let mut cell2 = closest_x_dist;
+
+                if i < ncols - 1 {
+                    // cell[row, col + 1]
+                    let memoization_grid_index = (j * 2 * ncols) + 2 * (i + 1);
+                    cell1 = memoization_grid[memoization_grid_index];
+                }
+
+                if j < nrows - 1 {
+                    // cell[row + 1, col]
+                    let memoization_grid_index = ((j + 1) * 2 * ncols) + 2 * i;
+                    cell2 = memoization_grid[memoization_grid_index];
+                }
+
+                let value = cmp::min(closest_x_dist, cell1);
+                let mut value = cmp::min(value, cell2);
+                if value < i32::MAX {
+                    value += 1;
+                }
+
+                closest_x_dist = value;
+            }
+
+            let memoization_grid_index = (j * 2 * ncols) + 2 * i;
+            memoization_grid[memoization_grid_index] = closest_x_dist;
+
+            if cell == 1 {
+                smallest_distance = cmp::min(smallest_distance, closest_y_dist);
+            }
+
+            // SS: check y
+            if cell == 2 {
+                // SS: Y
+                closest_y_dist = 0;
+            } else {
+                let mut cell1 = closest_y_dist;
+                let mut cell2 = closest_y_dist;
+
+                if i < ncols - 1 {
+                    // cell[row, col + 1]
+                    let memoization_grid_index = (j * 2 * ncols) + 2 * (i + 1) + 1;
+                    cell1 = memoization_grid[memoization_grid_index];
+                }
+
+                if j < nrows - 1 {
+                    // cell[row + 1, col]
+                    let memoization_grid_index = ((j + 1) * 2 * ncols) + 2 * i + 1;
+                    cell2 = memoization_grid[memoization_grid_index];
+                }
+
+                let value = cmp::min(closest_y_dist, cell1);
+                let mut value = cmp::min(value, cell2);
+                if value < i32::MAX {
+                    value += 1;
+                }
+
+                closest_y_dist = value;
+            }
+
+            let memoization_grid_index = (j * 2 * ncols) + 2 * i + 1;
+            memoization_grid[memoization_grid_index] = closest_y_dist;
+
+            if cell == 2 {
+                smallest_distance = cmp::min(smallest_distance, closest_x_dist);
+            }
+
+            //            println!("({}, {}) = ({}, {})", j, i, closest_x_dist, closest_y_dist);
+        }
+    }
+
+    //    println!("Smallest distance after 2nd pass: {}", smallest_distance);
+
+    smallest_distance as u64
 }
 
 #[cfg(test)]
@@ -530,6 +645,24 @@ mod tests {
 
         // Assert
         assert_eq!(min_distance, 3);
+    }
+
+    #[test]
+    fn problem1_test3() {
+        // Arrange
+        let grid = [
+            0, 0, 0, 0, 0,
+            0, 1, 0, 0, 1,
+            0, 0, 0, 0, 0,
+            0, 0, 0, 2, 0,
+            0, 0, 1, 0, 0,
+        ];
+
+        // Act
+        let min_distance = original_problem_memoization(&grid, 5, 5);
+
+        // Assert
+        assert_eq!(min_distance, 2);
     }
 
     #[test]
