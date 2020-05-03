@@ -66,7 +66,6 @@ fn make_change_bottom_up(coins: &[u32], amount: u32) -> u32 {
     n
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::{make_change, make_change_bottom_up};
@@ -101,10 +100,10 @@ mod tests {
         let coins = [1, 2, 3];
 
         // Act
-        let n = make_change(&coins, 5);
+        let n = make_change(&coins, 9);
 
         // Assert
-        assert_eq!(n, 5);
+        assert_eq!(n, 12);
     }
 
     #[test]
@@ -113,7 +112,7 @@ mod tests {
         let coins = [25, 10, 5, 1];
 
         // Act
-        let n = make_change(&coins, 27);
+        let n = make_change_bottom_up(&coins, 27);
 
         // Assert
         assert_eq!(n, 13);
@@ -125,7 +124,7 @@ mod tests {
         let coins = [50, 25, 10, 5, 1];
 
         // Act
-        let n = make_change(&coins, 79);
+        let n = make_change_bottom_up(&coins, 79);
 
         // Assert
         assert_eq!(n, 134);
@@ -140,7 +139,6 @@ mod tests {
         let n = make_change_bottom_up(&coins, 9);
 
         // Assert
-        assert_eq!(n, 5);
+        assert_eq!(n, 12);
     }
-
 }
