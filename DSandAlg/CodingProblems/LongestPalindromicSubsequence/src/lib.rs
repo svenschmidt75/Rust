@@ -44,17 +44,46 @@ fn lps_dq(s: &str, prefix: &str, index: usize) -> u32 {
     }
 }
 
+fn lps2(s: &str, idx1: usize, idx2: usize) -> u32 {
+    if idx1 > idx2 {
+        // SS: not a palindrome
+        0
+    } else if idx1 == idx2 {
+        // SS: is a palindrome
+        1
+    } else if s.chars().nth(idx1).unwrap() == s.chars().nth(idx2).unwrap() {
+        // SS: characters are the same
+        2 + lps2(s, idx1 + 1, idx2 - 1)
+    } else {
+        let c1 = lps2(s, idx1 + 1, idx2);
+        let c2 = lps2(s, idx1, idx2 - 1);
+        cmp::max(c1, c2)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::lps;
+    use crate::{lps, lps2};
 
     #[test]
-    fn test() {
+    fn test1() {
         // Arrange
         let s = "ELRMENMET";
 
         // Act
         let length = lps(s);
+
+        // Arrange
+        assert_eq!(length, 5);
+    }
+
+    #[test]
+    fn test2() {
+        // Arrange
+        let s = "ELRMENMET";
+
+        // Act
+        let length = lps2(s, 0, s.len() - 1);
 
         // Arrange
         assert_eq!(length, 5);
