@@ -66,7 +66,7 @@ mod tests {
     use crate::{lps, lps2};
 
     #[test]
-    fn test1() {
+    fn test11() {
         // Arrange
         let s = "ELRMENMET";
 
@@ -78,7 +78,7 @@ mod tests {
     }
 
     #[test]
-    fn test2() {
+    fn test21() {
         // Arrange
         let s = "ELRMENMET";
 
