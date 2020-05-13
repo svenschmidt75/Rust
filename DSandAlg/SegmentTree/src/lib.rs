@@ -37,6 +37,8 @@ impl MinSegmentTree {
             // SS: mid-point of interval
             let mid = (min + max) / 2;
 
+            // SS: do post-order depth-first traversal
+
             // SS: left subtree
             let left_min =
                 MinSegmentTree::create_recursive(array, segment_tree_data, min, mid, 2 * pos + 1);
