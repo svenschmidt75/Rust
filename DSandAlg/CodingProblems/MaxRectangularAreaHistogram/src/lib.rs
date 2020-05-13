@@ -73,52 +73,35 @@ fn area_simple(heights: &[u32]) -> u32 {
         let mut stack = VecDeque::new();
 
         let mut max_area = 0;
-
+        let mut area = 0;
         let mut i = 0;
 
-        loop {
-            if stack.is_empty() && i < heights.len() {
+        while i < heights.len() {
+            if stack.is_empty() || heights[*stack.back().unwrap() as usize] <= heights[i] {
                 stack.push_back(i);
                 i += 1;
-            }
-
-            let mut top = *stack.back().unwrap();
-            while i < heights.len() && heights[i] >= heights[top] {
-                stack.push_back(i);
-                i += 1;
-                top = *stack.back().unwrap();
-            }
-
-            if i == heights.len() {
-                while stack.is_empty() == false {
-                    let t = stack.pop_back().unwrap();
-                    let height = heights[t];
-                    let width = (i - t) as u32;
-                    let area = height * width;
-                    max_area = cmp::max(max_area, area);
-                }
-                break;
             } else {
-                let top_height = heights[i];
-
-                loop {
-                    if stack.is_empty() {
-                        break;
-                    } else {
-                        let th = heights[*stack.back().unwrap() as usize];
-                        if th > top_height {
-                            top = stack.pop_back().unwrap();
-                            let height = heights[top];
-                            let width = (i - top) as u32;
-                            let area = height * width;
-                            max_area = cmp::max(max_area, area);
-                        } else {
-                            break;
-                        }
-                    }
+                // SS: calculate area
+                let top = stack.pop_back().unwrap();
+                if stack.is_empty() {
+                    area = heights[top] * i as u32;
+                } else {
+                    area = heights[top] * (i - *stack.back().unwrap() as usize - 1) as u32;
                 }
+                max_area = cmp::max(max_area, area);
             }
         }
+
+        while stack.is_empty() == false {
+            let top = stack.pop_back().unwrap();
+            if stack.is_empty() {
+                area = heights[top] * (i as u32);
+            } else {
+                area = heights[top] * (i - *stack.back().unwrap() as usize - 1) as u32;
+            }
+            max_area = cmp::max(max_area, area);
+        }
+
         max_area
     }
 }
