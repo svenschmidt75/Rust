@@ -66,50 +66,6 @@ fn max_area2(heights: &[u32], min: usize, max: usize) -> u32 {
     max_height
 }
 
-fn area_simple2(heights: &[u32]) -> u32 {
-    if heights.is_empty() {
-        0
-    } else {
-        let mut stack = VecDeque::new();
-
-        let mut max_area = 0;
-
-        let mut i = 0;
-        while i < heights.len() {
-            if stack.is_empty() && i < heights.len() {
-                stack.push_back(i);
-                i += 1;
-            }
-
-            let mut top = *stack.back().unwrap();
-            while i < heights.len() && heights[i] >= heights[top] {
-                stack.push_back(i);
-                i += 1;
-                top = *stack.back().unwrap();
-            }
-
-            loop {
-                top = stack.pop_back().unwrap();
-                let height = heights[top];
-                if stack.is_empty() {
-                    let area = height * i as u32;
-                    max_area = cmp::max(area, max_area);
-                    break;
-                } else {
-                    if i < heights.len() && heights[top] <= heights[i] {
-                        break;
-                    }
-                    let top_height = heights[*stack.back().unwrap() as usize];
-                    let width = (i - top_height as usize - 1) as u32;
-                    let area = width * height;
-                    max_area = cmp::max(area, max_area);
-                }
-            }
-        }
-        max_area
-    }
-}
-
 fn area_simple(heights: &[u32]) -> u32 {
     if heights.is_empty() {
         0
@@ -119,11 +75,13 @@ fn area_simple(heights: &[u32]) -> u32 {
         let mut max_area = 0;
 
         let mut i = 0;
-        stack.push_back(i);
-
-        i += 1;
 
         loop {
+            if stack.is_empty() && i < heights.len() {
+                stack.push_back(i);
+                i += 1;
+            }
+
             let mut top = *stack.back().unwrap();
             while i < heights.len() && heights[i] >= heights[top] {
                 stack.push_back(i);
