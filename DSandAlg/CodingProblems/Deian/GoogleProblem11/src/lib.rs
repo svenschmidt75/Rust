@@ -17,11 +17,9 @@ fn from_flat_index(index: usize, ncols: usize) -> (usize, usize) {
 
 fn solve_non_graph(grid: &[u8], nrows: usize, ncols: usize) -> u32 {
     // SS: solve without using graph
+    // The pre-processing is a bit messy...
 
-    let mut pq = PriorityQueue::new();
-
-    // SS: pre-processing, O(nrows * ncols * (nrows + ncols))
-    // so we can look up marbles by row and column
+    // SS: pre-processing, O(nrows * ncols)
     let mut marbles_by_row = HashMap::new();
     let mut marbles_by_col = HashMap::new();
 
@@ -33,21 +31,28 @@ fn solve_non_graph(grid: &[u8], nrows: usize, ncols: usize) -> u32 {
             let (row, col) = from_flat_index(i, ncols);
             marbles.push((row, col));
 
+            // SS: count number of marbles in row
             let interaction_number = marbles_by_row.entry(row).or_insert(0);
             *interaction_number += 1;
 
+            // SS: count number of marbles in column
             let interaction_number = marbles_by_col.entry(col).or_insert(0);
             *interaction_number += 1;
         }
     }
 
-    // SS: for fast lookup
+    // SS: this is where the interaction numbers are stored
+    let mut marbles_hash = HashMap::new();
+
+    // SS: for fast marble lookup by row and column
     let mut mbr = HashMap::new();
     let mut mbc = HashMap::new();
 
-    let mut marbles_hash = HashMap::new();
+    // SS: process marbles with increasing interaction numbers
+    let mut pq = PriorityQueue::new();
 
     // SS: push all marbles onto the min PQ
+    // SS: pre-processing, O(nrows * ncols)
     for (row, col) in marbles {
         let mut interaction_number = 0;
         let &nr = marbles_by_row.get(&row).unwrap();
@@ -63,7 +68,7 @@ fn solve_non_graph(grid: &[u8], nrows: usize, ncols: usize) -> u32 {
         pq.insert(interaction_number as i64, (row, col));
 
         let hash_key = (row, col);
-        marbles_hash.insert(hash_key, (row, col, interaction_number));
+        marbles_hash.insert(hash_key, interaction_number);
 
         let ms = mbr.entry(row).or_insert(vec![]);
         ms.push(hash_key);
@@ -81,28 +86,29 @@ fn solve_non_graph(grid: &[u8], nrows: usize, ncols: usize) -> u32 {
         // and remove the current one.
         let marbles = mbr.get_mut(&row).unwrap();
         for key in marbles {
-            let (other_row, other_col, other_interaction_number) =
-                marbles_hash.get_mut(&key).unwrap();
-            if *other_col == col && *other_row == row && *other_interaction_number > 0 {
+            let (other_row, other_col) = *key;
+            let other_interaction_number = marbles_hash.get_mut(&key).unwrap();
+            if other_col == col && other_row == row && *other_interaction_number > 0 {
                 *other_interaction_number = -1;
                 max_removed += 1;
             } else {
                 *other_interaction_number -= 1;
                 if *other_interaction_number > 0 {
-                    pq.insert(*other_interaction_number as i64, (*other_row, *other_col));
+                    // SS: rather than reinserting, can also update priority of existing element
+                    pq.insert(*other_interaction_number as i64, (other_row, other_col));
                 }
             }
         }
 
         let marbles = mbc.get_mut(&col).unwrap();
         for key in marbles {
-            let (other_row, other_col, other_interaction_number) =
-                marbles_hash.get_mut(&key).unwrap();
-            if *other_col == col && *other_row == row {
-            } else {
+            let (other_row, other_col) = *key;
+            let other_interaction_number = marbles_hash.get_mut(&key).unwrap();
+            if other_col != col || other_row != row {
                 *other_interaction_number -= 1;
                 if *other_interaction_number > 0 {
-                    pq.insert(*other_interaction_number as i64, (*other_row, *other_col));
+                    // SS: rather than reinserting, can also update priority of existing element
+                    pq.insert(*other_interaction_number as i64, (other_row, other_col));
                 }
             }
         }
