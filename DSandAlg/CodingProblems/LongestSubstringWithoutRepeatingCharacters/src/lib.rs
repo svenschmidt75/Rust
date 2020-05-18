@@ -17,9 +17,9 @@ fn set_character(c: char, characters: &mut u32) {
 }
 
 fn solve(input: &str) -> u32 {
-    // SS: runtime complexity: O(N), space: O(1)
+    // SS: runtime complexity: O(N^2), space: O(1)
     // assuming all chars are lower-case
-    let mut max_length = 0;
+    let mut max_length = 1;
     let mut length = 0;
     let mut pos = 0;
 
@@ -28,16 +28,24 @@ fn solve(input: &str) -> u32 {
     let mut characters: u32 = 0;
 
     while pos < input.len() {
+        characters = 0;
         let c = cs[pos];
-        if find_character(c, characters) {
-            max_length = cmp::max(max_length, length);
-            length = 1;
-            characters = 0;
-        } else {
-            length += 1;
-        }
         set_character(c, &mut characters);
+        length = 1;
         pos += 1;
+
+        let mut other_pos = pos;
+        while other_pos < input.len() {
+            let c = cs[other_pos];
+            if find_character(c, characters) {
+                break;
+            } else {
+                length += 1;
+            }
+            set_character(c, &mut characters);
+            other_pos += 1;
+        }
+        max_length = cmp::max(max_length, length);
     }
 
     max_length = cmp::max(max_length, length);
@@ -82,5 +90,17 @@ mod tests {
 
         // Assert
         assert_eq!(max_length, 3);
+    }
+
+    #[test]
+    fn test4() {
+        // Arrange
+        let input = "abcade";
+
+        // Act
+        let max_length = solve(input);
+
+        // Assert
+        assert_eq!(max_length, 5);
     }
 }
