@@ -1,7 +1,7 @@
 // Sliding Window Technique + 4 Questions - Algorithms
 // https://www.youtube.com/watch?v=jM2dhDPYMQM
 
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap, HashSet};
 
 fn subarray_adds_up_to_number(input: &[i32], sum: i32) {
     // SS: use sliding window technique
@@ -113,7 +113,10 @@ fn max_sequence_with_flipping(input: &[u8], max_flips: u8) {
             max_width = j - i;
         }
 
-        println!("Largest subarray: [{}, {}), length: {}", i, j, max_width);
+        println!(
+            "Largest subarray: [{}, {}), length: {}",
+            min, max, max_width
+        );
     }
 }
 
@@ -161,7 +164,10 @@ fn max_sequence_with_flipping2(input: &[u8], max_flips: u8) {
             max_width = j - i;
         }
 
-        println!("Largest subarray: [{}, {}), length: {}", i, j, max_width);
+        println!(
+            "Largest subarray: [{}, {}), length: {}",
+            min, max, max_width
+        );
     }
 }
 
@@ -203,7 +209,7 @@ fn find_chars_no_repeated_chars(input: &str, chars: &[char]) {
                 if chars_seen.len() == chars.len() {
                     // SS: advance window from left
 
-                    // SS: remove once of the desired chars
+                    // SS: remove one of the desired chars
                     chars_seen.remove(&input_str[i]);
                     i += 1;
 
@@ -253,16 +259,16 @@ fn find_chars_with_repeated_chars(input: &str, chars: &[char]) {
         let input_str = input.chars().collect::<Vec<_>>();
 
         // SS: put all chars in a hash map for efficient lookup
-        let chars_hash = HashMap::new();
-        
+        let mut chars_hash = HashMap::new();
+        chars.iter().for_each(|&c| {
+            let p = chars_hash.entry(c).or_insert(0);
+            *p += 1;
+        });
 
-
-
-
-        let mut chars_seen = HashSet::new();
+        let mut chars_seen = HashMap::new();
 
         // SS: skip all characters until we see the 1st desired one
-        while i < input.len() && chars_hash.contains(&input_str[i]) == false {
+        while i < input.len() && chars_hash.contains_key(&input_str[i]) == false {
             i += 1;
         }
 
@@ -273,26 +279,56 @@ fn find_chars_with_repeated_chars(input: &str, chars: &[char]) {
 
         j = i;
 
+        // SS: subarray starts with desired char
+        let mut chars_seen_cnt = 0;
+        let mut chars_seen_cnt2 = 0;
+
         while i < input.len() && j < input.len() {
             let c = input_str[j];
-            if chars_hash.contains(&c) {
+            if chars_hash.contains_key(&c) {
                 // SS: can we add it?
-                if chars_seen.len() == chars.len() {
+                if chars_seen_cnt == chars.len() {
                     // SS: advance window from left
 
-                    // SS: remove once of the desired chars
-                    chars_seen.remove(&input_str[i]);
-                    i += 1;
-
-                    while chars_hash.contains(&input_str[i]) == false {
+                    // SS: remove one of the desired chars
+                    while i < j {
+                        let c = input_str[i];
+                        if let Some(p) = chars_seen.get_mut(&c) {
+                            if chars_seen_cnt < chars.len() {
+                                break;
+                            }
+                            if chars_seen_cnt == chars.len() {
+                                if j - i + 1 < max_width {
+                                    min = i;
+                                    max = j;
+                                    max_width = j - i + 1;
+                                }
+                            }
+                            let &m = chars_hash.get(&c).unwrap();
+                            if *p <= m {
+                                chars_seen_cnt -= 1;
+                            }
+                            *p -= 1;
+                            chars_seen_cnt2 -= 1;
+                        }
                         i += 1;
                     }
 
                     j += 1;
                 } else {
-                    chars_seen.insert(c);
+                    // SS: frequency of this char
+                    let &m = chars_hash.get(&c).unwrap();
+                    let p = chars_seen.entry(c).or_insert(0);
 
-                    if chars_seen.len() == chars.len() {
+                    if *p < m {
+                        chars_seen_cnt += 1;
+                    }
+
+                    chars_seen_cnt2 += 1;
+
+                    *p += 1;
+
+                    if chars_seen_cnt == chars.len() {
                         if j - i + 1 < max_width {
                             min = i;
                             max = j;
@@ -381,6 +417,42 @@ mod tests {
 
         // Act
         find_chars_no_repeated_chars(input, &chars);
+
+        //        assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
+    fn test_find_chars_with_repeated_chars_1() {
+        // Arrange
+        let input = "fa4chba4c";
+        let chars = ['a', 'b', 'c'];
+
+        // Act
+        find_chars_with_repeated_chars(input, &chars);
+
+        //        assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
+    fn test_find_chars_with_repeated_chars_2() {
+        // Arrange
+        let input = "fa4chba4c";
+        let chars = ['a', 'b', 'c', 'a'];
+
+        // Act
+        find_chars_with_repeated_chars(input, &chars);
+
+        //        assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
+    fn test_find_chars_with_repeated_chars_3() {
+        // Arrange
+        let input = "badabac";
+        let chars = ['a', 'a', 'b', 'c'];
+
+        // Act
+        find_chars_with_repeated_chars(input, &chars);
 
         //        assert_eq!(2 + 2, 4);
     }
