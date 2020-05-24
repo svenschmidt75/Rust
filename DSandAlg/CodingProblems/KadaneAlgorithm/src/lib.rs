@@ -36,4 +36,18 @@ mod tests {
         // Assert
         assert_eq!(sum, 3);
     }
+
+    #[test]
+    fn test2() {
+        // Arrange
+        let input = [
+            0, 13, -3, -25, 20, -3, -16, -21, 18, 20, -7, 12, -5, -22, 15, -4, 7,
+        ];
+
+        // Act
+        let sum = solve(&input);
+
+        // Assert
+        assert_eq!(sum, 43);
+    }
 }
