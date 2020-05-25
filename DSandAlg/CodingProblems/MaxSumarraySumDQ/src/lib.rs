@@ -23,9 +23,11 @@ fn solve_recursive(input: &[i32], min: i32, max: i32) -> (i32, i32, i32) {
     } else {
         let mid = (min + max) / 2;
 
+        // SS: recursive part
         let (lmin, lmax, lsum) = solve_recursive(input, min, mid);
         let (rmin, rmax, rsum) = solve_recursive(input, mid + 1, max);
 
+        // SS: combine recursive parts (very similar to MergeSort...)
         // SS: O(n)
         let (left_start, right_end, cross_sum) = find_cross_sum(input, min, mid, max);
 
