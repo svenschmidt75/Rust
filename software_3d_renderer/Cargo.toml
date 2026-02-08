@@ -4,7 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sfml = "0.25.1"
+#sfml = "0.25.1"
 
-[target.aarch64-apple-darwin]
-rustflags = ["-C", "link-arg=-ObjC"]
+# sfml = "0.25.1" does not work without the ObjC change below.
+# We're using master here since that has been upgraded to work with SFML v3
+# and works without the ObjC fix.
+sfml = { path = "../rust-sfml" }
+
+#[target.aarch64-apple-darwin]
+#rustflags = ["-C", "link-arg=-ObjC"]
