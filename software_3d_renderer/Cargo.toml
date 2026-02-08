@@ -1,0 +1,10 @@
+[package]
+name = "software_3d_renderer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sfml = "0.25.1"
+
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "link-arg=-ObjC"]
