@@ -1,3 +1,6 @@
+use sfml::graphics::Vertex;
+use crate::vertex;
+
 pub struct RenderContext {
     pub framebuffer: Vec<u8>,
     pub width: u32,
@@ -21,4 +24,9 @@ impl RenderContext {
         self.framebuffer[idx2 + 2] = b;
         self.framebuffer[idx2 + 3] = a;
     }
+
+    pub fn world_to_screen(&self, world_vertices: &[vertex::Vertex]) -> Vec<[i32; 2]> {
+        vec![[0, 100], [50, 0], [100, 0]]
+    }
+
 }

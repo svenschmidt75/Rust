@@ -1,12 +1,14 @@
-mod Triangle;
-mod Vertex;
-mod Renderable;
-mod RenderContext;
+mod triangle;
+mod vertex;
+mod renderable;
+mod render_context;
 
-use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture};
+use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture, Vertex};
 use sfml::system::Vector2u;
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
+use crate::renderable::Renderable;
+use crate::triangle::Triangle;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -35,7 +37,7 @@ fn main() {
         panic!("Failed to allocate texture memory");
     }
 
-    let mut ctx = RenderContext::RenderContext::new(WIDTH, HEIGHT);
+    let mut ctx = render_context::RenderContext::new(WIDTH, HEIGHT);
     let mut timer: u8 = 0;
 
     // --- MAIN LOOP ---
@@ -50,9 +52,12 @@ fn main() {
         timer = timer.wrapping_add(1);
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                ctx.set_pixel(x, y, x.wrapping_add(timer as u32) as u8, y.wrapping_add(timer as u32) as u8, 150, 255);
+//                ctx.set_pixel(x, y, x.wrapping_add(timer as u32) as u8, y.wrapping_add(timer as u32) as u8, 150, 255);
             }
         }
+
+        let t1 = Triangle::new([vertex::Vertex::new(0f32, 1f32, 0f32, 0f32), vertex::Vertex::new(0.5f32, 0f32, 0f32, 0f32), vertex::Vertex::new(1f32, 0f32, 0f32, 0f32)]);
+        t1.render(&mut ctx);
 
         // --- DISPLAY PHASE ---
         // Update the pixels
