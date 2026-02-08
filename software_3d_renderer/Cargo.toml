@@ -7,7 +7,10 @@ edition = "2024"
 #sfml = "0.25.1"
 
 # sfml = "0.25.1" does not work without the ObjC change below.
-# We're using master here since that has been upgraded to work with SFML v3
+# We're using master here since that has been upgraded to work with SFML v3.
+# I pulled the repo via
+# git clone --recursive https://github.com/jeremyletang/rust-sfml.git
+# Latest commit is 944d4e90ba6f8e8c146b418ca46a3d0791057561
 # and works without the ObjC fix.
 sfml = { path = "../rust-sfml" }
 

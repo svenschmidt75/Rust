@@ -1,3 +1,8 @@
+mod Triangle;
+mod Vertex;
+mod Renderable;
+mod RenderContext;
+
 use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture};
 use sfml::system::Vector2u;
 use sfml::window::window_enums::State;
@@ -30,7 +35,7 @@ fn main() {
         panic!("Failed to allocate texture memory");
     }
 
-    let mut framebuffer = vec![0u8; (WIDTH * HEIGHT * 4) as usize];
+    let mut ctx = RenderContext::RenderContext::new(WIDTH, HEIGHT);
     let mut timer: u8 = 0;
 
     // --- MAIN LOOP ---
@@ -45,18 +50,14 @@ fn main() {
         timer = timer.wrapping_add(1);
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-                let index = ((y * WIDTH + x) * 4) as usize;
-                framebuffer[index] = x.wrapping_add(timer as u32) as u8;
-                framebuffer[index + 1] = y.wrapping_add(timer as u32) as u8;
-                framebuffer[index + 2] = 150;
-                framebuffer[index + 3] = 255;
+                ctx.set_pixel(x, y, x.wrapping_add(timer as u32) as u8, y.wrapping_add(timer as u32) as u8, 150, 255);
             }
         }
 
         // --- DISPLAY PHASE ---
         // Update the pixels
         texture.update_from_pixels(
-            &framebuffer,
+            &ctx.framebuffer,
             Vector2u::new(WIDTH, HEIGHT),
             Vector2u::new(0, 0),
         );
