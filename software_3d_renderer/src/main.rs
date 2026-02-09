@@ -2,6 +2,7 @@ mod triangle;
 mod vertex;
 mod renderable;
 mod render_context;
+mod camera;
 
 use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture, Vertex};
 use sfml::system::Vector2u;
