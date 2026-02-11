@@ -5,11 +5,11 @@ use sfml::graphics::Vertex;
 use crate::vertex;
 
 pub struct Triangle {
-    vertices: [vertex::Vertex; 3],
+    vertices: [vertex::Vertex4; 3],
 }
 
 impl Triangle {
-    pub fn new(vertices: [vertex::Vertex; 3]) -> Self {
+    pub fn new(vertices: [vertex::Vertex4; 3]) -> Self {
         Triangle { vertices }
     }
 }

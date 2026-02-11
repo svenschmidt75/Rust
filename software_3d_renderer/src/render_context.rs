@@ -25,7 +25,7 @@ impl RenderContext {
         self.framebuffer[idx2 + 3] = a;
     }
 
-    pub fn world_to_screen(&self, world_vertices: &[vertex::Vertex]) -> Vec<[i32; 2]> {
+    pub fn world_to_screen(&self, world_vertices: &[vertex::Vertex4]) -> Vec<[i32; 2]> {
         vec![[0, 100], [50, 0], [100, 0]]
     }
 

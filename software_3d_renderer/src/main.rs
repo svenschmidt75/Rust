@@ -3,6 +3,8 @@ mod vertex;
 mod renderable;
 mod render_context;
 mod camera;
+mod lin_alg;
+mod matrix4;
 
 use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture, Vertex};
 use sfml::system::Vector2u;
@@ -57,7 +59,7 @@ fn main() {
             }
         }
 
-        let t1 = Triangle::new([vertex::Vertex::new(0f32, 1f32, 0f32, 0f32), vertex::Vertex::new(0.5f32, 0f32, 0f32, 0f32), vertex::Vertex::new(1f32, 0f32, 0f32, 0f32)]);
+        let t1 = Triangle::new([vertex::Vertex4::new(0f32, 1f32, 0f32, 0f32), vertex::Vertex4::new(0.5f32, 0f32, 0f32, 0f32), vertex::Vertex4::new(1f32, 0f32, 0f32, 0f32)]);
         t1.render(&mut ctx);
 
         // --- DISPLAY PHASE ---
