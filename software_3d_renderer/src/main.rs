@@ -1,17 +1,19 @@
-mod triangle;
-mod vertex;
-mod renderable;
-mod render_context;
 mod camera;
 mod lin_alg;
 mod matrix4;
+mod render_context;
+mod renderable;
+mod triangle;
+mod vertex;
 
-use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture, Vertex};
+use crate::camera::Camera;
+use crate::renderable::Renderable;
+use crate::triangle::Triangle;
+use crate::vertex::Vertex4;
+use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture};
 use sfml::system::Vector2u;
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
-use crate::renderable::Renderable;
-use crate::triangle::Triangle;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -41,6 +43,12 @@ fn main() {
     }
 
     let mut ctx = render_context::RenderContext::new(WIDTH, HEIGHT);
+    ctx.set_camera(Camera::new(
+        Vertex4::new_vertex(1f32, 0f32, 0f32),
+        Vertex4::new_vector(0f32, 0f32, -1f32),
+        Vertex4::new_vector(0f32, 1f32, 0f32),
+    ));
+
     let mut timer: u8 = 0;
 
     // --- MAIN LOOP ---
@@ -55,11 +63,15 @@ fn main() {
         timer = timer.wrapping_add(1);
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
-//                ctx.set_pixel(x, y, x.wrapping_add(timer as u32) as u8, y.wrapping_add(timer as u32) as u8, 150, 255);
+                //                ctx.set_pixel(x, y, x.wrapping_add(timer as u32) as u8, y.wrapping_add(timer as u32) as u8, 150, 255);
             }
         }
 
-        let t1 = Triangle::new([vertex::Vertex4::new(0f32, 1f32, 0f32, 0f32), vertex::Vertex4::new(0.5f32, 0f32, 0f32, 0f32), vertex::Vertex4::new(1f32, 0f32, 0f32, 0f32)]);
+        let t1 = Triangle::new([
+            vertex::Vertex4::new(0f32, 0f32, 0f32, 0f32),
+            vertex::Vertex4::new(0.5f32, 1f32, 0f32, 0f32),
+            vertex::Vertex4::new(1f32, 0f32, 0f32, 0f32),
+        ]);
         t1.render(&mut ctx);
 
         // --- DISPLAY PHASE ---

@@ -21,20 +21,24 @@ impl Vertex4 {
     }
 
     pub fn norm(&self) -> f32 {
-        let dx = self.position[0] * self.position[0];
-        let dy = self.position[1] * self.position[1];
-        let dz = self.position[2] * self.position[2];
-        let dw = self.position[3] * self.position[3];
+        let dx = self[0] * self[0];
+        let dy = self[1] * self[1];
+        let dz = self[2] * self[2];
+        let dw = self[3] * self[3];
         (dx + dy + dz + dw).sqrt()
     }
 
     pub fn normalized(&self) -> Self {
         let norm = self.norm();
-        let x = self.position[0] / norm;
-        let y = self.position[1] / norm;
-        let z = self.position[2] / norm;
-        let w = self.position[3] / norm;
-        Self::new(x, y, z, w)
+        if norm == 0.0 {
+            self.clone()
+        } else {
+            let x = self[0] / norm;
+            let y = self[1] / norm;
+            let z = self[2] / norm;
+            let w = self[3] / norm;
+            Self::new(x, y, z, w)
+        }
     }
 
 }

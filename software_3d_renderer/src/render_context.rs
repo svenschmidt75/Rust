@@ -1,4 +1,5 @@
 use crate::camera::Camera;
+use crate::matrix4::Matrix4;
 use crate::vertex;
 use crate::vertex::Vertex4;
 
@@ -8,10 +9,20 @@ pub struct RenderContext {
     pub width: u32,
     pub height: u32,
     camera: Camera,
+    viewport_matrix: Matrix4,
 }
 
 impl RenderContext {
     pub fn new(width: u32, height: u32) -> Self {
+        // SS: create the transformation of the unit cube into screen space
+        let mut viewport_matrix = Matrix4::new();
+        viewport_matrix[0][0] = width as f32 / 2.0;
+        viewport_matrix[1][1] = height as f32 / 2.0;
+        viewport_matrix[2][2] = 1.0;
+        viewport_matrix[3][3] = 1.0;
+        viewport_matrix[0][3] = (width - 1) as f32 / 2.0;
+        viewport_matrix[1][3] = (height - 1) as f32 / 2.0;
+
         RenderContext {
             framebuffer: vec![0; (width * height * 4) as usize],
             width,
@@ -21,6 +32,7 @@ impl RenderContext {
                 Vertex4::new_vector(0.0, 0.0, -1.0),
                 Vertex4::new_vector(0.0, 1.0, 0.0),
             ),
+            viewport_matrix,
         }
     }
 
@@ -40,7 +52,15 @@ impl RenderContext {
     }
 
     pub fn world_to_screen(&self, world_vertices: &[vertex::Vertex4]) -> Vec<[f32; 2]> {
-        vec![[100f32, 0f32], [0f32, 100f32], [100f32, 100f32]]
+        // SS: transform world to camera space
+        world_vertices
+            .iter()
+            .map(|v| {
+                let camera_space_vertex = self.camera.world_to_camera(*v);
+                let viewport_space_vertex = self.viewport_matrix * camera_space_vertex;
+                viewport_space_vertex
+            })
+            .map(|v| [v[0], v[1]])
+            .collect()
     }
-
 }
