@@ -9,7 +9,9 @@ pub struct Triangle {
 
 impl Triangle {
     pub fn new(vertices: [vertex::Vertex4; 3]) -> Self {
-        // SS: vertices must be given in an oriented way!
+        // SS: Triangle vertices must be oriented. This is because when rasterizing the triangle,
+        // we calculate signed areas w.r.t. to points inside the triangle. If they are not oriented,
+        // rasterization will fail!
         Triangle { vertices }
     }
 }
@@ -18,6 +20,10 @@ impl Renderable for Triangle {
     fn render(&self, ctx: &mut RenderContext) {
         // SS: approach described in Fundamentals of Computer Graphics, 5th edition
         // 9.1.2 Triangle Rasterization
+        // We scan left-right, top-bottom  the bounding box of the triangle. For each point,
+        // we calculate the signed area (edge_function) to check whether the point is inside
+        // the triangle. We calculate barycentric coordinates for interpolation purposes
+        // (color, texture, ...)
         let screen_vertices = ctx.world_to_screen(&self.vertices);
 
         // SS: triangle vertices are u, v, w
