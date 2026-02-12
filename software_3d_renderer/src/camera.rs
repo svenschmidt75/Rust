@@ -2,6 +2,7 @@ use crate::lin_alg::cross_product;
 use crate::matrix4::Matrix4;
 use crate::vertex::Vertex4;
 
+#[derive(Debug, Clone, Copy)]
 pub struct Camera {
     location: Vertex4,
     direction: Vertex4,

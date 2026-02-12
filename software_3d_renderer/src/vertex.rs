@@ -1,4 +1,4 @@
-use std::ops::{Index, Neg};
+use std::ops::{Index, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vertex4 {
@@ -58,6 +58,15 @@ impl Neg for Vertex4 {
 
     fn neg(self) -> Self::Output {
         Self::new(-self.position[0], -self.position[1], -self.position[2], -self.position[3])
+    }
+
+}
+
+impl Sub for Vertex4 {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::new(self[0] - rhs[0], self[1] - rhs[1], self[2] - rhs[2], self[3] - rhs[3])
     }
 
 }
