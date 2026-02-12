@@ -9,6 +9,7 @@ pub struct Triangle {
 
 impl Triangle {
     pub fn new(vertices: [vertex::Vertex4; 3]) -> Self {
+        // SS: vertices must be given in an oriented way!
         Triangle { vertices }
     }
 }
@@ -49,13 +50,13 @@ impl Renderable for Triangle {
 
 
         // SS: scan the entire triangle bounding box
-        for y in min_y..=max_y {
+        for y in min_y..max_y {
             // SS: current edge function values for row
             let mut w0 = w0_row;
             let mut w1 = w1_row;
             let mut w2 = w2_row;
 
-            for x in min_x..=max_x {
+            for x in min_x..max_x {
                 // SS: if all edge function values are >=0, the current point (x, y) is inside
                 // the triangle, so render it
                 if (w0 >= 0.0) && (w1 >= 0.0) && (w2 >= 0.0) {

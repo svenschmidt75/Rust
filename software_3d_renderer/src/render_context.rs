@@ -45,6 +45,12 @@ impl RenderContext {
     pub fn set_pixel(&mut self, x: u32, y: u32, r: u8, g: u8, b: u8, a: u8) {
         let idx = (y * self.width + x) as usize;
         let idx2 = idx * 4;
+
+        if idx2 >= (self.width * self.height * 4) as usize {
+            println!("Invalid index {}", idx2);
+            return;
+        }
+
         self.framebuffer[idx2] = r;
         self.framebuffer[idx2 + 1] = g;
         self.framebuffer[idx2 + 2] = b;
@@ -60,7 +66,12 @@ impl RenderContext {
                 let viewport_space_vertex = self.viewport_matrix * camera_space_vertex;
                 viewport_space_vertex
             })
-            .map(|v| [v[0], v[1]])
+            .map(|v| {
+                [
+                    v[0] + (self.width / 2) as f32,
+                    v[1] + (self.height / 2) as f32,
+                ]
+            })
             .collect()
     }
 }

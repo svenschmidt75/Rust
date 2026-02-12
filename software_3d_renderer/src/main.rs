@@ -68,11 +68,18 @@ fn main() {
         }
 
         let t1 = Triangle::new([
-            vertex::Vertex4::new(0f32, 0f32, 0f32, 0f32),
-            vertex::Vertex4::new(0.5f32, 1f32, 0f32, 0f32),
-            vertex::Vertex4::new(1f32, 0f32, 0f32, 0f32),
+            Vertex4::new(-1f32, 1f32, 0f32, 0f32),
+            Vertex4::new(0f32, 0f32, 0f32, 0f32),
+            Vertex4::new(-1f32, -1f32, 0f32, 0f32),
         ]);
         t1.render(&mut ctx);
+
+        let t2 = Triangle::new([
+            Vertex4::new(0f32, 0f32, 0f32, 0f32),
+            Vertex4::new(1f32, 1f32, 0f32, 0f32),
+            Vertex4::new(1f32, -1f32, 0f32, 0f32),
+        ]);
+        t2.render(&mut ctx);
 
         // --- DISPLAY PHASE ---
         // Update the pixels
