@@ -10,6 +10,7 @@ pub struct RenderContext {
     pub height: u32,
     camera: Camera,
     viewport_matrix: Matrix4,
+    projection_matrix: Matrix4,
 }
 
 impl RenderContext {
@@ -33,13 +34,32 @@ impl RenderContext {
                 Vertex4::new_vector(0.0, 1.0, 0.0),
             ),
             viewport_matrix,
+            projection_matrix: Matrix4::identity(),
         }
     }
 
     pub fn set_camera(&mut self, camera: Camera) {
         self.camera = camera;
+    }
 
-        // SS: rerender scene
+    pub fn orthographic(&mut self, l: f32, r: f32, b: f32, t: f32, f: f32, n: f32) {
+        // SS: map a certain region of camera space (orthographic view volume) into
+        // the canonical view volume, the unit cube centered at the origin.
+        // Fundamentals of Computer Graphics, 5th edition, equation (8.3)
+        let mut projection_matrix = Matrix4::new();
+
+        // SS: scaling component
+        projection_matrix[0][0] = 2.0 / (r - l);
+        projection_matrix[1][1] = 2.0 / (t - b);
+        projection_matrix[2][2] = 2.0 / (n - f);
+        projection_matrix[3][3] = 1.0;
+
+        // SS: translation component
+        projection_matrix[0][3] = - (r + l) / (r - l);
+        projection_matrix[1][3] = - (t + b) / (t - b);
+        projection_matrix[2][3] = - (n + f) / (n - f);
+
+        self.projection_matrix = projection_matrix;
     }
 
     pub fn set_pixel(&mut self, x: u32, y: u32, r: u8, g: u8, b: u8, a: u8) {
@@ -63,7 +83,8 @@ impl RenderContext {
             .iter()
             .map(|v| {
                 let camera_space_vertex = self.camera.world_to_camera(*v);
-                let viewport_space_vertex = self.viewport_matrix * camera_space_vertex;
+                let projection_space_vertex = self.projection_matrix * camera_space_vertex;
+                let viewport_space_vertex = self.viewport_matrix * projection_space_vertex;
                 viewport_space_vertex
             })
             .map(|v| {

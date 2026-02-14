@@ -50,6 +50,7 @@ fn main() {
         Vertex4::new_vector(0f32, 0f32, -1f32),
         Vertex4::new_vector(0f32, 1f32, 0f32),
     ));
+    ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
 
     let mut timer: u8 = 0;
 
@@ -63,30 +64,9 @@ fn main() {
 
         // --- SOFTWARE RENDERING PHASE ---
         timer = timer.wrapping_add(1);
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                //                ctx.set_pixel(x, y, x.wrapping_add(timer as u32) as u8, y.wrapping_add(timer as u32) as u8, 150, 255);
-            }
-        }
-        //
-        // let t1 = Triangle::new([
-        //     Vertex4::new(-1f32, 1f32, 0f32, 0f32),
-        //     Vertex4::new(0f32, 0f32, 0f32, 0f32),
-        //     Vertex4::new(-1f32, -1f32, 0f32, 0f32),
-        // ]);
-        // t1.render(&mut ctx);
-        //
-        // let t2 = Triangle::new([
-        //     Vertex4::new(0f32, 0f32, 0f32, 0f32),
-        //     Vertex4::new(1f32, 1f32, 0f32, 0f32),
-        //     Vertex4::new(1f32, -1f32, 0f32, 0f32),
-        // ]);
-        // t2.render(&mut ctx);
 
         let cube = UnitCube::new();
         cube.render(&mut ctx);
-
-//        ctx.set_pixel(50, 10, 255, 0, 0, 255);
 
         // --- DISPLAY PHASE ---
         // Update the pixels
