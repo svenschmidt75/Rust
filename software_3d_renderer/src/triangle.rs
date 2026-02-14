@@ -97,17 +97,7 @@ impl Renderable for Triangle {
                     let cz =
                         alpha * red[2] as f32 + beta * green[2] as f32 + gamma * blue[2] as f32;
 
-                    // SS: we need to transform from the viewport pixel coordinates,
-                    // (- width / 2,   height / 2)   -- (width / 2,   height / 2)
-                    // (- width / 2, - height / 2) -- (width / 2, - height / 2),
-                    // to the render window coordinates. The render window's origin (0,0)
-                    // is the top-left.
-                    let px = x + (ctx.width / 2) as i32;
-
-                    // SS: -1 so y=0 is mapped to px=height - 1
-                    let py = (ctx.height / 2) as i32 - y - 1;
-
-                    ctx.set_pixel(px as u32, py as u32, cx as u8, cy as u8, cz as u8, 255);
+                    ctx.set_pixel(x as u32, y as u32, cx as u8, cy as u8, cz as u8, 255);
                 }
 
                 // SS: advance edge function values by x -> x + 1
