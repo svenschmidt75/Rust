@@ -32,10 +32,30 @@ impl Renderable for Triangle {
         let v2 = screen_vertices[2];
 
         // SS: bounding box of triangle
-        let min_x = screen_vertices.iter().map(|v| v[0]).reduce(|a, b| a.min(b)).unwrap_or(f32::INFINITY).floor() as i32;
-        let max_x = screen_vertices.iter().map(|v| v[0]).reduce(|a, b| a.max(b)).unwrap_or(f32::NEG_INFINITY).ceil() as i32;
-        let min_y = screen_vertices.iter().map(|v| v[1]).reduce(|a, b| a.min(b)).unwrap_or(f32::INFINITY).floor() as i32;
-        let max_y = screen_vertices.iter().map(|v| v[1]).reduce(|a, b| a.max(b)).unwrap_or(f32::NEG_INFINITY).ceil() as i32;
+        let min_x = screen_vertices
+            .iter()
+            .map(|v| v[0])
+            .reduce(|a, b| a.min(b))
+            .unwrap_or(f32::INFINITY)
+            .floor() as i32;
+        let max_x = screen_vertices
+            .iter()
+            .map(|v| v[0])
+            .reduce(|a, b| a.max(b))
+            .unwrap_or(f32::NEG_INFINITY)
+            .ceil() as i32;
+        let min_y = screen_vertices
+            .iter()
+            .map(|v| v[1])
+            .reduce(|a, b| a.min(b))
+            .unwrap_or(f32::INFINITY)
+            .floor() as i32;
+        let max_y = screen_vertices
+            .iter()
+            .map(|v| v[1])
+            .reduce(|a, b| a.max(b))
+            .unwrap_or(f32::NEG_INFINITY)
+            .ceil() as i32;
 
         // SS: start point on bounding box
         let p0 = [min_x as f32, min_y as f32];
@@ -49,11 +69,9 @@ impl Renderable for Triangle {
         let area_doubled = w0_row + w1_row + w2_row;
         let inv_area = 1.0 / area_doubled;
 
-
         let red = [255, 0, 0];
         let green = [0, 255, 0];
         let blue = [0, 0, 255];
-
 
         // SS: scan the entire triangle bounding box
         for y in min_y..max_y {
@@ -69,14 +87,27 @@ impl Renderable for Triangle {
                     // SS: calculate the barycentric coordinates for interpolation
                     // Fundamentals of Computer Graphics, 5th edition, equation (2.33)
                     let alpha = w0 * inv_area;
-                    let beta  = w1 * inv_area;
+                    let beta = w1 * inv_area;
                     let gamma = w2 * inv_area;
 
-                    let cx = alpha * red[0] as f32 + beta * green[0] as f32 + gamma * blue[0] as f32;
-                    let cy = alpha * red[1] as f32 + beta * green[1] as f32 + gamma * blue[1] as f32;
-                    let cz = alpha * red[2] as f32 + beta * green[2] as f32 + gamma * blue[2] as f32;
+                    let cx =
+                        alpha * red[0] as f32 + beta * green[0] as f32 + gamma * blue[0] as f32;
+                    let cy =
+                        alpha * red[1] as f32 + beta * green[1] as f32 + gamma * blue[1] as f32;
+                    let cz =
+                        alpha * red[2] as f32 + beta * green[2] as f32 + gamma * blue[2] as f32;
 
-                    ctx.set_pixel(x as u32, y as u32, cx as u8, cy as u8, cz as u8, 255);
+                    // SS: we need to transform from the viewport pixel coordinates,
+                    // (- width / 2,   height / 2)   -- (width / 2,   height / 2)
+                    // (- width / 2, - height / 2) -- (width / 2, - height / 2),
+                    // to the render window coordinates. The render window's origin (0,0)
+                    // is the top-left.
+                    let px = x + (ctx.width / 2) as i32;
+
+                    // SS: -1 so y=0 is mapped to px=height - 1
+                    let py = (ctx.height / 2) as i32 - y - 1;
+
+                    ctx.set_pixel(px as u32, py as u32, cx as u8, cy as u8, cz as u8, 255);
                 }
 
                 // SS: advance edge function values by x -> x + 1
@@ -91,7 +122,6 @@ impl Renderable for Triangle {
             w2_row += w2_dy;
         }
     }
-
 }
 
 fn edge_function(a: [f32; 2], b: [f32; 2], p: [f32; 2]) -> (f32, f32, f32) {

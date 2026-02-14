@@ -67,10 +67,10 @@ impl RenderContext {
                 viewport_space_vertex
             })
             .map(|v| {
-                [
-                    v[0] + (self.width / 2) as f32,
-                    v[1] + (self.height / 2) as f32,
-                ]
+                // SS: this maps to the screen pixel coordinates
+                // (- width / 2,   height / 2)   -- (width / 2,   height / 2)
+                // (- width / 2, - height / 2) -- (width / 2, - height / 2)
+                [v[0], v[1]]
             })
             .collect()
     }

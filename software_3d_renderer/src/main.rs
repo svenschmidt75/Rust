@@ -5,6 +5,7 @@ mod render_context;
 mod renderable;
 mod triangle;
 mod vertex;
+mod cube;
 
 use crate::camera::Camera;
 use crate::renderable::Renderable;
@@ -14,6 +15,7 @@ use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture};
 use sfml::system::Vector2u;
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
+use crate::cube::UnitCube;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -44,7 +46,7 @@ fn main() {
 
     let mut ctx = render_context::RenderContext::new(WIDTH, HEIGHT);
     ctx.set_camera(Camera::new(
-        Vertex4::new_vertex(1f32, 0f32, 0f32),
+        Vertex4::new_vertex(0f32, 0f32, 1f32),
         Vertex4::new_vector(0f32, 0f32, -1f32),
         Vertex4::new_vector(0f32, 1f32, 0f32),
     ));
@@ -66,20 +68,25 @@ fn main() {
                 //                ctx.set_pixel(x, y, x.wrapping_add(timer as u32) as u8, y.wrapping_add(timer as u32) as u8, 150, 255);
             }
         }
+        //
+        // let t1 = Triangle::new([
+        //     Vertex4::new(-1f32, 1f32, 0f32, 0f32),
+        //     Vertex4::new(0f32, 0f32, 0f32, 0f32),
+        //     Vertex4::new(-1f32, -1f32, 0f32, 0f32),
+        // ]);
+        // t1.render(&mut ctx);
+        //
+        // let t2 = Triangle::new([
+        //     Vertex4::new(0f32, 0f32, 0f32, 0f32),
+        //     Vertex4::new(1f32, 1f32, 0f32, 0f32),
+        //     Vertex4::new(1f32, -1f32, 0f32, 0f32),
+        // ]);
+        // t2.render(&mut ctx);
 
-        let t1 = Triangle::new([
-            Vertex4::new(-1f32, 1f32, 0f32, 0f32),
-            Vertex4::new(0f32, 0f32, 0f32, 0f32),
-            Vertex4::new(-1f32, -1f32, 0f32, 0f32),
-        ]);
-        t1.render(&mut ctx);
+        let cube = UnitCube::new();
+        cube.render(&mut ctx);
 
-        let t2 = Triangle::new([
-            Vertex4::new(0f32, 0f32, 0f32, 0f32),
-            Vertex4::new(1f32, 1f32, 0f32, 0f32),
-            Vertex4::new(1f32, -1f32, 0f32, 0f32),
-        ]);
-        t2.render(&mut ctx);
+//        ctx.set_pixel(50, 10, 255, 0, 0, 255);
 
         // --- DISPLAY PHASE ---
         // Update the pixels
