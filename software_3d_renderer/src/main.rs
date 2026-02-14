@@ -1,21 +1,21 @@
 mod camera;
+mod cube;
 mod lin_alg;
 mod matrix4;
 mod render_context;
 mod renderable;
 mod triangle;
 mod vertex;
-mod cube;
 
+use std::time::Instant;
 use crate::camera::Camera;
+use crate::cube::UnitCube;
 use crate::renderable::Renderable;
-use crate::triangle::Triangle;
 use crate::vertex::Vertex4;
-use sfml::graphics::{Color, RenderTarget, RenderWindow, Sprite, Texture};
-use sfml::system::Vector2u;
+use sfml::graphics::{Color, Font, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable};
+use sfml::system::{Vector2f, Vector2u};
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
-use crate::cube::UnitCube;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -31,8 +31,13 @@ fn main() {
         &settings,
     )
     .expect("Failed to create SFML window");
-
     window.set_vertical_sync_enabled(true);
+
+    // SS: for displaying FPS
+    let font = Font::from_file("/System/Library/Fonts/Helvetica.ttc")
+        .expect("Could not find system font");
+    let mut fps_text = Text::new("FPS: 0", &font, 20);
+    fps_text.set_fill_color(Color::GREEN);
 
     // 1. Create the texture object
     let mut texture = Texture::new().expect("Failed to create texture object");
@@ -53,6 +58,11 @@ fn main() {
     ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
 
     let mut timer: u8 = 0;
+    let mut frame_count = 0;
+    let mut total_time = 0f32;
+
+    // SS: instantiate timing object
+    let mut last_time = Instant::now();
 
     // --- MAIN LOOP ---
     while window.is_open() {
@@ -65,8 +75,39 @@ fn main() {
         // --- SOFTWARE RENDERING PHASE ---
         timer = timer.wrapping_add(1);
 
+        // SS: capture time it takes to render the frame
+        let current_time = Instant::now();
+
+        // SS: render scene
         let cube = UnitCube::new();
         cube.render(&mut ctx);
+
+        // SS: time it took to render frame
+        let delta = current_time.duration_since(last_time);
+        last_time = current_time;
+
+        // SS: duration in milliseconds
+        let delta_ms = delta.as_secs_f32() * 1000.0;
+
+        frame_count += 1;
+        total_time += delta_ms;
+
+        if total_time > 1000.0 {
+            // SS: more than one second has passed, update FPS
+            let fps = frame_count as f32 / (total_time / 1000.0);
+            fps_text.set_string(&format!("FPS: {:.1}", fps));
+            println!("FPS: {}", fps);
+
+            // SS: display in top-right corner of the render window
+            let window_size = window.size();
+            let text_bounds = fps_text.global_bounds();
+            let x_pos = window_size.x as f32 - text_bounds.size.x - 20.0;
+            let y_pos = 10.0; // Top margin
+            fps_text.set_position(Vector2f::new(x_pos, y_pos));
+
+            total_time = 0.0;
+            frame_count = 0;
+        }
 
         // --- DISPLAY PHASE ---
         // Update the pixels
@@ -81,6 +122,7 @@ fn main() {
 
         window.clear(Color::BLACK);
         window.draw(&sprite);
+        window.draw(&fps_text);
         window.display();
     }
 }

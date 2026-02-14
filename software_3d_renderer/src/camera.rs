@@ -54,8 +54,6 @@ impl Camera {
 
     pub fn world_to_camera(&self, vertex: Vertex4) -> Vertex4 {
         // SS: transform vertex from world to camera space
-        let a = self.matrix * vertex;
-        println!("{:?}", a);
-        a
+        self.matrix * vertex
     }
 }
