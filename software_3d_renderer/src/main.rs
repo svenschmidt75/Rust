@@ -7,7 +7,8 @@ mod renderable;
 mod triangle;
 mod vertex;
 
-use std::time::Instant;
+use std::f32::consts::PI;
+use std::time::{Duration, Instant};
 use crate::camera::Camera;
 use crate::cube::UnitCube;
 use crate::renderable::Renderable;
@@ -55,14 +56,26 @@ fn main() {
         Vertex4::new_vector(0f32, 0f32, -1f32),
         Vertex4::new_vector(0f32, 1f32, 0f32),
     ));
+
+    ctx.set_camera(Camera::from_look_at(2.0, PI / 8.0, PI / 8.0));
+
     ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
 
     let mut timer: u8 = 0;
     let mut frame_count = 0;
     let mut total_time = 0f32;
 
+    // SS: we use delta to control the speed at which we want to advance
+    // for example a rotation angle in an FPS-independent way.
+    let mut delta = Duration::new(0, 0);
+
     // SS: instantiate timing object
     let mut last_time = Instant::now();
+
+    let cube = UnitCube::new();
+
+    // SS: add rotation around world z-axis
+//    cube.add_transform(RotationZ::new, 90.0);
 
     // --- MAIN LOOP ---
     while window.is_open() {
@@ -79,11 +92,10 @@ fn main() {
         let current_time = Instant::now();
 
         // SS: render scene
-        let cube = UnitCube::new();
-        cube.render(&mut ctx);
+        cube.render(&mut ctx, delta.as_secs_f32());
 
         // SS: time it took to render frame
-        let delta = current_time.duration_since(last_time);
+        delta = current_time.duration_since(last_time);
         last_time = current_time;
 
         // SS: duration in milliseconds
@@ -96,7 +108,7 @@ fn main() {
             // SS: more than one second has passed, update FPS
             let fps = frame_count as f32 / (total_time / 1000.0);
             fps_text.set_string(&format!("FPS: {:.1}", fps));
-            println!("FPS: {}", fps);
+//            println!("FPS: {}", fps);
 
             // SS: display in top-right corner of the render window
             let window_size = window.size();

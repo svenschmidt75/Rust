@@ -14,10 +14,11 @@ impl Triangle {
         // rasterization will fail!
         Triangle { vertices }
     }
+
 }
 
 impl Renderable for Triangle {
-    fn render(&self, ctx: &mut RenderContext) {
+    fn render(&self, ctx: &mut RenderContext, delta: f32) {
         // SS: approach described in Fundamentals of Computer Graphics, 5th edition
         // 9.1.2 Triangle Rasterization
         // We scan left-right, top-bottom  the bounding box of the triangle. For each point,
