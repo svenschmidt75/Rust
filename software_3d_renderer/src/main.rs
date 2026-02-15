@@ -57,9 +57,10 @@ fn main() {
         Vertex4::new_vector(0f32, 1f32, 0f32),
     ));
 
-    ctx.set_camera(Camera::from_look_at(2.0, PI / 8.0, PI / 8.0));
+    ctx.set_camera(Camera::from_look_at(3.0, PI / 4.0, PI / 4.0));
 
     ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
+    ctx.perspective(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
 
     let mut timer: u8 = 0;
     let mut frame_count = 0;

@@ -62,10 +62,11 @@ impl Mul<Vertex4> for Matrix4 {
     type Output = Vertex4;
 
     fn mul(self, rhs: Vertex4) -> Self::Output {
-        Vertex4::new_vector(
-            self[0][0] * rhs[0] + self[0][1] * rhs[1] + self[0][2] * rhs[2],
-            self[1][0] * rhs[0] + self[1][1] * rhs[1] + self[1][2] * rhs[2],
-            self[2][0] * rhs[0] + self[2][1] * rhs[1] + self[2][2] * rhs[2],
+        Vertex4::new(
+            self[0][0] * rhs[0] + self[0][1] * rhs[1] + self[0][2] * rhs[2] + self[0][3] * rhs[3],
+            self[1][0] * rhs[0] + self[1][1] * rhs[1] + self[1][2] * rhs[2] + self[1][3] * rhs[3],
+            self[2][0] * rhs[0] + self[2][1] * rhs[1] + self[2][2] * rhs[2] + self[2][3] * rhs[3],
+            self[3][0] * rhs[0] + self[3][1] * rhs[1] + self[3][2] * rhs[2] + self[3][3] * rhs[3],
         )
     }
 }
