@@ -1,12 +1,13 @@
+use crate::matrix4::Matrix4;
 use crate::render_context::RenderContext;
 use crate::renderable::Renderable;
 use crate::triangle::Triangle;
 use crate::vertex::Vertex4;
 
-#[derive(Debug, Clone, Copy)]
 pub struct UnitCube {
     triangles: [Triangle; 6],
     angle_per_second: f32,
+    transforms: Vec<Box<dyn Fn(Triangle, f32) -> Triangle>>,
 }
 
 impl UnitCube {
@@ -51,6 +52,7 @@ impl UnitCube {
 
             ],
             angle_per_second: 90.0,
+            transforms: Vec::new(),
         }
     }
 }
@@ -64,4 +66,9 @@ impl Renderable for UnitCube {
             triangle.render(ctx, delta);
         }
     }
+
+    // fn add_transform(&mut self, f: Box<dyn Fn(Triangle, f32) -> Triangle>) {
+    //     self.transforms.push(f);
+    // }
+
 }

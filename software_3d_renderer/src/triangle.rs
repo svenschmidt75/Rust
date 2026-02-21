@@ -1,10 +1,12 @@
+use crate::matrix4::Matrix4;
 use crate::render_context::RenderContext;
 use crate::renderable::Renderable;
 use crate::vertex;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Copy, Clone)]
 pub struct Triangle {
     vertices: [vertex::Vertex4; 3],
+    //    transforms: Vec<Box<dyn Fn(Triangle, f32) -> Triangle>>,
 }
 
 impl Triangle {
@@ -12,9 +14,11 @@ impl Triangle {
         // SS: Triangle vertices must be oriented. This is because when rasterizing the triangle,
         // we calculate signed areas w.r.t. to points inside the triangle. If they are not oriented,
         // rasterization will fail!
-        Triangle { vertices }
+        Triangle {
+            vertices,
+            //            transforms: vec![],
+        }
     }
-
 }
 
 impl Renderable for Triangle {
@@ -113,6 +117,10 @@ impl Renderable for Triangle {
             w2_row += w2_dy;
         }
     }
+
+    // fn add_transform(&mut self, f: Box<dyn Fn(Triangle, f32) -> Triangle>) {
+    //     self.transforms.push(f);
+    // }
 }
 
 fn edge_function(a: [f32; 2], b: [f32; 2], p: [f32; 2]) -> (f32, f32, f32) {

@@ -6,6 +6,7 @@ mod render_context;
 mod renderable;
 mod triangle;
 mod vertex;
+mod SceneObject;
 
 use std::f32::consts::PI;
 use std::time::{Duration, Instant};
@@ -17,6 +18,7 @@ use sfml::graphics::{Color, Font, RenderTarget, RenderWindow, Sprite, Text, Text
 use sfml::system::{Vector2f, Vector2u};
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
+use crate::matrix4::Matrix4;
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -73,10 +75,18 @@ fn main() {
     // SS: instantiate timing object
     let mut last_time = Instant::now();
 
-    let cube = UnitCube::new();
+    let mut cube = UnitCube::new();
 
     // SS: add rotation around world z-axis
-//    cube.add_transform(RotationZ::new, 90.0);
+    // cube.add_transform(Box::new(|triangle, delta| {
+    //     let angle = delta * 1.5; // Controls rotation speed
+    //     let mut m = Matrix4::identity();
+    //     m[0][0] = angle.cos();
+    //     m[0][1] = -angle.sin();
+    //     m[1][0] = angle.sin();
+    //     m[1][1] = angle.cos();
+    //     triangle
+    // }));
 
     // --- MAIN LOOP ---
     while window.is_open() {
