@@ -6,7 +6,6 @@ use crate::vertex;
 #[derive(Debug, Copy, Clone)]
 pub struct Triangle {
     vertices: [vertex::Vertex4; 3],
-    //    transforms: Vec<Box<dyn Fn(Triangle, f32) -> Triangle>>,
 }
 
 impl Triangle {
@@ -14,22 +13,26 @@ impl Triangle {
         // SS: Triangle vertices must be oriented. This is because when rasterizing the triangle,
         // we calculate signed areas w.r.t. to points inside the triangle. If they are not oriented,
         // rasterization will fail!
-        Triangle {
-            vertices,
-            //            transforms: vec![],
-        }
+        Triangle { vertices }
     }
 }
 
 impl Renderable for Triangle {
-    fn render(&self, ctx: &mut RenderContext, delta: f32) {
+    fn render(&self, ctx: &mut RenderContext, transform: Matrix4) {
         // SS: approach described in Fundamentals of Computer Graphics, 5th edition
         // 9.1.2 Triangle Rasterization
         // We scan left-right, top-bottom  the bounding box of the triangle. For each point,
         // we calculate the signed area (edge_function) to check whether the point is inside
         // the triangle. We calculate barycentric coordinates for interpolation purposes
         // (color, texture, ...)
-        let screen_vertices = ctx.world_to_screen(&self.vertices);
+
+
+        // SS: backface culling
+        // assign colors to triangles
+
+
+        let transformed_vertices = self.vertices.map(|t| transform * t);
+        let screen_vertices = ctx.world_to_screen(&transformed_vertices);
 
         // SS: triangle vertices are u, v, w
         let v0 = screen_vertices[0];

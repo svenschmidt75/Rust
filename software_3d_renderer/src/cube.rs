@@ -4,10 +4,10 @@ use crate::renderable::Renderable;
 use crate::triangle::Triangle;
 use crate::vertex::Vertex4;
 
+#[derive(Debug, Copy, Clone)]
 pub struct UnitCube {
     triangles: [Triangle; 6],
     angle_per_second: f32,
-    transforms: Vec<Box<dyn Fn(Triangle, f32) -> Triangle>>,
 }
 
 impl UnitCube {
@@ -52,23 +52,15 @@ impl UnitCube {
 
             ],
             angle_per_second: 90.0,
-            transforms: Vec::new(),
         }
     }
 }
 
 impl Renderable for UnitCube {
-    fn render(&self, ctx: &mut RenderContext, delta: f32) {
-        let angle = self.angle_per_second * delta;
+    fn render(&self, ctx: &mut RenderContext, transform: Matrix4) {
         for triangle in self.triangles.iter() {
-            // SS: cube spins around world z-axis
-            let t = triangle;
-            triangle.render(ctx, delta);
+            triangle.render(ctx, transform);
         }
     }
-
-    // fn add_transform(&mut self, f: Box<dyn Fn(Triangle, f32) -> Triangle>) {
-    //     self.transforms.push(f);
-    // }
 
 }

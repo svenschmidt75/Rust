@@ -4,21 +4,23 @@ mod lin_alg;
 mod matrix4;
 mod render_context;
 mod renderable;
+mod scene_object;
 mod triangle;
 mod vertex;
-mod SceneObject;
 
-use std::f32::consts::PI;
-use std::time::{Duration, Instant};
 use crate::camera::Camera;
 use crate::cube::UnitCube;
-use crate::renderable::Renderable;
+use crate::matrix4::Matrix4;
+use crate::scene_object::SceneObject;
 use crate::vertex::Vertex4;
-use sfml::graphics::{Color, Font, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable};
+use sfml::graphics::{
+    Color, Font, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable,
+};
 use sfml::system::{Vector2f, Vector2u};
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
-use crate::matrix4::Matrix4;
+use std::f32::consts::PI;
+use std::time::{Duration, Instant};
 
 const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
@@ -37,8 +39,8 @@ fn main() {
     window.set_vertical_sync_enabled(true);
 
     // SS: for displaying FPS
-    let font = Font::from_file("/System/Library/Fonts/Helvetica.ttc")
-        .expect("Could not find system font");
+    let font =
+        Font::from_file("/System/Library/Fonts/Helvetica.ttc").expect("Could not find system font");
     let mut fps_text = Text::new("FPS: 0", &font, 20);
     fps_text.set_fill_color(Color::GREEN);
 
@@ -75,18 +77,20 @@ fn main() {
     // SS: instantiate timing object
     let mut last_time = Instant::now();
 
-    let mut cube = UnitCube::new();
+    let cube = UnitCube::new();
+    let mut scene_object = SceneObject::new(Box::new(cube));
 
     // SS: add rotation around world z-axis
-    // cube.add_transform(Box::new(|triangle, delta| {
-    //     let angle = delta * 1.5; // Controls rotation speed
-    //     let mut m = Matrix4::identity();
-    //     m[0][0] = angle.cos();
-    //     m[0][1] = -angle.sin();
-    //     m[1][0] = angle.sin();
-    //     m[1][1] = angle.cos();
-    //     triangle
-    // }));
+    let mut angle: f32 = 0.0;
+    scene_object.add_transform(Box::new(move |delta| {
+        angle += delta * 1.5;
+        let mut m = Matrix4::identity();
+        m[0][0] = angle.cos();
+        m[0][1] = -angle.sin();
+        m[1][0] = angle.sin();
+        m[1][1] = angle.cos();
+        m
+    }));
 
     // --- MAIN LOOP ---
     while window.is_open() {
@@ -103,7 +107,7 @@ fn main() {
         let current_time = Instant::now();
 
         // SS: render scene
-        cube.render(&mut ctx, delta.as_secs_f32());
+        scene_object.render(&mut ctx, delta.as_secs_f32());
 
         // SS: time it took to render frame
         delta = current_time.duration_since(last_time);
@@ -119,7 +123,7 @@ fn main() {
             // SS: more than one second has passed, update FPS
             let fps = frame_count as f32 / (total_time / 1000.0);
             fps_text.set_string(&format!("FPS: {:.1}", fps));
-//            println!("FPS: {}", fps);
+            //            println!("FPS: {}", fps);
 
             // SS: display in top-right corner of the render window
             let window_size = window.size();
@@ -140,11 +144,12 @@ fn main() {
             Vector2u::new(0, 0),
         );
 
+        window.clear(Color::BLACK);
+
         // Create sprite inside the loop to release the borrow every frame
         let sprite = Sprite::with_texture(&texture);
-
-        window.clear(Color::BLACK);
         window.draw(&sprite);
+
         window.draw(&fps_text);
         window.display();
     }
