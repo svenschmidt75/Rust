@@ -1,20 +1,32 @@
+use crate::lin_alg::{cross_product, dot_product};
 use crate::matrix4::Matrix4;
 use crate::render_context::RenderContext;
 use crate::renderable::Renderable;
 use crate::vertex;
+use crate::vertex::Vertex4;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Triangle {
-    vertices: [vertex::Vertex4; 3],
+    vertices: [Vertex4; 3],
+    normal: Vertex4,
 }
 
 impl Triangle {
-    pub fn new(vertices: [vertex::Vertex4; 3]) -> Self {
+    pub fn new(vertices: [Vertex4; 3]) -> Self {
         // SS: Triangle vertices must be oriented. This is because when rasterizing the triangle,
         // we calculate signed areas w.r.t. to points inside the triangle. If they are not oriented,
         // rasterization will fail!
-        Triangle { vertices }
+        let u1 = vertices[1] - vertices[0];
+        let u2 = vertices[2] - vertices[0];
+        let normal = cross_product(u1, u2);
+        Triangle { vertices, normal }
     }
+
+    // SS: is this ideomatic Rust?
+    pub fn normal(&self) -> Vertex4 {
+        self.normal
+    }
+
 }
 
 impl Renderable for Triangle {
@@ -26,12 +38,23 @@ impl Renderable for Triangle {
         // the triangle. We calculate barycentric coordinates for interpolation purposes
         // (color, texture, ...)
 
-
-        // SS: backface culling
         // assign colors to triangles
 
-
+        // SS: apply transformations to triangle vertices
         let transformed_vertices = self.vertices.map(|t| transform * t);
+
+        // SS: do we transform the normal or do we recalculate the normal?
+        let u1 = transformed_vertices[1] - transformed_vertices[0];
+        let u2 = transformed_vertices[2] - transformed_vertices[0];
+        let normal = cross_product(u1, u2);
+
+        // SS: backface-culling
+        let camera = ctx.get_camera();
+        if !camera.is_visible(normal) {
+            // SS: triangle not visible to camera
+            return;
+        }
+
         let screen_vertices = ctx.world_to_screen(&transformed_vertices);
 
         // SS: triangle vertices are u, v, w

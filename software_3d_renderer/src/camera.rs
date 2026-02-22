@@ -1,6 +1,7 @@
 use sfml::graphics::ShaderType::Vertex;
-use crate::lin_alg::cross_product;
+use crate::lin_alg::{cross_product, dot_product};
 use crate::matrix4::Matrix4;
+use crate::triangle::Triangle;
 use crate::vertex::Vertex4;
 
 #[derive(Debug, Clone, Copy)]
@@ -110,6 +111,11 @@ impl Camera {
     pub fn world_to_camera(&self, vertex: Vertex4) -> Vertex4 {
         // SS: transform vertex from world to camera space
         self.matrix * vertex
+    }
+
+    pub fn is_visible(&self, normal: Vertex4) -> bool {
+        let d = dot_product(self.direction, normal);
+        d > 0.0
     }
 
 }

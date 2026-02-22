@@ -83,7 +83,7 @@ fn main() {
     // SS: add rotation around world z-axis
     let mut angle: f32 = 0.0;
     scene_object.add_transform(Box::new(move |delta| {
-        angle += delta * 1.5;
+        angle += delta * 1.05;
         let mut m = Matrix4::identity();
         m[0][0] = angle.cos();
         m[0][1] = -angle.sin();
@@ -105,6 +105,9 @@ fn main() {
 
         // SS: capture time it takes to render the frame
         let current_time = Instant::now();
+
+        // SS: clear scene
+        ctx.reset();
 
         // SS: render scene
         scene_object.render(&mut ctx, delta.as_secs_f32());

@@ -38,8 +38,16 @@ impl RenderContext {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.framebuffer = vec![0; (self.width * self.height * 4) as usize];
+    }
+
     pub fn set_camera(&mut self, camera: Camera) {
         self.camera = camera;
+    }
+
+    pub fn get_camera(&self) -> &Camera {
+        &self.camera
     }
 
     pub fn orthographic(&mut self, l: f32, r: f32, b: f32, t: f32, f: f32, n: f32) {
@@ -125,7 +133,7 @@ impl RenderContext {
             })
             .map(|v| {
                 // SS: the viewport transform maps to the screen pixel coordinates
-                // (- width / 2,   height / 2)   -- (width / 2,   height / 2)
+                // (- width / 2,   height / 2) -- (width / 2,   height / 2)
                 // (- width / 2, - height / 2) -- (width / 2, - height / 2),
                 // but we need to return render window coordinates with origin
                 // in the top-left corner.
