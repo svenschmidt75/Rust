@@ -25,7 +25,6 @@ impl UnitCube {
                     Vertex4::new_vertex(1f32, -1f32, 1f32),
                     Vertex4::new_vertex(1f32, 1f32, 1f32),
                 ]),
-
                 // SS: x = +1 face
                 Triangle::new([
                     Vertex4::new_vertex(1f32, 1f32, 1f32),
@@ -37,7 +36,6 @@ impl UnitCube {
                     Vertex4::new_vertex(1f32, -1f32, -1f32),
                     Vertex4::new_vertex(1f32, 1f32, -1f32),
                 ]),
-
                 // SS: y = +1 face
                 Triangle::new([
                     Vertex4::new_vertex(-1f32, 1f32, 1f32),
@@ -49,7 +47,6 @@ impl UnitCube {
                     Vertex4::new_vertex(1f32, 1f32, -1f32),
                     Vertex4::new_vertex(-1f32, 1f32, -1f32),
                 ]),
-
             ],
             angle_per_second: 90.0,
         }
@@ -62,5 +59,4 @@ impl Renderable for UnitCube {
             triangle.render(ctx, transform);
         }
     }
-
 }

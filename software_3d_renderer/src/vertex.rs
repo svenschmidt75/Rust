@@ -40,7 +40,6 @@ impl Vertex4 {
             Self::new(x, y, z, w)
         }
     }
-
 }
 
 impl Index<usize> for Vertex4 {
@@ -61,16 +60,24 @@ impl Neg for Vertex4 {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self::new(-self.position[0], -self.position[1], -self.position[2], -self.position[3])
+        Self::new(
+            -self.position[0],
+            -self.position[1],
+            -self.position[2],
+            -self.position[3],
+        )
     }
-
 }
 
 impl Sub for Vertex4 {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Self::new(self[0] - rhs[0], self[1] - rhs[1], self[2] - rhs[2], self[3] - rhs[3])
+        Self::new(
+            self[0] - rhs[0],
+            self[1] - rhs[1],
+            self[2] - rhs[2],
+            self[3] - rhs[3],
+        )
     }
-
 }

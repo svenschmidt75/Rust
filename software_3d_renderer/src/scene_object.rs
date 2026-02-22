@@ -21,10 +21,13 @@ impl SceneObject {
 
     pub fn render(&mut self, ctx: &mut RenderContext, delta: f32) {
         // SS: determine aggregated transform matrix
-        let transform_matrix = self.transforms.iter_mut().fold(Matrix4::identity(), |acc, tr| {
-            let m = tr(delta);
-            m * acc
-        });
+        let transform_matrix = self
+            .transforms
+            .iter_mut()
+            .fold(Matrix4::identity(), |acc, tr| {
+                let m = tr(delta);
+                m * acc
+            });
         self.scene_object.render(ctx, transform_matrix);
     }
 }

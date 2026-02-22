@@ -83,7 +83,7 @@ fn main() {
     // SS: add rotation around world z-axis
     let mut angle: f32 = 0.0;
     scene_object.add_transform(Box::new(move |delta| {
-        angle += delta * 1.05;
+        angle += delta * 0.75;
         let mut m = Matrix4::identity();
         m[0][0] = angle.cos();
         m[0][1] = -angle.sin();
@@ -91,6 +91,17 @@ fn main() {
         m[1][1] = angle.cos();
         m
     }));
+
+    // let mut angle2 = 0.0;
+    // scene_object.add_transform(Box::new(move |delta| {
+    //     angle2 += delta * 1.05;
+    //     let mut m = Matrix4::identity();
+    //     m[1][1] = angle2.cos();
+    //     m[1][2] = -angle2.sin();
+    //     m[2][1] = angle2.sin();
+    //     m[2][2] = angle2.cos();
+    //     m
+    // }));
 
     // --- MAIN LOOP ---
     while window.is_open() {
@@ -132,6 +143,9 @@ fn main() {
             let window_size = window.size();
             let text_bounds = fps_text.global_bounds();
             let x_pos = window_size.x as f32 - text_bounds.size.x - 20.0;
+
+            println!("{window_size:?} {text_bounds:?} {x_pos:?}");
+
             let y_pos = 10.0; // Top margin
             fps_text.set_position(Vector2f::new(x_pos, y_pos));
 

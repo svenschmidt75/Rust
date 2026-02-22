@@ -1,8 +1,8 @@
-use sfml::graphics::ShaderType::Vertex;
 use crate::lin_alg::{cross_product, dot_product};
 use crate::matrix4::Matrix4;
 use crate::triangle::Triangle;
 use crate::vertex::Vertex4;
+use sfml::graphics::ShaderType::Vertex;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Camera {
@@ -24,9 +24,9 @@ impl Camera {
 
         // SS: compute camera matrix transform
         let mut m1 = Matrix4::identity();
-        m1[0][3] = - position[0];
-        m1[1][3] = - position[1];
-        m1[2][3] = - position[2];
+        m1[0][3] = -position[0];
+        m1[1][3] = -position[1];
+        m1[2][3] = -position[2];
 
         let mut m2 = Matrix4::identity();
         m2[0][0] = u[0];
@@ -78,9 +78,9 @@ impl Camera {
 
         // SS: compute camera matrix transform
         let mut m1 = Matrix4::identity();
-        m1[0][3] = - position[0];
-        m1[1][3] = - position[1];
-        m1[2][3] = - position[2];
+        m1[0][3] = -position[0];
+        m1[1][3] = -position[1];
+        m1[2][3] = -position[2];
 
         let mut m2 = Matrix4::identity();
         m2[0][0] = u[0];
@@ -117,5 +117,4 @@ impl Camera {
         let d = dot_product(self.direction, normal);
         d > 0.0
     }
-
 }
