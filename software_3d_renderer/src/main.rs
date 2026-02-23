@@ -7,6 +7,9 @@ mod renderable;
 mod scene_object;
 mod triangle;
 mod vertex;
+mod texture;
+mod color_texture;
+mod image_texture;
 
 use crate::camera::Camera;
 use crate::cube::UnitCube;
@@ -50,15 +53,14 @@ fn main() {
     }
 
     let mut ctx = render_context::RenderContext::new(WIDTH, HEIGHT);
-    ctx.set_camera(Camera::new(
-        Vertex4::new_vertex(0f32, 0f32, 1f32),
-        Vertex4::new_vector(0f32, 0f32, -1f32),
-        Vertex4::new_vector(0f32, 1f32, 0f32),
-    ));
-
+    // ctx.set_camera(Camera::new(
+    //     Vertex4::new_vertex(0f32, 0f32, 1f32),
+    //     Vertex4::new_vector(0f32, 0f32, -1f32),
+    //     Vertex4::new_vector(0f32, 1f32, 0f32),
+    // ));
     ctx.set_camera(Camera::from_look_at(3.0, PI / 4.0, PI / 4.0));
 
-    ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
+//    ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
     ctx.perspective(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
 
     let mut timer: u8 = 0;
