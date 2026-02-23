@@ -38,7 +38,7 @@ impl RenderContext {
         }
     }
 
-    pub fn reset(&mut self) {
+    pub fn clear_framebuffer(&mut self) {
         self.framebuffer = vec![0; (self.width * self.height * 4) as usize];
     }
 
@@ -74,6 +74,13 @@ impl RenderContext {
         // SS: map a certain region of camera space (view frustum) into
         // the canonical view volume, the unit cube centered at the origin.
         // Fundamentals of Computer Graphics, 5th edition, equation (8.3)
+
+        // SS: A note on the z-transformation: Since we apply this matrix on homogeneous
+        // coordinates, we later divide by the w component, which is the z component (?).
+        // To get the z-component, we want to have z^2/w = z, so we want for the z component
+        // when applying this matrix z^2. This is a quadratic equation which has at most 2
+        // real solutions. We pick the parameters in this matrix such that we get n when we
+        // z=near and f when z=f.
         let mut projection_matrix = Matrix4::new();
 
         // SS: scaling component

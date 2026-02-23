@@ -27,7 +27,6 @@ const HEIGHT: u32 = 600;
 
 fn main() {
     let settings = ContextSettings::default();
-
     let mut window = RenderWindow::new(
         VideoMode::new(Vector2u::new(WIDTH, HEIGHT), 32),
         "Software 3D Renderer (SFML 3)",
@@ -44,12 +43,8 @@ fn main() {
     let mut fps_text = Text::new("FPS: 0", &font, 20);
     fps_text.set_fill_color(Color::GREEN);
 
-    // 1. Create the texture object
+    // SS: create the texture object
     let mut texture = Texture::new().expect("Failed to create texture object");
-
-    // 2. Resize it.
-    // Argument 1: Size
-    // Argument 2: sRGB (false is standard for software rendering)
     if !texture.resize(Vector2u::new(WIDTH, HEIGHT), false) {
         panic!("Failed to allocate texture memory");
     }
@@ -118,7 +113,7 @@ fn main() {
         let current_time = Instant::now();
 
         // SS: clear scene
-        ctx.reset();
+        ctx.clear_framebuffer();
 
         // SS: render scene
         scene_object.render(&mut ctx, delta.as_secs_f32());

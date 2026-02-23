@@ -7,7 +7,6 @@ use crate::vertex::Vertex4;
 #[derive(Debug, Copy, Clone)]
 pub struct UnitCube {
     triangles: [Triangle; 6],
-    angle_per_second: f32,
 }
 
 impl UnitCube {
@@ -48,7 +47,6 @@ impl UnitCube {
                     Vertex4::new_vertex(-1f32, 1f32, -1f32),
                 ]),
             ],
-            angle_per_second: 90.0,
         }
     }
 }

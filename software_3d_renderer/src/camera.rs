@@ -1,8 +1,6 @@
 use crate::lin_alg::{cross_product, dot_product};
 use crate::matrix4::Matrix4;
-use crate::triangle::Triangle;
 use crate::vertex::Vertex4;
-use sfml::graphics::ShaderType::Vertex;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Camera {
