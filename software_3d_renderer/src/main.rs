@@ -15,14 +15,13 @@ use crate::camera::Camera;
 use crate::cube::UnitCube;
 use crate::matrix4::Matrix4;
 use crate::scene_object::SceneObject;
-use sfml::graphics::{
-    Color, Font, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable,
-};
+use sfml::graphics::{Color, Font, Image, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable};
 use sfml::system::{Vector2f, Vector2u};
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
 use std::f32::consts::PI;
 use std::time::{Duration, Instant};
+use image_texture::ImageTexture;
 
 fn main() {
     let mut window_width = 800;
@@ -72,6 +71,11 @@ fn main() {
 
     // SS: instantiate timing object
     let mut last_time = Instant::now();
+
+    // SS: load texture
+    let img = Image::from_file("assets/image.png")
+        .expect("Failed to load image");
+    let image_texture = ImageTexture::new(img.size().x, img.size().y, img.pixel_data());
 
     let cube = UnitCube::new();
     let mut scene_object = SceneObject::new(Box::new(cube));
