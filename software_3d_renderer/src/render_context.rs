@@ -15,15 +15,6 @@ pub struct RenderContext {
 
 impl RenderContext {
     pub fn new(width: u32, height: u32) -> Self {
-        // SS: create the transformation of the unit cube into screen space
-        let mut viewport_matrix = Matrix4::new();
-        viewport_matrix[0][0] = width as f32 / 2.0;
-        viewport_matrix[1][1] = height as f32 / 2.0;
-        viewport_matrix[2][2] = 1.0;
-        viewport_matrix[3][3] = 1.0;
-        viewport_matrix[0][3] = (width - 1) as f32 / 2.0;
-        viewport_matrix[1][3] = (height - 1) as f32 / 2.0;
-
         RenderContext {
             framebuffer: vec![0; (width * height * 4) as usize],
             width,
@@ -33,9 +24,16 @@ impl RenderContext {
                 Vertex4::new_vector(0.0, 0.0, -1.0),
                 Vertex4::new_vector(0.0, 1.0, 0.0),
             ),
-            viewport_matrix,
+            viewport_matrix: viewport_matrix(width, height),
             projection_matrix: Matrix4::identity(),
         }
+    }
+
+    pub fn resize(&mut self, width: u32, height: u32) {
+        self.width = width;
+        self.height = height;
+        self.framebuffer = vec![0; (width * height * 4) as usize];
+        self.viewport_matrix = viewport_matrix(width, height);
     }
 
     pub fn clear_framebuffer(&mut self) {
@@ -150,4 +148,15 @@ impl RenderContext {
             })
             .collect()
     }
+}
+
+fn viewport_matrix(width: u32, height: u32) -> Matrix4 {
+    let mut viewport_matrix = Matrix4::new();
+    viewport_matrix[0][0] = width as f32 / 2.0;
+    viewport_matrix[1][1] = height as f32 / 2.0;
+    viewport_matrix[2][2] = 1.0;
+    viewport_matrix[3][3] = 1.0;
+    viewport_matrix[0][3] = (width - 1) as f32 / 2.0;
+    viewport_matrix[1][3] = (height - 1) as f32 / 2.0;
+    viewport_matrix
 }

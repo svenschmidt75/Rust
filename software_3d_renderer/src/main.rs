@@ -1,21 +1,20 @@
 mod camera;
+mod color_texture;
 mod cube;
+mod image_texture;
 mod lin_alg;
 mod matrix4;
 mod render_context;
 mod renderable;
 mod scene_object;
+mod texture;
 mod triangle;
 mod vertex;
-mod texture;
-mod color_texture;
-mod image_texture;
 
 use crate::camera::Camera;
 use crate::cube::UnitCube;
 use crate::matrix4::Matrix4;
 use crate::scene_object::SceneObject;
-use crate::vertex::Vertex4;
 use sfml::graphics::{
     Color, Font, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable,
 };
@@ -25,13 +24,13 @@ use sfml::window::{ContextSettings, Event, Style, VideoMode};
 use std::f32::consts::PI;
 use std::time::{Duration, Instant};
 
-const WIDTH: u32 = 800;
-const HEIGHT: u32 = 600;
-
 fn main() {
+    let mut window_width = 800;
+    let mut window_height = 600;
+
     let settings = ContextSettings::default();
     let mut window = RenderWindow::new(
-        VideoMode::new(Vector2u::new(WIDTH, HEIGHT), 32),
+        VideoMode::new(Vector2u::new(window_width, window_height), 32),
         "Software 3D Renderer (SFML 3)",
         Style::DEFAULT,
         State::Windowed,
@@ -48,11 +47,11 @@ fn main() {
 
     // SS: create the texture object
     let mut texture = Texture::new().expect("Failed to create texture object");
-    if !texture.resize(Vector2u::new(WIDTH, HEIGHT), false) {
+    if !texture.resize(Vector2u::new(window_width, window_height), false) {
         panic!("Failed to allocate texture memory");
     }
 
-    let mut ctx = render_context::RenderContext::new(WIDTH, HEIGHT);
+    let mut ctx = render_context::RenderContext::new(window_width, window_height);
     // ctx.set_camera(Camera::new(
     //     Vertex4::new_vertex(0f32, 0f32, 1f32),
     //     Vertex4::new_vector(0f32, 0f32, -1f32),
@@ -60,7 +59,7 @@ fn main() {
     // ));
     ctx.set_camera(Camera::from_look_at(3.0, PI / 4.0, PI / 4.0));
 
-//    ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
+    //    ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
     ctx.perspective(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
 
     let mut timer: u8 = 0;
@@ -102,10 +101,30 @@ fn main() {
 
     // --- MAIN LOOP ---
     while window.is_open() {
-        while let Some(event) = window.poll_event() {
-            if let Event::Closed = event {
+        match window.poll_event() {
+            Some(Event::Closed) => {
                 window.close();
             }
+            Some(Event::Resized { size }) => {
+                window_width = size.x;
+                window_height = size.y;
+
+                // SS: update the view to match the new window size
+                let new_view = sfml::graphics::View::with_center_and_size(
+                    Vector2f::new(window_width as f32 / 2.0, window_height as f32 / 2.0),
+                    Vector2f::new(window_width as f32, window_height as f32),
+                );
+                window.set_view(&new_view);
+
+                // SS: reinit texture
+                if !texture.resize(size, false) {
+                    panic!("Failed to allocate texture memory");
+                }
+
+                // SS: reinit framebuffer
+                ctx.resize(window_width, window_height);
+            }
+            _ => {}
         }
 
         // --- SOFTWARE RENDERING PHASE ---
@@ -140,10 +159,7 @@ fn main() {
             let window_size = window.size();
             let text_bounds = fps_text.global_bounds();
             let x_pos = window_size.x as f32 - text_bounds.size.x - 20.0;
-
-            println!("{window_size:?} {text_bounds:?} {x_pos:?}");
-
-            let y_pos = 10.0; // Top margin
+            let y_pos = 10.0;
             fps_text.set_position(Vector2f::new(x_pos, y_pos));
 
             total_time = 0.0;
@@ -154,7 +170,7 @@ fn main() {
         // Update the pixels
         texture.update_from_pixels(
             &ctx.framebuffer,
-            Vector2u::new(WIDTH, HEIGHT),
+            Vector2u::new(window_width, window_height),
             Vector2u::new(0, 0),
         );
 
