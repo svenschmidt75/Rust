@@ -1,3 +1,5 @@
+use crate::color::Color;
+
 #[derive(Debug)]
 pub struct ImageTexture {
     width: u32,
@@ -12,5 +14,11 @@ impl ImageTexture {
             height,
             image_data: image_data.to_vec(),
         }
+    }
+
+    pub fn get_pixel(&self, u: f32, v: f32) -> Color {
+        assert!(u >= 0.0 && u <= 1.0);
+        assert!(v >= 0.0 && v <= 1.0);
+        Color::new(255, 0, 0, 255)
     }
 }

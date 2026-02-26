@@ -36,6 +36,11 @@ impl Renderable for Triangle {
         // (u,v), we have to divide by 1/w (which is 1/z). So we have to linearly interpolate 1/w
         // using barycentric coordinates and also u/w and v/w. This gives perspective correct
         // interpolation.
+        // The magic that makes this happen is the fact that 1/z is linear in screen space. To see
+        // this, we look at what the perspective projection does to the z component of a vertex:
+        // (f+n)/(n-f)*z + 2*f*n/(n-f) = z'
+        // After homogenization, i.e. the perspective divide with 1/w=1/z, we end up with
+        // (f+n)/(n-f) + 2*f*n/(n-f)*1/z = z'/z, which is linear in 1/z!
 
         // SS: apply transformations to triangle vertices
         let transformed_vertices = self.vertices.map(|t| transform * t.vertex);
@@ -85,6 +90,8 @@ impl Renderable for Triangle {
             .unwrap_or(f32::NEG_INFINITY)
             .ceil() as i32;
 
+        // SS: calculate barycentric coordinates
+
         // SS: start point on bounding box
         let p0 = [min_x as f32, min_y as f32];
 
@@ -98,6 +105,25 @@ impl Renderable for Triangle {
         let inv_area = 1.0 / area_doubled;
 
         // SS: vertex colors
+        let c0 = self.vertices[0].color;
+        let c1 = self.vertices[1].color;
+        let c2 = self.vertices[2].color;
+
+        // SS: interpolation for 1/z
+        let one_over_z0 = screen_vertices[0][2];
+        let one_over_z1 = screen_vertices[1][2];
+        let one_over_z2 = screen_vertices[2][2];
+
+        // SS: interpolation for (u/z, v/z)
+        let one_over_u0 = self.vertices[0].tex_coords[0];
+        let one_over_v0 = self.vertices[0].tex_coords[1];
+
+        let one_over_u1 = self.vertices[1].tex_coords[0];
+        let one_over_v1 = self.vertices[1].tex_coords[1];
+
+        let one_over_u2 = self.vertices[2].tex_coords[0];
+        let one_over_v2 = self.vertices[2].tex_coords[1];
+
         let c1 = match self.texture {
             TextureType::None => self.vertices[0].color,
             TextureType::Solid(color) => color,
@@ -116,7 +142,7 @@ impl Renderable for Triangle {
             TextureType::Image(id) => self.vertices[2].color,
         };
 
-//        let mut inv_w0 =
+        //        let mut inv_w0 =
 
         // SS: scan the entire triangle bounding box
         for y in min_y..max_y {
@@ -135,16 +161,26 @@ impl Renderable for Triangle {
                     let beta = w1 * inv_area;
                     let gamma = w2 * inv_area;
 
-                    // texture.get_color(alpha, beta, gamma);
+                    let cr = alpha * c1.r as f32 + beta * c1.g as f32 + gamma * c1.b as f32;
+                    let cg = alpha * c2.r as f32 + beta * c2.g as f32 + gamma * c2.b as f32;
+                    let cb = alpha * c3.r as f32 + beta * c3.g as f32 + gamma * c3.b as f32;
 
-                    let cx =
-                        alpha * c1.r as f32 + beta * c1.g as f32 + gamma * c1.b as f32;
-                    let cy =
-                        alpha * c2.r as f32 + beta * c2.g as f32 + gamma * c2.b as f32;
-                    let cz =
-                        alpha * c3.r as f32 + beta * c3.g as f32 + gamma * c3.b as f32;
+                    // SS: determine color
+                    let (r, g, b) = match self.texture {
+                        TextureType::None => {
+                            // SS: use interpolated vertex colors
+                            (cr, cg, cb)
+                        }
+                        TextureType::Solid(color) => {
+                            // SS: blend vertex colors with solid texture color
+                            ((color.r as f32 + cr) / 2.0, (color.g as f32 + cr) / 2.0, (color.b as f32 + cb) / 2.0)
+                        }
+                        TextureType::Image(id) => {
+                            (cr, cg, cb)
+                        },
+                    };
 
-                    ctx.set_pixel(x as u32, y as u32, cx as u8, cy as u8, cz as u8, 255);
+                    ctx.set_pixel(x as u32, y as u32, cr as u8, cg as u8, cb as u8, 255);
                 }
 
                 // SS: advance edge function values by x -> x + 1
