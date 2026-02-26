@@ -97,6 +97,7 @@ impl Renderable for Triangle {
         let area_doubled = w0_row + w1_row + w2_row;
         let inv_area = 1.0 / area_doubled;
 
+        // SS: vertex colors
         let c1 = match self.texture {
             TextureType::None => self.vertices[0].color,
             TextureType::Solid(color) => color,
@@ -114,6 +115,8 @@ impl Renderable for Triangle {
             TextureType::Solid(color) => color,
             TextureType::Image(id) => self.vertices[2].color,
         };
+
+//        let mut inv_w0 =
 
         // SS: scan the entire triangle bounding box
         for y in min_y..max_y {
@@ -158,7 +161,7 @@ impl Renderable for Triangle {
     }
 }
 
-fn edge_function(a: [f32; 2], b: [f32; 2], p: [f32; 2]) -> (f32, f32, f32) {
+fn edge_function(a: [f32; 3], b: [f32; 3], p: [f32; 2]) -> (f32, f32, f32) {
     /* Calculate E(p): Checks which side point p is on of edge (a, b).
      * Returns initial value of edge function and the changes of E when p is advanced
      * in x or y direction:

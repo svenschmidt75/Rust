@@ -11,6 +11,7 @@ mod vertex;
 mod texture_type;
 mod raster_vertex;
 mod color;
+mod texture_manager;
 
 use crate::camera::Camera;
 use crate::cube::UnitCube;
@@ -23,6 +24,7 @@ use sfml::window::{ContextSettings, Event, Style, VideoMode};
 use std::f32::consts::PI;
 use std::time::{Duration, Instant};
 use image_texture::ImageTexture;
+use crate::texture_manager::TextureManager;
 use crate::texture_type::TextureType;
 use crate::triangle::Triangle;
 use crate::vertex::Vertex4;
@@ -80,8 +82,9 @@ fn main() {
     let img = Image::from_file("assets/image.png")
         .expect("Failed to load image");
     let image_texture = ImageTexture::new(img.size().x, img.size().y, img.pixel_data());
+    let texture_id = ctx.texture_manager.add_texture(image_texture);
 
-    let cube = UnitCube::new();
+    let cube = UnitCube::new_with_image(texture_id);
     let mut scene_object = SceneObject::new(Box::new(cube));
 
     // SS: add rotation around world z-axis

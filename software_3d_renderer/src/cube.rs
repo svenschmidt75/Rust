@@ -141,6 +141,136 @@ impl UnitCube {
             ],
         }
     }
+
+    pub fn new_with_image(texture_id: u32) -> Self {
+        Self {
+            triangles: [
+                // SS: z = +1 face
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, -1f32, 1f32),
+                            Color::new(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, 1f32),
+                            Color::new(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, 1f32),
+                            Color::new(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::Image(texture_id),
+                ),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, 1f32),
+                            Color::new(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, 1f32),
+                            Color::new(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, 1f32),
+                            Color::new(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::Image(texture_id),
+                ),
+                // SS: x = +1 face
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, 1f32),
+                            Color::new(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, 1f32),
+                            Color::new(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, -1f32),
+                            Color::new(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::Image(texture_id),
+                ),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, 1f32),
+                            Color::new(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, -1f32),
+                            Color::new(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, -1f32),
+                            Color::new(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::Image(texture_id),
+                ),
+                // SS: y = +1 face
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, 1f32),
+                            Color::new(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, 1f32),
+                            Color::new(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, -1f32),
+                            Color::new(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::Image(texture_id),
+                ),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, 1f32),
+                            Color::new(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, -1f32),
+                            Color::new(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, -1f32),
+                            Color::new(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::Image(texture_id),
+                ),
+            ],
+        }
+    }
 }
 
 impl Renderable for UnitCube {

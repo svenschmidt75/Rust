@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct ImageTexture {
     width: u32,
     height: u32,
