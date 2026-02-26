@@ -1,5 +1,4 @@
 mod camera;
-mod color_texture;
 mod cube;
 mod image_texture;
 mod lin_alg;
@@ -7,9 +6,10 @@ mod matrix4;
 mod render_context;
 mod renderable;
 mod scene_object;
-mod texture;
 mod triangle;
 mod vertex;
+mod texture_type;
+mod raster_vertex;
 
 use crate::camera::Camera;
 use crate::cube::UnitCube;
@@ -22,6 +22,9 @@ use sfml::window::{ContextSettings, Event, Style, VideoMode};
 use std::f32::consts::PI;
 use std::time::{Duration, Instant};
 use image_texture::ImageTexture;
+use crate::texture_type::TextureType;
+use crate::triangle::Triangle;
+use crate::vertex::Vertex4;
 
 fn main() {
     let mut window_width = 800;

@@ -1,6 +1,8 @@
 use crate::matrix4::Matrix4;
+use crate::raster_vertex::RasterVertex;
 use crate::render_context::RenderContext;
 use crate::renderable::Renderable;
+use crate::texture_type::{Color, TextureType};
 use crate::triangle::Triangle;
 use crate::vertex::Vertex4;
 
@@ -14,38 +16,128 @@ impl UnitCube {
         Self {
             triangles: [
                 // SS: z = +1 face
-                Triangle::new([
-                    Vertex4::new_vertex(-1f32, -1f32, 1f32),
-                    Vertex4::new_vertex(1f32, -1f32, 1f32),
-                    Vertex4::new_vertex(-1f32, 1f32, 1f32),
-                ]),
-                Triangle::new([
-                    Vertex4::new_vertex(-1f32, 1f32, 1f32),
-                    Vertex4::new_vertex(1f32, -1f32, 1f32),
-                    Vertex4::new_vertex(1f32, 1f32, 1f32),
-                ]),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, -1f32, 1f32),
+                            Color(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, 1f32),
+                            Color(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, 1f32),
+                            Color(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::None,
+                ),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, 1f32),
+                            Color(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, 1f32),
+                            Color(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, 1f32),
+                            Color(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::None,
+                ),
                 // SS: x = +1 face
-                Triangle::new([
-                    Vertex4::new_vertex(1f32, 1f32, 1f32),
-                    Vertex4::new_vertex(1f32, -1f32, 1f32),
-                    Vertex4::new_vertex(1f32, 1f32, -1f32),
-                ]),
-                Triangle::new([
-                    Vertex4::new_vertex(1f32, -1f32, 1f32),
-                    Vertex4::new_vertex(1f32, -1f32, -1f32),
-                    Vertex4::new_vertex(1f32, 1f32, -1f32),
-                ]),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, 1f32),
+                            Color(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, 1f32),
+                            Color(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, -1f32),
+                            Color(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::None,
+                ),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, 1f32),
+                            Color(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, -1f32, -1f32),
+                            Color(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, -1f32),
+                            Color(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::None,
+                ),
                 // SS: y = +1 face
-                Triangle::new([
-                    Vertex4::new_vertex(-1f32, 1f32, 1f32),
-                    Vertex4::new_vertex(1f32, 1f32, 1f32),
-                    Vertex4::new_vertex(-1f32, 1f32, -1f32),
-                ]),
-                Triangle::new([
-                    Vertex4::new_vertex(1f32, 1f32, 1f32),
-                    Vertex4::new_vertex(1f32, 1f32, -1f32),
-                    Vertex4::new_vertex(-1f32, 1f32, -1f32),
-                ]),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, 1f32),
+                            Color(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, 1f32),
+                            Color(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, -1f32),
+                            Color(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::None,
+                ),
+                Triangle::new(
+                    [
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, 1f32),
+                            Color(255, 0, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(1f32, 1f32, -1f32),
+                            Color(0, 255, 0, 255),
+                            [0.0, 0.0],
+                        ),
+                        RasterVertex::new(
+                            Vertex4::new_vertex(-1f32, 1f32, -1f32),
+                            Color(0, 0, 255, 255),
+                            [0.0, 0.0],
+                        ),
+                    ],
+                    TextureType::None,
+                ),
             ],
         }
     }

@@ -1,20 +1,23 @@
 use crate::lin_alg::cross_product;
 use crate::matrix4::Matrix4;
+use crate::raster_vertex::RasterVertex;
 use crate::render_context::RenderContext;
 use crate::renderable::Renderable;
+use crate::texture_type::TextureType;
 use crate::vertex::Vertex4;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Triangle {
-    vertices: [Vertex4; 3],
+    vertices: [RasterVertex; 3],
+    texture: TextureType,
 }
 
 impl Triangle {
-    pub fn new(vertices: [Vertex4; 3]) -> Self {
+    pub fn new(vertices: [RasterVertex; 3], texture: TextureType) -> Self {
         // SS: Triangle vertices must be oriented. This is because when rasterizing the triangle,
         // we calculate signed areas w.r.t. to points inside the triangle. If they are not oriented,
         // rasterization will fail!
-        Triangle { vertices }
+        Triangle { vertices, texture }
     }
 }
 
@@ -26,11 +29,17 @@ impl Renderable for Triangle {
         // we calculate the signed area (edge_function) to check whether the point is inside
         // the triangle. We calculate barycentric coordinates for interpolation purposes
         // (color, texture, ...)
-
-        // assign colors to triangles
+        // Interpolation of linear properties like texture coordinates etc.: When we rasterize,
+        // we work in screen space. Say we want to texture a triangle with an image. Each vertex
+        // contains the texture coordinates (u,v) (0 <= u,v <= 1) on the image. We need to calculate
+        // (u,v) in the triangle coordinates. We cannot simply do so in screen space due to the
+        // perspective divide. The key is that we linearly interpolate u/w, v/w. Since we need
+        // (u,v), we have to divide by 1/w (which is 1/z). So we have to linearly interpolate 1/w
+        // using barycentric coordinates and also u/w and v/w. This gives perspective correct
+        // interpolation.
 
         // SS: apply transformations to triangle vertices
-        let transformed_vertices = self.vertices.map(|t| transform * t);
+        let transformed_vertices = self.vertices.map(|t| transform * t.vertex);
 
         // SS: do we transform the normal or do we recalculate the normal?
         let u1 = transformed_vertices[1] - transformed_vertices[0];
@@ -109,6 +118,8 @@ impl Renderable for Triangle {
                     let alpha = w0 * inv_area;
                     let beta = w1 * inv_area;
                     let gamma = w2 * inv_area;
+
+                    // texture.get_color(alpha, beta, gamma);
 
                     let cx =
                         alpha * red[0] as f32 + beta * green[0] as f32 + gamma * blue[0] as f32;
