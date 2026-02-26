@@ -21,7 +21,8 @@ use image_texture::ImageTexture;
 use sfml::graphics::{
     Color, Font, Image, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable,
 };
-use sfml::system::{Vector2f, Vector2u};
+use sfml::system::{Vector2f, Vector2i, Vector2u};
+use sfml::window::mouse::Button;
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
 use std::f32::consts::PI;
@@ -87,7 +88,7 @@ fn main() {
     // SS: add rotation around world z-axis
     let mut angle: f32 = 0.0;
     scene_object.add_transform(Box::new(move |delta| {
-        angle += delta * 0.75;
+        //        angle += delta * 0.75;
         let mut m = Matrix4::identity();
         m[0][0] = angle.cos();
         m[0][1] = -angle.sin();
@@ -108,6 +109,14 @@ fn main() {
     // }));
 
     // --- MAIN LOOP ---
+    let mut is_mouse_pressed = false;
+    let mut last_mouse_pos = Vector2i::new(0, 0);
+
+    // SS: spherical coordinates for the camera
+    let mut theta: f32 = PI / 4.0;
+    let mut phi: f32 = PI / 4.0;
+    let radius: f32 = 3.0;
+
     while window.is_open() {
         match window.poll_event() {
             Some(Event::Closed) => {
@@ -132,10 +141,42 @@ fn main() {
                 // SS: reinit framebuffer
                 ctx.resize(window_width, window_height);
             }
+            Some(Event::MouseButtonPressed {
+                button: Button::Left,
+                position,
+            }) => {
+                is_mouse_pressed = true;
+                last_mouse_pos = position;
+            }
+            Some(Event::MouseButtonReleased {
+                button: Button::Left,
+                ..
+            }) => {
+                is_mouse_pressed = false;
+            }
+            Some(Event::MouseMoved { position }) => {
+                if is_mouse_pressed {
+                    let delta_x = position.x - last_mouse_pos.x;
+                    let delta_y = position.y - last_mouse_pos.y;
+
+                    // SS: adjust sensitivity (lower = slower rotation)
+                    let sensitivity = 0.005;
+                    theta -= delta_x as f32 * sensitivity;
+                    phi += delta_y as f32 * sensitivity;
+
+                    // SS: constrain Phi to (eps, PI - eps) so the camera doesn't flip upside down at the poles
+                    let epsilon = 0.1;
+                    phi = phi.clamp(epsilon, PI - epsilon);
+
+                    last_mouse_pos = position;
+                }
+            }
             _ => {}
         }
 
         // --- SOFTWARE RENDERING PHASE ---
+        ctx.set_camera(Camera::from_look_at(radius, theta, phi));
+
         timer = timer.wrapping_add(1);
 
         // SS: capture time it takes to render the frame
