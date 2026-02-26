@@ -20,17 +20,17 @@ impl UnitCube {
                     [
                         RasterVertex::new(
                             Vertex4::new_vertex(-1f32, -1f32, 1f32),
-                            Color(255, 0, 0, 255),
+                            Color::new(255, 0, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, 1f32),
-                            Color(0, 255, 0, 255),
+                            Color::new(0, 255, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(-1f32, 1f32, 1f32),
-                            Color(0, 0, 255, 255),
+                            Color::new(0, 0, 255, 255),
                             [0.0, 0.0],
                         ),
                     ],
@@ -40,17 +40,17 @@ impl UnitCube {
                     [
                         RasterVertex::new(
                             Vertex4::new_vertex(-1f32, 1f32, 1f32),
-                            Color(255, 0, 0, 255),
+                            Color::new(255, 0, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, 1f32),
-                            Color(0, 255, 0, 255),
+                            Color::new(0, 255, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, 1f32),
-                            Color(0, 0, 255, 255),
+                            Color::new(0, 0, 255, 255),
                             [0.0, 0.0],
                         ),
                     ],
@@ -61,17 +61,17 @@ impl UnitCube {
                     [
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, 1f32),
-                            Color(255, 0, 0, 255),
+                            Color::new(255, 0, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, 1f32),
-                            Color(0, 255, 0, 255),
+                            Color::new(0, 255, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, -1f32),
-                            Color(0, 0, 255, 255),
+                            Color::new(0, 0, 255, 255),
                             [0.0, 0.0],
                         ),
                     ],
@@ -81,17 +81,17 @@ impl UnitCube {
                     [
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, 1f32),
-                            Color(255, 0, 0, 255),
+                            Color::new(255, 0, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, -1f32),
-                            Color(0, 255, 0, 255),
+                            Color::new(0, 255, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, -1f32),
-                            Color(0, 0, 255, 255),
+                            Color::new(0, 0, 255, 255),
                             [0.0, 0.0],
                         ),
                     ],
@@ -102,17 +102,17 @@ impl UnitCube {
                     [
                         RasterVertex::new(
                             Vertex4::new_vertex(-1f32, 1f32, 1f32),
-                            Color(255, 0, 0, 255),
+                            Color::new(255, 0, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, 1f32),
-                            Color(0, 255, 0, 255),
+                            Color::new(0, 255, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(-1f32, 1f32, -1f32),
-                            Color(0, 0, 255, 255),
+                            Color::new(0, 0, 255, 255),
                             [0.0, 0.0],
                         ),
                     ],
@@ -122,17 +122,17 @@ impl UnitCube {
                     [
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, 1f32),
-                            Color(255, 0, 0, 255),
+                            Color::new(255, 0, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, -1f32),
-                            Color(0, 255, 0, 255),
+                            Color::new(0, 255, 0, 255),
                             [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(-1f32, 1f32, -1f32),
-                            Color(0, 0, 255, 255),
+                            Color::new(0, 0, 255, 255),
                             [0.0, 0.0],
                         ),
                     ],

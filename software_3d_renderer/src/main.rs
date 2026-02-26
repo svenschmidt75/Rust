@@ -10,6 +10,7 @@ mod triangle;
 mod vertex;
 mod texture_type;
 mod raster_vertex;
+mod color;
 
 use crate::camera::Camera;
 use crate::cube::UnitCube;

@@ -4,7 +4,6 @@ use crate::raster_vertex::RasterVertex;
 use crate::render_context::RenderContext;
 use crate::renderable::Renderable;
 use crate::texture_type::TextureType;
-use crate::vertex::Vertex4;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Triangle {
@@ -98,9 +97,23 @@ impl Renderable for Triangle {
         let area_doubled = w0_row + w1_row + w2_row;
         let inv_area = 1.0 / area_doubled;
 
-        let red = [255, 0, 0];
-        let green = [0, 255, 0];
-        let blue = [0, 0, 255];
+        let c1 = match self.texture {
+            TextureType::None => self.vertices[0].color,
+            TextureType::Solid(color) => color,
+            TextureType::Image(id) => self.vertices[0].color,
+        };
+
+        let c2 = match self.texture {
+            TextureType::None => self.vertices[1].color,
+            TextureType::Solid(color) => color,
+            TextureType::Image(id) => self.vertices[1].color,
+        };
+
+        let c3 = match self.texture {
+            TextureType::None => self.vertices[2].color,
+            TextureType::Solid(color) => color,
+            TextureType::Image(id) => self.vertices[2].color,
+        };
 
         // SS: scan the entire triangle bounding box
         for y in min_y..max_y {
@@ -122,11 +135,11 @@ impl Renderable for Triangle {
                     // texture.get_color(alpha, beta, gamma);
 
                     let cx =
-                        alpha * red[0] as f32 + beta * green[0] as f32 + gamma * blue[0] as f32;
+                        alpha * c1.r as f32 + beta * c1.g as f32 + gamma * c1.b as f32;
                     let cy =
-                        alpha * red[1] as f32 + beta * green[1] as f32 + gamma * blue[1] as f32;
+                        alpha * c2.r as f32 + beta * c2.g as f32 + gamma * c2.b as f32;
                     let cz =
-                        alpha * red[2] as f32 + beta * green[2] as f32 + gamma * blue[2] as f32;
+                        alpha * c3.r as f32 + beta * c3.g as f32 + gamma * c3.b as f32;
 
                     ctx.set_pixel(x as u32, y as u32, cx as u8, cy as u8, cz as u8, 255);
                 }

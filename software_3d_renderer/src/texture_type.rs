@@ -1,5 +1,4 @@
-#[derive(Debug, Copy, Clone)]
-pub struct Color(pub u8, pub u8, pub u8, pub u8);
+pub(crate) use crate::color::Color;
 
 #[derive(Debug, Copy, Clone)]
 pub enum TextureType {
