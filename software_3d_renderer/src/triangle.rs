@@ -147,10 +147,10 @@ impl Renderable for Triangle {
                     let cb = alpha * c0.b as f32 + beta * c1.b as f32 + gamma * c2.b as f32;
 
                     // SS: determine color
-                    let (r, g, b) = match self.texture {
+                    let (r, g, b, a) = match self.texture {
                         TextureType::None => {
                             // SS: use interpolated vertex colors
-                            (cr, cg, cb)
+                            (cr, cg, cb, 255)
                         }
                         TextureType::Solid(color) => {
                             // SS: blend vertex colors with solid texture color
@@ -158,6 +158,7 @@ impl Renderable for Triangle {
                                 (color.r as f32 + cr) / 2.0,
                                 (color.g as f32 + cg) / 2.0,
                                 (color.b as f32 + cb) / 2.0,
+                                255,
                             )
                         }
                         TextureType::Image(id) => {
@@ -178,11 +179,12 @@ impl Renderable for Triangle {
                                 (cr + r as f32) / 2.0,
                                 (cg + g as f32) / 2.0,
                                 (cb + b as f32) / 2.0,
+                                a
                             )
                         }
                     };
 
-                    ctx.set_pixel(x as u32, y as u32, r as u8, g as u8, b as u8, 255);
+                    ctx.set_pixel(x as u32, y as u32, r as u8, g as u8, b as u8, a as u8);
                 }
 
                 // SS: advance edge function values by x -> x + 1
