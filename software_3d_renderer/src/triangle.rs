@@ -1,3 +1,4 @@
+use crate::color::Color;
 use crate::lin_alg::cross_product;
 use crate::matrix4::Matrix4;
 use crate::raster_vertex::RasterVertex;
@@ -124,26 +125,6 @@ impl Renderable for Triangle {
         let one_over_u2 = self.vertices[2].tex_coords[0];
         let one_over_v2 = self.vertices[2].tex_coords[1];
 
-        let c1 = match self.texture {
-            TextureType::None => self.vertices[0].color,
-            TextureType::Solid(color) => color,
-            TextureType::Image(id) => self.vertices[0].color,
-        };
-
-        let c2 = match self.texture {
-            TextureType::None => self.vertices[1].color,
-            TextureType::Solid(color) => color,
-            TextureType::Image(id) => self.vertices[1].color,
-        };
-
-        let c3 = match self.texture {
-            TextureType::None => self.vertices[2].color,
-            TextureType::Solid(color) => color,
-            TextureType::Image(id) => self.vertices[2].color,
-        };
-
-        //        let mut inv_w0 =
-
         // SS: scan the entire triangle bounding box
         for y in min_y..max_y {
             // SS: current edge function values for row
@@ -161,9 +142,9 @@ impl Renderable for Triangle {
                     let beta = w1 * inv_area;
                     let gamma = w2 * inv_area;
 
-                    let cr = alpha * c1.r as f32 + beta * c1.g as f32 + gamma * c1.b as f32;
-                    let cg = alpha * c2.r as f32 + beta * c2.g as f32 + gamma * c2.b as f32;
-                    let cb = alpha * c3.r as f32 + beta * c3.g as f32 + gamma * c3.b as f32;
+                    let cr = alpha * c0.r as f32 + beta * c0.g as f32 + gamma * c0.b as f32;
+                    let cg = alpha * c1.r as f32 + beta * c1.g as f32 + gamma * c1.b as f32;
+                    let cb = alpha * c2.r as f32 + beta * c2.g as f32 + gamma * c2.b as f32;
 
                     // SS: determine color
                     let (r, g, b) = match self.texture {
@@ -173,14 +154,38 @@ impl Renderable for Triangle {
                         }
                         TextureType::Solid(color) => {
                             // SS: blend vertex colors with solid texture color
-                            ((color.r as f32 + cr) / 2.0, (color.g as f32 + cr) / 2.0, (color.b as f32 + cb) / 2.0)
+                            (
+                                (color.r as f32 + cr) / 2.0,
+                                (color.g as f32 + cr) / 2.0,
+                                (color.b as f32 + cb) / 2.0,
+                            )
                         }
                         TextureType::Image(id) => {
-                            (cr, cg, cb)
-                        },
+                            let one_over_u = alpha * one_over_u0 / one_over_z0
+                                + beta * one_over_u1 / one_over_z1
+                                + gamma * one_over_u2 / one_over_z2;
+                            let one_over_v = alpha * one_over_v0 / one_over_z0
+                                + beta * one_over_v1 / one_over_z1
+                                + gamma * one_over_v2 / one_over_z2;
+                            let one_over_z = alpha * one_over_z0 / one_over_z0
+                                + beta * one_over_z1 / one_over_z1
+                                + gamma * one_over_z2 / one_over_z2;
+                            let (u, v) = (one_over_u / one_over_z, one_over_v / one_over_z);
+
+                            // SS: texture lookup
+                            let image_texture = ctx.texture_manager.get_texture(id);
+                            let Color { r, g, b, a } = image_texture.get_pixel(u, v);
+
+                            // SS: blend texture color with vertex color
+                            (
+                                (cr + r as f32) / 2.0,
+                                (cg + g as f32) / 2.0,
+                                (cb + b as f32) / 2.0,
+                            )
+                        }
                     };
 
-                    ctx.set_pixel(x as u32, y as u32, cr as u8, cg as u8, cb as u8, 255);
+                    ctx.set_pixel(x as u32, y as u32, r as u8, g as u8, b as u8, 255);
                 }
 
                 // SS: advance edge function values by x -> x + 1

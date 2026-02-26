@@ -16,4 +16,9 @@ impl TextureManager {
         self.textures.push(texture);
         (self.textures.len() - 1) as u32
     }
+
+    pub fn get_texture(&self, texture_id: u32) -> &ImageTexture {
+        &self.textures[texture_id as usize]
+    }
+
 }

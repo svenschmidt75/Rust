@@ -156,12 +156,12 @@ impl UnitCube {
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, 1f32),
                             Color::new(0, 255, 0, 255),
-                            [0.0, 0.0],
+                            [1.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(-1f32, 1f32, 1f32),
                             Color::new(0, 0, 255, 255),
-                            [0.0, 0.0],
+                            [0.0, 1.0],
                         ),
                     ],
                     TextureType::Image(texture_id),
@@ -184,7 +184,8 @@ impl UnitCube {
                             [0.0, 0.0],
                         ),
                     ],
-                    TextureType::Image(texture_id),
+//                    TextureType::Image(texture_id),
+                    TextureType::None,
                 ),
                 // SS: x = +1 face
                 Triangle::new(
@@ -205,7 +206,8 @@ impl UnitCube {
                             [0.0, 0.0],
                         ),
                     ],
-                    TextureType::Image(texture_id),
+                    //                    TextureType::Image(texture_id),
+                    TextureType::None,
                 ),
                 Triangle::new(
                     [
@@ -225,7 +227,8 @@ impl UnitCube {
                             [0.0, 0.0],
                         ),
                     ],
-                    TextureType::Image(texture_id),
+                    //                    TextureType::Image(texture_id),
+                    TextureType::None,
                 ),
                 // SS: y = +1 face
                 Triangle::new(
@@ -246,7 +249,8 @@ impl UnitCube {
                             [0.0, 0.0],
                         ),
                     ],
-                    TextureType::Image(texture_id),
+                    //                    TextureType::Image(texture_id),
+                    TextureType::None,
                 ),
                 Triangle::new(
                     [
@@ -266,7 +270,8 @@ impl UnitCube {
                             [0.0, 0.0],
                         ),
                     ],
-                    TextureType::Image(texture_id),
+                    //                    TextureType::Image(texture_id),
+                    TextureType::None,
                 ),
             ],
         }
