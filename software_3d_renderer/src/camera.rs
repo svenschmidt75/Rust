@@ -1,6 +1,6 @@
 use crate::lin_alg::{cross_product, dot_product};
 use crate::matrix4::Matrix4;
-use crate::vertex::Vertex4;
+use crate::vertex4::Vertex4;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Camera {

@@ -1,33 +1,31 @@
 mod camera;
+mod color;
 mod cube;
 mod image_texture;
 mod lin_alg;
 mod matrix4;
+mod raster_vertex;
 mod render_context;
 mod renderable;
 mod scene_object;
-mod triangle;
-mod vertex;
-mod texture_type;
-mod raster_vertex;
-mod color;
 mod texture_manager;
+mod texture_type;
+mod triangle;
+mod vertex4;
 
 use crate::camera::Camera;
 use crate::cube::UnitCube;
 use crate::matrix4::Matrix4;
 use crate::scene_object::SceneObject;
-use sfml::graphics::{Color, Font, Image, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable};
+use image_texture::ImageTexture;
+use sfml::graphics::{
+    Color, Font, Image, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable,
+};
 use sfml::system::{Vector2f, Vector2u};
 use sfml::window::window_enums::State;
 use sfml::window::{ContextSettings, Event, Style, VideoMode};
 use std::f32::consts::PI;
 use std::time::{Duration, Instant};
-use image_texture::ImageTexture;
-use crate::texture_manager::TextureManager;
-use crate::texture_type::TextureType;
-use crate::triangle::Triangle;
-use crate::vertex::Vertex4;
 
 fn main() {
     let mut window_width = 800;
@@ -79,8 +77,7 @@ fn main() {
     let mut last_time = Instant::now();
 
     // SS: load texture
-    let img = Image::from_file("assets/image.png")
-        .expect("Failed to load image");
+    let img = Image::from_file("assets/image.png").expect("Failed to load image");
     let image_texture = ImageTexture::new(img.size().x, img.size().y, img.pixel_data());
     let texture_id = ctx.texture_manager.add_texture(image_texture);
 

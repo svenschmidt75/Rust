@@ -1,4 +1,4 @@
-use std::ops::{Index, Neg, Sub};
+use std::ops::{Index, IndexMut, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vertex4 {
@@ -51,6 +51,18 @@ impl Index<usize> for Vertex4 {
             1 => &self.position[1],
             2 => &self.position[2],
             3 => &self.position[3],
+            _ => panic!("Index out of bounds! Must be within 0 and 3."),
+        }
+    }
+}
+
+impl IndexMut<usize> for Vertex4 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.position[0],
+            1 => &mut self.position[1],
+            2 => &mut self.position[2],
+            3 => &mut self.position[3],
             _ => panic!("Index out of bounds! Must be within 0 and 3."),
         }
     }

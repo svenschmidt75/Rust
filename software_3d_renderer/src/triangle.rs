@@ -111,19 +111,19 @@ impl Renderable for Triangle {
         let c2 = self.vertices[2].color;
 
         // SS: interpolation for 1/z
-        let one_over_z0 = screen_vertices[0][2];
-        let one_over_z1 = screen_vertices[1][2];
-        let one_over_z2 = screen_vertices[2][2];
+        let one_over_z0 = 1.0 / screen_vertices[0][3];
+        let one_over_z1 = 1.0 / screen_vertices[1][3];
+        let one_over_z2 = 1.0 / screen_vertices[2][3];
 
         // SS: interpolation for (u/z, v/z)
-        let one_over_u0 = self.vertices[0].tex_coords[0];
-        let one_over_v0 = self.vertices[0].tex_coords[1];
+        let one_over_u0 = self.vertices[0].tex_coords[0] * one_over_z0;
+        let one_over_v0 = self.vertices[0].tex_coords[1] * one_over_z0;
 
-        let one_over_u1 = self.vertices[1].tex_coords[0];
-        let one_over_v1 = self.vertices[1].tex_coords[1];
+        let one_over_u1 = self.vertices[1].tex_coords[0] * one_over_z1;
+        let one_over_v1 = self.vertices[1].tex_coords[1] * one_over_z1;
 
-        let one_over_u2 = self.vertices[2].tex_coords[0];
-        let one_over_v2 = self.vertices[2].tex_coords[1];
+        let one_over_u2 = self.vertices[2].tex_coords[0] * one_over_z2;
+        let one_over_v2 = self.vertices[2].tex_coords[1] * one_over_z2;
 
         // SS: scan the entire triangle bounding box
         for y in min_y..max_y {
@@ -142,9 +142,9 @@ impl Renderable for Triangle {
                     let beta = w1 * inv_area;
                     let gamma = w2 * inv_area;
 
-                    let cr = alpha * c0.r as f32 + beta * c0.g as f32 + gamma * c0.b as f32;
-                    let cg = alpha * c1.r as f32 + beta * c1.g as f32 + gamma * c1.b as f32;
-                    let cb = alpha * c2.r as f32 + beta * c2.g as f32 + gamma * c2.b as f32;
+                    let cr = alpha * c0.r as f32 + beta * c1.r as f32 + gamma * c2.r as f32;
+                    let cg = alpha * c0.g as f32 + beta * c1.g as f32 + gamma * c2.g as f32;
+                    let cb = alpha * c0.b as f32 + beta * c1.b as f32 + gamma * c2.b as f32;
 
                     // SS: determine color
                     let (r, g, b) = match self.texture {
@@ -156,20 +156,17 @@ impl Renderable for Triangle {
                             // SS: blend vertex colors with solid texture color
                             (
                                 (color.r as f32 + cr) / 2.0,
-                                (color.g as f32 + cr) / 2.0,
+                                (color.g as f32 + cg) / 2.0,
                                 (color.b as f32 + cb) / 2.0,
                             )
                         }
                         TextureType::Image(id) => {
-                            let one_over_u = alpha * one_over_u0 / one_over_z0
-                                + beta * one_over_u1 / one_over_z1
-                                + gamma * one_over_u2 / one_over_z2;
-                            let one_over_v = alpha * one_over_v0 / one_over_z0
-                                + beta * one_over_v1 / one_over_z1
-                                + gamma * one_over_v2 / one_over_z2;
-                            let one_over_z = alpha * one_over_z0 / one_over_z0
-                                + beta * one_over_z1 / one_over_z1
-                                + gamma * one_over_z2 / one_over_z2;
+                            let one_over_u =
+                                alpha * one_over_u0 + beta * one_over_u1 + gamma * one_over_u2;
+                            let one_over_v =
+                                alpha * one_over_v0 + beta * one_over_v1 + gamma * one_over_v2;
+                            let one_over_z =
+                                alpha * one_over_z0 + beta * one_over_z1 + gamma * one_over_z2;
                             let (u, v) = (one_over_u / one_over_z, one_over_v / one_over_z);
 
                             // SS: texture lookup
@@ -202,7 +199,7 @@ impl Renderable for Triangle {
     }
 }
 
-fn edge_function(a: [f32; 3], b: [f32; 3], p: [f32; 2]) -> (f32, f32, f32) {
+fn edge_function(a: [f32; 4], b: [f32; 4], p: [f32; 2]) -> (f32, f32, f32) {
     /* Calculate E(p): Checks which side point p is on of edge (a, b).
      * Returns initial value of edge function and the changes of E when p is advanced
      * in x or y direction:

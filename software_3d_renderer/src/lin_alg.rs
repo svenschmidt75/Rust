@@ -1,4 +1,4 @@
-use crate::vertex::Vertex4;
+use crate::vertex4::Vertex4;
 
 pub fn dot_product(v1: Vertex4, v2: Vertex4) -> f32 {
     // SS: the dot product in only defined for vectors, so

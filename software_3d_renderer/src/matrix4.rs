@@ -1,4 +1,4 @@
-use crate::vertex::Vertex4;
+use crate::vertex4::Vertex4;
 use std::ops::{Index, IndexMut, Mul};
 
 #[derive(Debug, Clone, Copy)]

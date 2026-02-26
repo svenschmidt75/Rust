@@ -16,34 +16,30 @@ impl ImageTexture {
         }
     }
 
-    pub fn get_pixel(&self, mut u: f32, mut v: f32) -> Color {
-        // assert!(u >= 0.0 && u <= 1.0);
-        // assert!(v >= 0.0 && v <= 1.0);
-        if u < 0.0 {
-            u = 0.0;
-        } else if u > 1.0 {
-            u = 1.0;
-        }
-
-        if v < 0.0 {
-            v = 0.0;
-        } else if v > 1.0 {
-            v = 1.0;
-        }
+    pub fn get_pixel(&self, u: f32, v: f32) -> Color {
+        let u = u.clamp(0.0, 1.0);
+        let v = 1.0 - v.clamp(0.0, 1.0);
 
         // SS: convert texture coordinates (u, v) to image coordinates (x, y)
-        let ix = u * (self.width as f32 - 1.0);
-        let iy = v * (self.height as f32 - 1.0);
+        let x = (u * (self.width as f32 - 1.0)).round() as usize;
+        let mut y = (v * (self.height as f32 - 1.0)).round() as usize;
 
         // SS: texture origin is bottom-left, image origin is top-left
-        let iy = (self.height - 1) as f32 - iy;
+        y = (self.height as usize - 1) - y;
 
-        let image_offset = (ix + (self.height as f32) * iy) as usize;
-        let (r, g, b) = (
-            self.image_data[image_offset],
-            self.image_data[image_offset + 1],
-            self.image_data[image_offset + 2],
-        );
-        Color::new(r, g, b, 255)
+        let pixel_index = y * self.width as usize + x;
+        let byte_offset = pixel_index * 4;
+
+        // SS: bounds check just in case of float precision edge cases
+        if byte_offset + 2 < self.image_data.len() {
+            let r = self.image_data[byte_offset];
+            let g = self.image_data[byte_offset + 1];
+            let b = self.image_data[byte_offset + 2];
+            let a = self.image_data[byte_offset + 3];
+            Color::new(r, g, b, a)
+        } else {
+            // SS: magenta error color
+            Color::new(255, 0, 255, 255)
+        }
     }
 }

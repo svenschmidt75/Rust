@@ -1,5 +1,5 @@
 use crate::texture_type::Color;
-use crate::vertex::Vertex4;
+use crate::vertex4::Vertex4;
 
 #[derive(Debug, Clone, Copy)]
 pub struct RasterVertex {

@@ -1,8 +1,8 @@
 use crate::camera::Camera;
 use crate::matrix4::Matrix4;
 use crate::texture_manager::TextureManager;
-use crate::vertex;
-use crate::vertex::Vertex4;
+use crate::vertex4;
+use crate::vertex4::Vertex4;
 
 #[derive(Debug)]
 pub struct RenderContext {
@@ -117,7 +117,7 @@ impl RenderContext {
         self.framebuffer[idx2 + 3] = a;
     }
 
-    pub fn world_to_screen(&self, world_vertices: &[vertex::Vertex4]) -> Vec<[f32; 3]> {
+    pub fn world_to_screen(&self, world_vertices: &[vertex4::Vertex4]) -> Vec<[f32; 4]> {
         // SS: transform world to camera space
         world_vertices
             .iter()
@@ -136,7 +136,8 @@ impl RenderContext {
                 let ndc = Vertex4::new_vertex(x / w, y / w, z / w);
 
                 // SS: map to viewport (pixels on screen)
-                let viewport_space_vertex = self.viewport_matrix * ndc;
+                let mut viewport_space_vertex = self.viewport_matrix * ndc;
+                viewport_space_vertex[3] = w;
                 viewport_space_vertex
             })
             .map(|v| {
@@ -145,9 +146,7 @@ impl RenderContext {
                 // (- width / 2, - height / 2) -- (width / 2, - height / 2),
                 // but we need to return render window coordinates with origin
                 // in the top-left corner.
-                let screen_x = v[0];
-                let screen_y = self.height as f32 - v[1];
-                [screen_x, screen_y, v[2]]
+                [v[0], (self.height as f32 - 1.0) - v[1], v[2], v[3]]
             })
             .collect()
     }
