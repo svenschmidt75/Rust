@@ -59,7 +59,7 @@ fn main() {
 
     // SS: position camera
     let mut theta: f32 = 0.0;
-    let mut phi: f32 = - PI / 4.0;
+    let mut phi: f32 = PI / 2.0 - 10.0;
     let radius: f32 = 3.0;
     ctx.set_camera(Camera::from_look_at(radius, theta, phi));
 
@@ -155,14 +155,16 @@ fn main() {
                     let delta_x = position.x - last_mouse_pos.x;
                     let delta_y = position.y - last_mouse_pos.y;
 
+                    println!("delta_x: {}, delta_y: {}", delta_x, delta_y);
+
                     // SS: adjust sensitivity (lower = slower rotation)
                     let sensitivity = 0.005;
                     theta -= delta_x as f32 * sensitivity;
                     phi += delta_y as f32 * sensitivity;
 
-                    // SS: constrain Phi to (eps, PI - eps) so the camera doesn't flip upside down at the poles
+                    // SS: constrain Phi to (PI/2 - eps, -PI/2 + eps) so the camera doesn't flip upside down at the poles
                     let epsilon = 0.1;
-                    phi = phi.clamp(epsilon, PI - epsilon);
+                    phi = phi.clamp(-PI / 2.0 + epsilon, PI / 2.0 - epsilon);
 
                     last_mouse_pos = position;
                 }
