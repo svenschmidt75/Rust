@@ -25,7 +25,7 @@ impl ImageTexture {
         let mut y = (v * (self.height as f32 - 1.0)).round() as usize;
 
         // SS: texture origin is bottom-left, image origin is top-left
-        y = (self.height as usize - 1) - y;
+//        y = (self.height as usize - 1) - y;
 
         let pixel_index = y * self.width as usize + x;
         let byte_offset = pixel_index * 4;

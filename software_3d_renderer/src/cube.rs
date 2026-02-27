@@ -192,17 +192,17 @@ impl UnitCube {
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, 1f32),
                             Color::new(0, 0, 0, 255),
-                            [0.0, 0.0],
+                            [0.0, 1.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, 1f32),
                             Color::new(0, 0, 0, 255),
-                            [1.0, 0.0],
+                            [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, -1f32),
                             Color::new(0, 0, 0, 255),
-                            [0.0, 1.0],
+                            [1.0, 1.0],
                         ),
                     ],
                     TextureType::Image(texture_id),
@@ -212,17 +212,17 @@ impl UnitCube {
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, 1f32),
                             Color::new(0, 0, 0, 255),
-                            [1.0, 0.0],
+                            [0.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, -1f32, -1f32),
                             Color::new(0, 0, 0, 255),
-                            [1.0, 1.0],
+                            [1.0, 0.0],
                         ),
                         RasterVertex::new(
                             Vertex4::new_vertex(1f32, 1f32, -1f32),
                             Color::new(0, 0, 0, 255),
-                            [0.0, 1.0],
+                            [1.0, 1.0],
                         ),
                     ],
                     TextureType::Image(texture_id),

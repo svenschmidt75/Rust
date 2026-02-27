@@ -56,12 +56,12 @@ fn main() {
     }
 
     let mut ctx = render_context::RenderContext::new(window_width, window_height);
-    // ctx.set_camera(Camera::new(
-    //     Vertex4::new_vertex(0f32, 0f32, 1f32),
-    //     Vertex4::new_vector(0f32, 0f32, -1f32),
-    //     Vertex4::new_vector(0f32, 1f32, 0f32),
-    // ));
-    ctx.set_camera(Camera::from_look_at(3.0, PI / 4.0, PI / 4.0));
+
+    // SS: position camera
+    let mut theta: f32 = 0.0;
+    let mut phi: f32 = 0.0;
+    let radius: f32 = 3.0;
+    ctx.set_camera(Camera::from_look_at(radius, theta, phi));
 
     //    ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
     ctx.perspective(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
@@ -113,10 +113,6 @@ fn main() {
     let mut last_mouse_pos = Vector2i::new(0, 0);
 
     // SS: spherical coordinates for the camera
-    let mut theta: f32 = PI / 4.0;
-    let mut phi: f32 = PI / 4.0;
-    let radius: f32 = 3.0;
-
     while window.is_open() {
         match window.poll_event() {
             Some(Event::Closed) => {
