@@ -59,7 +59,7 @@ fn main() {
 
     // SS: position camera
     let mut theta: f32 = 0.0;
-    let mut phi: f32 = PI / 2.0 - 10.0;
+    let mut phi: f32 = 0.0;
     let radius: f32 = 3.0;
     ctx.set_camera(Camera::from_look_at(radius, theta, phi));
 
@@ -154,8 +154,6 @@ fn main() {
                 if is_mouse_pressed {
                     let delta_x = position.x - last_mouse_pos.x;
                     let delta_y = position.y - last_mouse_pos.y;
-
-                    println!("delta_x: {}, delta_y: {}", delta_x, delta_y);
 
                     // SS: adjust sensitivity (lower = slower rotation)
                     let sensitivity = 0.005;
