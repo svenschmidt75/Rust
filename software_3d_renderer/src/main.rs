@@ -12,11 +12,15 @@ mod texture_manager;
 mod texture_type;
 mod triangle;
 mod vertex4;
+mod obj_mesh_loader;
+mod teapot;
 
 use crate::camera::Camera;
 use crate::cube::UnitCube;
 use crate::matrix4::Matrix4;
+use crate::render_context::RenderContext;
 use crate::scene_object::SceneObject;
+use crate::teapot::Teapot;
 use image_texture::ImageTexture;
 use sfml::graphics::{
     Color, Font, Image, RenderTarget, RenderWindow, Sprite, Text, Texture, Transformable,
@@ -60,11 +64,11 @@ fn main() {
     // SS: position camera
     let mut theta: f32 = 0.0;
     let mut phi: f32 = 0.0;
-    let radius: f32 = 3.0;
+    let radius: f32 = 7.0;
     ctx.set_camera(Camera::from_look_at(radius, theta, phi));
 
     //    ctx.orthographic(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
-    ctx.perspective(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
+    ctx.perspective(-5.0, 5.0, -5.0, 5.0, -5.0, 5.0);
 
     let mut timer: u8 = 0;
     let mut frame_count = 0;
@@ -77,36 +81,9 @@ fn main() {
     // SS: instantiate timing object
     let mut last_time = Instant::now();
 
-    // SS: load texture
-    let img = Image::from_file("assets/image.png").expect("Failed to load image");
-    let image_texture = ImageTexture::new(img.size().x, img.size().y, img.pixel_data());
-    let texture_id = ctx.texture_manager.add_texture(image_texture);
-
-    let cube = UnitCube::new_with_image(texture_id);
-    let mut scene_object = SceneObject::new(Box::new(cube));
-
-    // SS: add rotation around world z-axis
-    let mut angle: f32 = 0.0;
-    scene_object.add_transform(Box::new(move |delta| {
-        //        angle += delta * 0.75;
-        let mut m = Matrix4::identity();
-        m[0][0] = angle.cos();
-        m[0][1] = -angle.sin();
-        m[1][0] = angle.sin();
-        m[1][1] = angle.cos();
-        m
-    }));
-
-    // let mut angle2 = 0.0;
-    // scene_object.add_transform(Box::new(move |delta| {
-    //     angle2 += delta * 1.05;
-    //     let mut m = Matrix4::identity();
-    //     m[1][1] = angle2.cos();
-    //     m[1][2] = -angle2.sin();
-    //     m[2][1] = angle2.sin();
-    //     m[2][2] = angle2.cos();
-    //     m
-    // }));
+    // SS: create scene objects
+//    let mut scene_object = initialize_scene_with_cube(&mut ctx);
+    let mut scene_object = initialize_scene_with_teapot(&mut ctx);
 
     // --- MAIN LOOP ---
     let mut is_mouse_pressed = false;
@@ -228,4 +205,38 @@ fn main() {
         window.draw(&fps_text);
         window.display();
     }
+}
+
+fn initialize_scene_with_cube(ctx: &mut RenderContext) -> SceneObject {
+    // SS: load texture
+    let img = Image::from_file("assets/image.png").expect("Failed to load image");
+    let image_texture = ImageTexture::new(img.size().x, img.size().y, img.pixel_data());
+    let texture_id = ctx.texture_manager.add_texture(image_texture);
+
+    let cube = UnitCube::new_with_image(texture_id);
+    let mut scene_object = SceneObject::new(Box::new(cube));
+
+    // SS: add rotation around world z-axis
+    let mut angle: f32 = 0.0;
+    scene_object.add_transform(Box::new(move |delta| {
+        //        angle += delta * 0.75;
+        let mut m = Matrix4::identity();
+        m[0][0] = angle.cos();
+        m[0][1] = -angle.sin();
+        m[1][0] = angle.sin();
+        m[1][1] = angle.cos();
+        m
+    }));
+
+    scene_object
+}
+
+fn initialize_scene_with_teapot(ctx: &mut RenderContext) -> SceneObject {
+    let obj_data = include_str!("../assets/teapot.obj");
+    let lines: Vec<&str> = obj_data.lines().collect();
+    let mesh_loader = obj_mesh_loader::load(&lines);
+    let teapot = Teapot::new(&mesh_loader);
+
+    let mut scene_object = SceneObject::new(Box::new(teapot));
+    scene_object
 }
