@@ -59,7 +59,7 @@ fn main() {
 
     // SS: position camera
     let mut theta: f32 = 0.0;
-    let mut phi: f32 = 0.0;
+    let mut phi: f32 = - PI / 4.0;
     let radius: f32 = 3.0;
     ctx.set_camera(Camera::from_look_at(radius, theta, phi));
 
