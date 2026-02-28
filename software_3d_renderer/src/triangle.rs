@@ -48,24 +48,26 @@ impl Renderable for Triangle {
 
         // SS: transform the vertices in world space to camera space and calculate the triangle
         // normal in camera space.
-        let v0  = ctx.world_to_camera(transformed_vertices[0]);
-        let v1  = ctx.world_to_camera(transformed_vertices[1]);
-        let v2  = ctx.world_to_camera(transformed_vertices[2]);
+        let v0 = ctx.world_to_camera(transformed_vertices[0]);
+        let v1 = ctx.world_to_camera(transformed_vertices[1]);
+        let v2 = ctx.world_to_camera(transformed_vertices[2]);
         let normal = cross_product(v1 - v0, v2 - v0).normalized();
 
-        // SS: we need to flip the normal if the triangle is oriented clockwise instead of counter-clockwise, otherwise
-        // the triangle will not be visible to the camera and thus not rendered.
+        // SS: we have to render triangles that are oriented both clockwise and counter-clockwise,
+        // otherwise we end up with holes in the rendering when the triangle vertices are ordered
+        // clockwise instead of counter-clockwise.
         if normal[2] < 0.0 {
             // SS: triangle is oriented clockwise, flip the normal
             let normal = -normal;
         }
 
         // SS: the dot product between light direction and viewing direction is the light intensity,
-        // a value between 0 and 1.We can use this to do simple diffuse shading.
+        // a value between 0 and 1. We use this to do simple diffuse shading.
         let light_source = ctx.get_light_source();
         let light_position_camera_space = ctx.world_to_camera(light_source.position);
         let light_direction = -(light_position_camera_space - v0).normalized();
         let intensity = light_source.get_intensity(dot_product(normal, light_direction).max(0.0));
+
         //
         // // SS: backface-culling
         // let camera = ctx.get_camera();
@@ -87,25 +89,25 @@ impl Renderable for Triangle {
             .map(|v| v[0])
             .reduce(|a, b| a.min(b))
             .unwrap_or(f32::INFINITY)
-            .floor() as i32;
+            .floor().max(0.0) as u32;
         let max_x = screen_vertices
             .iter()
             .map(|v| v[0])
             .reduce(|a, b| a.max(b))
             .unwrap_or(f32::NEG_INFINITY)
-            .ceil() as i32;
+            .ceil().max(0.0) as u32;
         let min_y = screen_vertices
             .iter()
             .map(|v| v[1])
             .reduce(|a, b| a.min(b))
             .unwrap_or(f32::INFINITY)
-            .floor() as i32;
+            .floor().max(0.0) as u32;
         let max_y = screen_vertices
             .iter()
             .map(|v| v[1])
             .reduce(|a, b| a.max(b))
             .unwrap_or(f32::NEG_INFINITY)
-            .ceil() as i32;
+            .ceil().max(0.0) as u32;
 
         // SS: calculate barycentric coordinates
 
@@ -132,12 +134,12 @@ impl Renderable for Triangle {
         let c1 = self.vertices[1].color;
         let c2 = self.vertices[2].color;
 
-        // SS: interpolation for 1/z
+        // SS: linear interpolation for 1/z
         let one_over_z0 = 1.0 / screen_vertices[0][3];
         let one_over_z1 = 1.0 / screen_vertices[1][3];
         let one_over_z2 = 1.0 / screen_vertices[2][3];
 
-        // SS: interpolation for (u/z, v/z)
+        // SS: linear interpolation for (u/z, v/z)
         let one_over_u0 = self.vertices[0].tex_coords[0] * one_over_z0;
         let one_over_v0 = self.vertices[0].tex_coords[1] * one_over_z0;
 
@@ -171,6 +173,14 @@ impl Renderable for Triangle {
                     let beta = w1 * inv_area;
                     let gamma = w2 * inv_area;
 
+                    // SS: linearly interpolate 1/z
+                    let one_over_z = alpha * one_over_z0 + beta * one_over_z1 + gamma * one_over_z2;
+
+                    // SS: compare with z buffer here and skip if pixel is occluded
+                    if !ctx.compare_with_z_buffer(x, y, one_over_z) {
+                        continue;
+                    }
+
                     let cr = alpha * c0.r as f32 + beta * c1.r as f32 + gamma * c2.r as f32;
                     let cg = alpha * c0.g as f32 + beta * c1.g as f32 + gamma * c2.g as f32;
                     let cb = alpha * c0.b as f32 + beta * c1.b as f32 + gamma * c2.b as f32;
@@ -195,8 +205,6 @@ impl Renderable for Triangle {
                                 alpha * one_over_u0 + beta * one_over_u1 + gamma * one_over_u2;
                             let one_over_v =
                                 alpha * one_over_v0 + beta * one_over_v1 + gamma * one_over_v2;
-                            let one_over_z =
-                                alpha * one_over_z0 + beta * one_over_z1 + gamma * one_over_z2;
                             let (u, v) = (one_over_u / one_over_z, one_over_v / one_over_z);
 
                             // SS: texture lookup

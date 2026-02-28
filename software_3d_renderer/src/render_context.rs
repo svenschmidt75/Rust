@@ -1,4 +1,3 @@
-use std::cell::Cell;
 use crate::camera::Camera;
 use crate::matrix4::Matrix4;
 use crate::simple_light_source::SimpleLightSource;
@@ -8,9 +7,10 @@ use crate::vertex4::Vertex4;
 
 #[derive(Debug)]
 pub struct RenderContext {
-    pub framebuffer: Vec<u8>,
     pub width: u32,
     pub height: u32,
+    pub framebuffer: Vec<u8>,
+    z_buffer: Vec<f32>,
     camera: Camera,
     light_source: SimpleLightSource,
     viewport_matrix: Matrix4,
@@ -21,9 +21,10 @@ pub struct RenderContext {
 impl RenderContext {
     pub fn new(width: u32, height: u32) -> Self {
         RenderContext {
-            framebuffer: vec![0; (width * height * 4) as usize],
             width,
             height,
+            framebuffer: vec![0; (width * height * 4) as usize],
+            z_buffer: vec![f32::INFINITY; (width * height) as usize],
             camera: Camera::new(
                 Vertex4::new_vertex(0.0, 0.0, 5.0),
                 Vertex4::new_vector(0.0, 0.0, -1.0),
@@ -45,6 +46,7 @@ impl RenderContext {
 
     pub fn clear_framebuffer(&mut self) {
         self.framebuffer = vec![0; (self.width * self.height * 4) as usize];
+        self.z_buffer = vec![f32::INFINITY; (self.width * self.height) as usize];
     }
 
     pub fn set_camera(&mut self, camera: Camera) {
@@ -57,6 +59,16 @@ impl RenderContext {
 
     pub fn get_light_source(&self) -> &SimpleLightSource {
         &self.light_source
+    }
+
+    pub fn compare_with_z_buffer(&mut self, x: u32, y: u32, z: f32) -> bool {
+        let idx = (y * self.width + x) as usize;
+        if z < self.z_buffer[idx] {
+            self.z_buffer[idx] = z;
+            true
+        } else {
+            false
+        }
     }
 
     pub fn orthographic(&mut self, l: f32, r: f32, b: f32, t: f32, f: f32, n: f32) {
