@@ -56,7 +56,7 @@ impl Renderable for Triangle {
         // SS: we have to render triangles that are oriented both clockwise and counter-clockwise,
         // otherwise we end up with holes in the rendering when the triangle vertices are ordered
         // clockwise instead of counter-clockwise.
-        if normal[2] < 0.0 {
+        if normal[2] > 0.0 {
             // SS: triangle is oriented clockwise, flip the normal
             let normal = -normal;
         }
@@ -89,25 +89,29 @@ impl Renderable for Triangle {
             .map(|v| v[0])
             .reduce(|a, b| a.min(b))
             .unwrap_or(f32::INFINITY)
-            .floor().max(0.0) as u32;
+            .floor()
+            .max(0.0) as u32;
         let max_x = screen_vertices
             .iter()
             .map(|v| v[0])
             .reduce(|a, b| a.max(b))
             .unwrap_or(f32::NEG_INFINITY)
-            .ceil().max(0.0) as u32;
+            .ceil()
+            .max(0.0) as u32;
         let min_y = screen_vertices
             .iter()
             .map(|v| v[1])
             .reduce(|a, b| a.min(b))
             .unwrap_or(f32::INFINITY)
-            .floor().max(0.0) as u32;
+            .floor()
+            .max(0.0) as u32;
         let max_y = screen_vertices
             .iter()
             .map(|v| v[1])
             .reduce(|a, b| a.max(b))
             .unwrap_or(f32::NEG_INFINITY)
-            .ceil().max(0.0) as u32;
+            .ceil()
+            .max(0.0) as u32;
 
         // SS: calculate barycentric coordinates
 
