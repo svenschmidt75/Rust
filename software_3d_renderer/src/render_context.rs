@@ -1,5 +1,7 @@
+use std::cell::Cell;
 use crate::camera::Camera;
 use crate::matrix4::Matrix4;
+use crate::simple_light_source::SimpleLightSource;
 use crate::texture_manager::TextureManager;
 use crate::vertex4;
 use crate::vertex4::Vertex4;
@@ -10,6 +12,7 @@ pub struct RenderContext {
     pub width: u32,
     pub height: u32,
     camera: Camera,
+    light_source: SimpleLightSource,
     viewport_matrix: Matrix4,
     projection_matrix: Matrix4,
     pub texture_manager: TextureManager,
@@ -26,6 +29,7 @@ impl RenderContext {
                 Vertex4::new_vector(0.0, 0.0, -1.0),
                 Vertex4::new_vector(0.0, 1.0, 0.0),
             ),
+            light_source: SimpleLightSource::new(Vertex4::new_vertex(1.0, 1.0, 1.0), 0.3, 0.7),
             viewport_matrix: viewport_matrix(width, height),
             projection_matrix: Matrix4::identity(),
             texture_manager: TextureManager::new(),
@@ -49,6 +53,10 @@ impl RenderContext {
 
     pub fn get_camera(&self) -> &Camera {
         &self.camera
+    }
+
+    pub fn get_light_source(&self) -> &SimpleLightSource {
+        &self.light_source
     }
 
     pub fn orthographic(&mut self, l: f32, r: f32, b: f32, t: f32, f: f32, n: f32) {
@@ -115,6 +123,10 @@ impl RenderContext {
         self.framebuffer[idx2 + 1] = g;
         self.framebuffer[idx2 + 2] = b;
         self.framebuffer[idx2 + 3] = a;
+    }
+
+    pub fn world_to_camera(&self, world_vertex: vertex4::Vertex4) -> vertex4::Vertex4 {
+        self.camera.world_to_camera(world_vertex)
     }
 
     pub fn world_to_screen(&self, world_vertices: &[vertex4::Vertex4]) -> Vec<[f32; 4]> {

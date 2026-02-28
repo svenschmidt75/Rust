@@ -14,6 +14,7 @@ mod triangle;
 mod vertex4;
 mod obj_mesh_loader;
 mod teapot;
+mod simple_light_source;
 
 use crate::camera::Camera;
 use crate::cube::UnitCube;
@@ -33,8 +34,8 @@ use std::f32::consts::PI;
 use std::time::{Duration, Instant};
 
 fn main() {
-    let mut window_width = 800;
-    let mut window_height = 600;
+    let mut window_width = 1000;
+    let mut window_height = 1000;
 
     let settings = ContextSettings::default();
     let mut window = RenderWindow::new(
@@ -82,7 +83,7 @@ fn main() {
     let mut last_time = Instant::now();
 
     // SS: create scene objects
-//    let mut scene_object = initialize_scene_with_cube(&mut ctx);
+   // let mut scene_object = initialize_scene_with_cube(&mut ctx);
     let mut scene_object = initialize_scene_with_teapot(&mut ctx);
 
     // --- MAIN LOOP ---

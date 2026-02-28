@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::lin_alg::cross_product;
+use crate::lin_alg::{cross_product, dot_product};
 use crate::matrix4::Matrix4;
 use crate::raster_vertex::RasterVertex;
 use crate::render_context::RenderContext;
@@ -46,17 +46,33 @@ impl Renderable for Triangle {
         // SS: apply transformations to triangle vertices
         let transformed_vertices = self.vertices.map(|t| transform * t.vertex);
 
-        // SS: do we transform the normal or do we recalculate the normal?
-        let u1 = transformed_vertices[1] - transformed_vertices[0];
-        let u2 = transformed_vertices[2] - transformed_vertices[0];
-        let normal = cross_product(u1, u2);
+        // SS: transform the vertices in world space to camera space and calculate the triangle
+        // normal in camera space.
+        let v0  = ctx.world_to_camera(transformed_vertices[0]);
+        let v1  = ctx.world_to_camera(transformed_vertices[1]);
+        let v2  = ctx.world_to_camera(transformed_vertices[2]);
+        let normal = cross_product(v1 - v0, v2 - v0).normalized();
 
-        // SS: backface-culling
-        let camera = ctx.get_camera();
-        if !camera.is_visible(normal) {
-            // SS: triangle not visible to camera
-            return;
+        // SS: we need to flip the normal if the triangle is oriented clockwise instead of counter-clockwise, otherwise
+        // the triangle will not be visible to the camera and thus not rendered.
+        if normal[2] < 0.0 {
+            // SS: triangle is oriented clockwise, flip the normal
+            let normal = -normal;
         }
+
+        // SS: the dot product between light direction and viewing direction is the light intensity,
+        // a value between 0 and 1.We can use this to do simple diffuse shading.
+        let light_source = ctx.get_light_source();
+        let light_position_camera_space = ctx.world_to_camera(light_source.position);
+        let light_direction = -(light_position_camera_space - v0).normalized();
+        let intensity = light_source.get_intensity(dot_product(normal, light_direction).max(0.0));
+        //
+        // // SS: backface-culling
+        // let camera = ctx.get_camera();
+        // if !camera.is_visible(normal) {
+        //     // SS: triangle not visible to camera
+        //     return;
+        // }
 
         let screen_vertices = ctx.world_to_screen(&transformed_vertices);
 
@@ -103,6 +119,12 @@ impl Renderable for Triangle {
 
         // SS: calculate the triangle area
         let area_doubled = w0_row + w1_row + w2_row;
+
+        // SS: check for degenerate triangles (a line or point)
+        if area_doubled.abs() < f32::EPSILON {
+            return;
+        }
+
         let inv_area = 1.0 / area_doubled;
 
         // SS: vertex colors
@@ -133,9 +155,16 @@ impl Renderable for Triangle {
             let mut w2 = w2_row;
 
             for x in min_x..max_x {
-                // SS: if all edge function values are >=0, the current point (x, y) is inside
-                // the triangle, so render it
-                if (w0 >= 0.0) && (w1 >= 0.0) && (w2 >= 0.0) {
+                // SS: check if point is inside, regardless of CW or CCW orientation
+                // so we don't end up with holes in the triangle when vertices are
+                // ordered CW instead of CCW
+                let is_inside = if area_doubled > 0.0 {
+                    w0 >= 0.0 && w1 >= 0.0 && w2 >= 0.0
+                } else {
+                    w0 <= 0.0 && w1 <= 0.0 && w2 <= 0.0
+                };
+
+                if is_inside {
                     // SS: calculate the barycentric coordinates for interpolation
                     // Fundamentals of Computer Graphics, 5th edition, equation (2.33)
                     let alpha = w0 * inv_area;
@@ -179,10 +208,15 @@ impl Renderable for Triangle {
                                 (cr + r as f32) / 2.0,
                                 (cg + g as f32) / 2.0,
                                 (cb + b as f32) / 2.0,
-                                a
+                                a,
                             )
                         }
                     };
+
+                    // SS: apply light intensity
+                    let r = (r * intensity).min(255.0);
+                    let g = (g * intensity).min(255.0);
+                    let b = (b * intensity).min(255.0);
 
                     ctx.set_pixel(x as u32, y as u32, r as u8, g as u8, b as u8, a as u8);
                 }
