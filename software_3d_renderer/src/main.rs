@@ -83,8 +83,8 @@ fn main() {
     let mut last_time = Instant::now();
 
     // SS: create scene objects
-    let mut scene_object = initialize_scene_with_cube(&mut ctx);
-    // let mut scene_object = initialize_scene_with_teapot(&mut ctx);
+    // let mut scene_object = initialize_scene_with_cube(&mut ctx);
+    let mut scene_object = initialize_scene_with_teapot(&mut ctx);
 
     // --- MAIN LOOP ---
     let mut is_mouse_pressed = false;

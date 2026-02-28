@@ -51,14 +51,14 @@ impl Renderable for Triangle {
         let v0 = ctx.world_to_camera(transformed_vertices[0]);
         let v1 = ctx.world_to_camera(transformed_vertices[1]);
         let v2 = ctx.world_to_camera(transformed_vertices[2]);
-        let normal = cross_product(v1 - v0, v2 - v0).normalized();
+        let mut normal = cross_product(v1 - v0, v2 - v0).normalized();
 
         // SS: we have to render triangles that are oriented both clockwise and counter-clockwise,
         // otherwise we end up with holes in the rendering when the triangle vertices are ordered
         // clockwise instead of counter-clockwise.
-        if normal[2] > 0.0 {
+        if normal[2] < 0.0 {
             // SS: triangle is oriented clockwise, flip the normal
-            let normal = -normal;
+            normal = -normal;
         }
 
         // SS: the dot product between light direction and viewing direction is the light intensity,
@@ -67,14 +67,6 @@ impl Renderable for Triangle {
         let light_position_camera_space = ctx.world_to_camera(light_source.position);
         let light_direction = -(light_position_camera_space - v0).normalized();
         let intensity = light_source.get_intensity(dot_product(normal, light_direction).max(0.0));
-
-        //
-        // // SS: backface-culling
-        // let camera = ctx.get_camera();
-        // if !camera.is_visible(normal) {
-        //     // SS: triangle not visible to camera
-        //     return;
-        // }
 
         let screen_vertices = ctx.world_to_screen(&transformed_vertices);
 

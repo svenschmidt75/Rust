@@ -24,7 +24,7 @@ impl RenderContext {
             width,
             height,
             framebuffer: vec![0; (width * height * 4) as usize],
-            z_buffer: vec![f32::INFINITY; (width * height) as usize],
+            z_buffer: vec![0.0; (width * height) as usize],
             camera: Camera::new(
                 Vertex4::new_vertex(0.0, 0.0, 5.0),
                 Vertex4::new_vector(0.0, 0.0, -1.0),
@@ -46,7 +46,7 @@ impl RenderContext {
 
     pub fn clear_framebuffer(&mut self) {
         self.framebuffer = vec![0; (self.width * self.height * 4) as usize];
-        self.z_buffer = vec![f32::INFINITY; (self.width * self.height) as usize];
+        self.z_buffer = vec![0.0; (self.width * self.height) as usize];
     }
 
     pub fn set_camera(&mut self, camera: Camera) {
@@ -63,7 +63,7 @@ impl RenderContext {
 
     pub fn compare_with_z_buffer(&mut self, x: u32, y: u32, z: f32) -> bool {
         let idx = (y * self.width + x) as usize;
-        if z < self.z_buffer[idx] {
+        if z > self.z_buffer[idx] {
             self.z_buffer[idx] = z;
             true
         } else {
