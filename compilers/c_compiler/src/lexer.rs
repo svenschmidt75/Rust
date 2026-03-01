@@ -1,8 +1,25 @@
 use crate::tokens::Tokens;
 use regex::Regex;
+use std::sync::LazyLock;
+
+// SS: master regex
+static MASTER_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"(?P<int>^int\b)|",
+        r"(?P<void>^void\b)|",
+        r"(?P<return>^return\b)|",
+        r"(?P<open_paren>^\()|",
+        r"(?P<close_paren>^\))|",
+        r"(?P<open_brace>^\{)|",
+        r"(?P<close_brace>^\})|",
+        r"(?P<semicolon>^;)|",
+        r"(?P<identifier>^[a-zA-Z_]\w*\b)|",
+        r"(?P<constant>^[0-9]+\b)"
+    ))
+    .unwrap()
+});
 
 pub(crate) struct Lexer {
-    rules: Vec<(Regex, Tokens)>,
     input: String,
     position: usize,
     current_line: usize,
@@ -11,22 +28,6 @@ pub(crate) struct Lexer {
 impl Lexer {
     pub fn new(input: String) -> Self {
         Self {
-            // SS: we have to check for keywords first, otherwise they will be matched as identifiers
-            rules: vec![
-                (Regex::new(r"int\b").unwrap(), Tokens::Int),
-                (Regex::new(r"void\b").unwrap(), Tokens::Void),
-                (Regex::new(r"return\b").unwrap(), Tokens::Return),
-                (Regex::new(r"\(").unwrap(), Tokens::OpenParen),
-                (Regex::new(r"\)").unwrap(), Tokens::CloseParen),
-                (Regex::new(r"\{").unwrap(), Tokens::OpenBrace),
-                (Regex::new(r"}").unwrap(), Tokens::CloseBrace),
-                (Regex::new(r";").unwrap(), Tokens::Semicolon),
-                (
-                    Regex::new(r"[a-zA-Z_]\w*\b").unwrap(),
-                    Tokens::Identifier(String::new()),
-                ),
-                (Regex::new(r"[0-9]+\b").unwrap(), Tokens::Constant(0)),
-            ],
             input,
             position: 0,
             current_line: 1,
@@ -34,60 +35,69 @@ impl Lexer {
     }
 
     pub fn next_token(&mut self) -> Result<Tokens, String> {
-        while self.position < self.input.len() {
-            let c = &self.input.chars().nth(self.position).unwrap();
-            if c.is_whitespace() {
-                if *c == '\n' {
-                    self.current_line += 1;
-                }
-                self.position += 1;
-                continue;
-            }
+        self.skip_whitespace();
 
-            // SS: check all rules
-            for (pattern, token) in &self.rules {
-                if let Some(mat) = pattern.find(&self.input[self.position..]) {
-                    if mat.start() == 0 {
-                        self.position += mat.end();
-
-                        return match token {
-                            Tokens::Identifier(_) => {
-                                let identifier = self.input
-                                    [self.position - mat.end()..self.position]
-                                    .to_string();
-                                return Ok(Tokens::Identifier(identifier));
-                            }
-                            Tokens::Constant(_) => {
-                                let constant = self.input[self.position - mat.end()..self.position]
-                                    .parse::<usize>()
-                                    .map_err(|e| {
-                                        format!(
-                                            "Line {}: Failed to parse constant: {}",
-                                            self.current_line, e
-                                        )
-                                    })?;
-                                return Ok(Tokens::Constant(constant));
-                            }
-                            _ => Ok(token.clone()),
-                        };
-                    }
-                }
-            }
-
-            return Err(format!(
-                "Line {}: Unexpected character {}",
-                self.current_line,
-                self.input[self.position..].to_string()
-            ));
+        if self.position >= self.input.len() {
+            return Ok(Tokens::EOF);
         }
 
-        Ok(Tokens::EOF)
+        let remaining = &self.input[self.position..];
+
+        if let Some(caps) = MASTER_RE.captures(remaining) {
+            // Find which named group matched
+            if caps.name("int").is_some() {
+                self.position += 3;
+                return Ok(Tokens::Int);
+            } else if caps.name("void").is_some() {
+                self.position += 4;
+                return Ok(Tokens::Void);
+            } else if caps.name("return").is_some() {
+                self.position += 6;
+                return Ok(Tokens::Return);
+            } else if let Some(mat) = caps.name("identifier") {
+                self.position += mat.end();
+                return Ok(Tokens::Identifier(mat.as_str().to_string()));
+            } else if let Some(mat) = caps.name("constant") {
+                let val = mat.as_str().parse::<usize>().unwrap();
+                self.position += mat.end();
+                return Ok(Tokens::Constant(val));
+            }
+
+            // SS: final catch-all for punctuation
+            let mat = caps.get(0).unwrap();
+            self.position += mat.end();
+
+            return match mat.as_str() {
+                "(" => Ok(Tokens::OpenParen),
+                ")" => Ok(Tokens::CloseParen),
+                "{" => Ok(Tokens::OpenBrace),
+                "}" => Ok(Tokens::CloseBrace),
+                ";" => Ok(Tokens::Semicolon),
+                _ => unreachable!(),
+            };
+        }
+
+        Err(format!("Line {}: Unexpected character", self.current_line))
+    }
+
+    fn skip_whitespace(&mut self) {
+        while let Some(c) = self.input[self.position..].chars().next() {
+            if c.is_whitespace() {
+                if c == '\n' {
+                    self.current_line += 1;
+                }
+                self.position += c.len_utf8();
+            } else {
+                break;
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::lexer::Lexer;
+    use crate::tokens::Tokens;
 
     #[test]
     fn test_lexer() {
