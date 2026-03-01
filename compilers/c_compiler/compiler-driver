@@ -1,0 +1,110 @@
+#!/bin/zsh
+
+# --- DEBUG BLOCK ---
+echo "--- Driver Debug Info ---"
+echo "Arguments count: $#"
+echo "Arguments list: $@"
+for i in {1..$#}; do
+    echo "Arg $i: ${(P)i}"
+done
+echo "-------------------------"
+# --------------------
+
+
+BASE_PATH="/Users/svenschmidt75/Sven/Develop/Rust/compilers/c_compiler"
+MY_COMPILER="$BASE_PATH/target/debug/c_compiler"
+
+# 1. Argument Parsing
+if [[ $# -eq 1 ]]; then
+    STAGE="link"
+    INPUT_FILE="$1"
+elif [[ $# -eq 2 ]]; then
+    STAGE="$1"
+    INPUT_FILE="$2"
+else
+    exit 1
+fi
+
+# 2. File Validation
+[[ ! -f "$INPUT_FILE" ]] && exit 1
+
+# 3. Define naming
+BASE_NAME="${INPUT_FILE%.*}"
+PREPROCESSED_FILE="${BASE_NAME}.i"
+ASSEMBLY_FILE="${BASE_NAME}.s"
+FINAL_OUTPUT="$BASE_NAME"
+
+# ---------------------------------------------------------
+# MANDATORY STEP: ALWAYS PREPROCESS FIRST
+# ---------------------------------------------------------
+# Requirement: Call preprocessor in all cases.
+if ! gcc -E -P "$INPUT_FILE" -o "$PREPROCESSED_FILE"; then
+    rm -f "$PREPROCESSED_FILE"
+    exit 1
+fi
+
+# ---------------------------------------------------------
+# STAGE HANDLING (Operating on the .i file)
+# ---------------------------------------------------------
+
+case "$STAGE" in
+--lex)
+        # -Xclang -dump-tokens: Forces the lexer to run and output all tokens.
+        # -fsyntax-only: Prevents the backend from running.
+        # We redirect output to /dev/null so we only care about the exit code.
+#        gcc -fsyntax-only -Xclang -dump-tokens "$PREPROCESSED_FILE" > /dev/null 2>&1
+        "$MY_COMPILER" --lex "$PREPROCESSED_FILE"
+        RESULT=$?
+        rm -f "$PREPROCESSED_FILE"
+        exit $RESULT
+        ;;
+
+    --parse)
+        # Requirement: Run lexer and parser, stop before assembly. No output files.
+        gcc -fsyntax-only "$PREPROCESSED_FILE"
+        RESULT=$?
+        rm -f "$PREPROCESSED_FILE"
+        exit $RESULT
+        ;;
+
+    --codegen)
+        # Requirement: Stop before code emission. No output files.
+        gcc -S -O -fno-asynchronous-unwind-tables "$PREPROCESSED_FILE" -o /dev/null
+        RESULT=$?
+        rm -f "$PREPROCESSED_FILE"
+        exit $RESULT
+        ;;
+
+    -S)
+        # Requirement: Emit assembly file and stop.
+        gcc -S -O -fno-asynchronous-unwind-tables "$PREPROCESSED_FILE" -o "$ASSEMBLY_FILE"
+        RESULT=$?
+        rm -f "$PREPROCESSED_FILE"
+        exit $RESULT
+        ;;
+
+    link)
+        # Step B: Compile to Assembly
+        if ! gcc -S -O -fno-asynchronous-unwind-tables "$PREPROCESSED_FILE" -o "$ASSEMBLY_FILE"; then
+            rm -f "$PREPROCESSED_FILE" "$ASSEMBLY_FILE"
+            exit 1
+        fi
+        # We've created the .s, we can drop the .i
+        rm -f "$PREPROCESSED_FILE"
+
+        # Step C: Link into Executable
+        if ! gcc "$ASSEMBLY_FILE" -o "$FINAL_OUTPUT"; then
+            rm -f "$ASSEMBLY_FILE"
+            exit 1
+        fi
+        
+        # Final cleanup
+        rm -f "$ASSEMBLY_FILE"
+        exit 0
+        ;;
+
+    *)
+        rm -f "$PREPROCESSED_FILE"
+        exit 1
+        ;;
+esac
