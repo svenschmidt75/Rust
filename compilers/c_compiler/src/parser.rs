@@ -27,7 +27,7 @@ impl Parser {
             ));
         }
 
-        Ok(ast)
+        Ok(Box::new(ParseAst::Program(ast)))
     }
 
     pub(crate) fn parse_function_definition(&mut self) -> Result<Box<ParseAst>, String> {
@@ -121,15 +121,15 @@ mod tests {
         // SS: act
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
-        let ast = parser.parse_function_definition().unwrap();
+        let ast = parser.parse().unwrap();
 
         // SS: assert
         assert_eq!(
             *ast,
-            ParseAst::FunctionDefinition {
+            ParseAst::Program(Box::new(ParseAst::FunctionDefinition {
                 name: "main".to_string(),
                 body: Box::new(ParseAst::Return(Box::new(ParseAst::Constant(2)))),
-            }
+            }))
         );
     }
 }
