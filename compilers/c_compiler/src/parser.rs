@@ -132,4 +132,24 @@ mod tests {
             }))
         );
     }
+
+    #[test]
+    fn test_parser_fail() {
+        // SS: arrange
+        let input = r"inta main(void) {
+                            return 2;
+                    }"
+        .to_string();
+
+        // SS: act
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let ast = parser.parse();
+
+        // SS: assert
+        assert_eq!(
+            ast,
+            Err(r#"Line 1: Syntax error: Expected token "int", but found Identifier("inta")"#.to_string())
+        );
+    }
 }
