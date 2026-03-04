@@ -22,7 +22,7 @@ static MASTER_RE: LazyLock<Regex> = LazyLock::new(|| {
 pub(crate) struct Lexer {
     input: String,
     position: usize,
-    current_line: usize,
+    pub current_line: usize,
 }
 
 impl Lexer {

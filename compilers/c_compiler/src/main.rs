@@ -1,6 +1,9 @@
 use clap::{ArgGroup, Parser};
 mod lexer;
 mod tokens;
+mod parser;
+mod parse_ast;
+
 use std::fs;
 use std::path::PathBuf;
 use std::process;
