@@ -70,7 +70,8 @@ case "$STAGE" in
 
     --codegen)
         # Requirement: Stop before code emission. No output files.
-        gcc -S -O -fno-asynchronous-unwind-tables "$PREPROCESSED_FILE" -o /dev/null
+#        gcc -S -O -fno-asynchronous-unwind-tables "$PREPROCESSED_FILE" -o /dev/null
+        "$MY_COMPILER" --codegen "$PREPROCESSED_FILE"
         RESULT=$?
         rm -f "$PREPROCESSED_FILE"
         exit $RESULT

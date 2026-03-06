@@ -35,6 +35,42 @@ fn generate_assembly_instructions_ast(stmt: StmtAST) -> Vec<AssemblyInstructionA
 
 fn generate_assembly_expr_ast(expr: ExprAST) -> AssemblyOperandAST {
     match expr {
-        ExprAST::Constant(val) => AssemblyOperandAST::Immediate(val as i64),
+        ExprAST::Constant(val) => AssemblyOperandAST::Immediate(val),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_generate_assembly_program_ast() {
+        // SS: arrange
+        let parse_ast = crate::parse_ast::ProgramAST {
+            function_definition: crate::parse_ast::FunctionAST {
+                name: "main".to_string(),
+                body: crate::parse_ast::StmtAST::Return(crate::parse_ast::ExprAST::Constant(2)),
+            },
+        };
+
+        // SS: act
+        let assembly_ast = crate::code_gen::generate_assembly_program_ast(parse_ast);
+
+        // SS: assert
+        assert_eq!(
+            assembly_ast,
+            crate::assembly_ast::AssemblyProgramAST {
+                function_definition: crate::assembly_ast::AssemblyFunctionAST {
+                    name: "main".to_string(),
+                    instructions: vec![
+                        crate::assembly_ast::AssemblyInstructionAST::Mov {
+                            src: crate::assembly_ast::AssemblyOperandAST::Immediate(2),
+                            dst: crate::assembly_ast::AssemblyOperandAST::Register(
+                                crate::reg::Register::RAX
+                            ),
+                        },
+                        crate::assembly_ast::AssemblyInstructionAST::Ret,
+                    ],
+                }
+            }
+        );
     }
 }

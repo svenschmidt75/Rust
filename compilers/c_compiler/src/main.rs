@@ -79,11 +79,19 @@ fn main() {
                 }
             }
         }
-    } else if args.parse {
+    } else {
         println!("Running parser...");
         let mut parser = parser::Parser::new(lexer);
         match parser.parse() {
-            Ok(ast) => println!("Parsed AST: {:?}", ast),
+            Ok(ast) => {
+                println!("Parsed AST: {:?}", ast);
+
+                if args.codegen {
+                    println!("Running codegen...");
+                    let assembly_ast = code_gen::generate_assembly_program_ast(ast);
+                    println!("Generated Assembly AST: {:?}", assembly_ast);
+                }
+            }
             Err(err) => {
                 eprintln!("Parser error: {}", err);
                 process::exit(1);
