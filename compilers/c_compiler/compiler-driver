@@ -61,7 +61,8 @@ case "$STAGE" in
 
     --parse)
         # Requirement: Run lexer and parser, stop before assembly. No output files.
-        gcc -fsyntax-only "$PREPROCESSED_FILE"
+#        gcc -fsyntax-only "$PREPROCESSED_FILE"
+        "$MY_COMPILER" --parse "$PREPROCESSED_FILE"
         RESULT=$?
         rm -f "$PREPROCESSED_FILE"
         exit $RESULT

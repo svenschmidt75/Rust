@@ -58,7 +58,7 @@ impl Lexer {
                 self.position += mat.end();
                 return Ok(Tokens::Identifier(mat.as_str().to_string()));
             } else if let Some(mat) = caps.name("constant") {
-                let val = mat.as_str().parse::<usize>().unwrap();
+                let val = mat.as_str().parse::<i64>().unwrap();
                 self.position += mat.end();
                 return Ok(Tokens::Constant(val));
             }

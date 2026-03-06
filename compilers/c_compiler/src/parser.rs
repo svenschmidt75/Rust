@@ -1,8 +1,8 @@
 use crate::lexer::Lexer;
-use crate::parse_ast::ParseAst;
+use crate::parse_ast::{ExprAST, FunctionAST, ProgramAST, StmtAST};
 use crate::tokens::Tokens;
 
-struct Parser {
+pub(crate) struct Parser {
     lexer: Lexer,
     current_symbol: Option<Tokens>,
 }
@@ -15,7 +15,7 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Box<ParseAst>, String> {
+    pub fn parse(&mut self) -> Result<ProgramAST, String> {
         let ast = self.parse_function_definition()?;
 
         // SS: ensure we have consumed all tokens
@@ -27,10 +27,12 @@ impl Parser {
             ));
         }
 
-        Ok(Box::new(ParseAst::Program(ast)))
+        Ok(ProgramAST {
+            function_definition: ast,
+        })
     }
 
-    pub(crate) fn parse_function_definition(&mut self) -> Result<Box<ParseAst>, String> {
+    pub(crate) fn parse_function_definition(&mut self) -> Result<FunctionAST, String> {
         self.expect("int", Tokens::Int)?;
 
         // SS: parse the function name
@@ -51,20 +53,20 @@ impl Parser {
 
         self.expect("}", Tokens::CloseBrace)?;
 
-        Ok(Box::new(ParseAst::FunctionDefinition {
+        Ok(FunctionAST {
             name: name.to_string(),
             body: stmt,
-        }))
+        })
     }
 
-    fn parse_stmt(&mut self) -> Result<Box<ParseAst>, String> {
+    fn parse_stmt(&mut self) -> Result<StmtAST, String> {
         self.expect("return", Tokens::Return)?;
         let expr = self.parse_expr()?;
         self.expect(";", Tokens::Semicolon)?;
-        Ok(Box::new(ParseAst::Return(expr)))
+        Ok(StmtAST::Return(expr))
     }
 
-    fn parse_expr(&mut self) -> Result<Box<ParseAst>, String> {
+    fn parse_expr(&mut self) -> Result<ExprAST, String> {
         let Tokens::Constant(val) = self.advance()? else {
             return Err(format!(
                 "Line {}: Syntax error: Expected constant, but found {:?}",
@@ -72,7 +74,7 @@ impl Parser {
                 self.current_symbol.as_ref().unwrap().to_string()
             ));
         };
-        Ok(Box::new(ParseAst::Constant(val)))
+        Ok(ExprAST::Constant(val))
     }
 
     fn expect(&mut self, expected_string: &str, token: Tokens) -> Result<Tokens, String> {
@@ -82,7 +84,9 @@ impl Parser {
         } else {
             Err(format!(
                 "Line {}: Syntax error: Expected token {:?}, but found {:?}",
-                self.lexer.current_line, expected_string, actual
+                self.lexer.current_line,
+                expected_string,
+                actual.to_string()
             ))
         }
     }
@@ -107,7 +111,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use crate::lexer::Lexer;
-    use crate::parse_ast::ParseAst;
+    use crate::parse_ast::{ExprAST, FunctionAST, ProgramAST, StmtAST};
     use crate::parser::Parser;
 
     #[test]
@@ -125,11 +129,13 @@ mod tests {
 
         // SS: assert
         assert_eq!(
-            *ast,
-            ParseAst::Program(Box::new(ParseAst::FunctionDefinition {
-                name: "main".to_string(),
-                body: Box::new(ParseAst::Return(Box::new(ParseAst::Constant(2)))),
-            }))
+            ast,
+            ProgramAST {
+                function_definition: FunctionAST {
+                    name: "main".to_string(),
+                    body: StmtAST::Return(ExprAST::Constant(2)),
+                }
+            }
         );
     }
 
@@ -149,7 +155,46 @@ mod tests {
         // SS: assert
         assert_eq!(
             ast,
-            Err(r#"Line 1: Syntax error: Expected token "int", but found Identifier("inta")"#.to_string())
+            Err(
+                r#"Line 1: Syntax error: Expected token "int", but found "Identifier(inta)""#
+                    .to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn test_parser_fail_missing_semicolon() {
+        // SS: arrange
+        let input = r"/* A single backslash is not a valid token. */
+\"
+        .to_string();
+
+        // SS: act
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let ast = parser.parse();
+
+        // SS: assert
+        assert_eq!(ast, Err(r#"Line 1: Unexpected character"#.to_string()));
+    }
+
+    #[test]
+    fn test_parser_fail_unclosed_paren() {
+        // SS: arrange
+        let input = r"int main( {
+    return 0;
+}"
+        .to_string();
+
+        // SS: act
+        let lexer = Lexer::new(input);
+        let mut parser = Parser::new(lexer);
+        let ast = parser.parse();
+
+        // SS: assert
+        assert_eq!(
+            ast,
+            Err(r##"Line 1: Syntax error: Expected token "void", but found "{""##.to_string())
         );
     }
 }

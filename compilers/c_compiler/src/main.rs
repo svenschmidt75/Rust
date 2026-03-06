@@ -1,8 +1,11 @@
 use clap::{ArgGroup, Parser};
+mod assembly_ast;
+mod code_gen;
 mod lexer;
-mod tokens;
-mod parser;
 mod parse_ast;
+mod parser;
+mod reg;
+mod tokens;
 
 use std::fs;
 use std::path::PathBuf;
@@ -49,18 +52,19 @@ fn main() {
 
     let args = Args::parse();
     println!("Processing: {:?}", args.input);
+
+    println!("Running lexer...");
+
+    // SS: read the file into a String
+    let source_code = fs::read_to_string(&args.input).unwrap_or_else(|err| {
+        eprintln!("Error reading file {:?}: {}", args.input, err);
+        process::exit(1);
+    });
+
+    // SS: pass the string to the lexer
+    let mut lexer = lexer::Lexer::new(source_code);
+
     if args.lex {
-        println!("Running lexer...");
-
-        // SS: read the file into a String
-        let source_code = fs::read_to_string(&args.input).unwrap_or_else(|err| {
-            eprintln!("Error reading file {:?}: {}", args.input, err);
-            process::exit(1);
-        });
-
-        // SS: pass the string to your Lexer
-        let mut lexer = lexer::Lexer::new(source_code);
-
         // SS: iterate through tokens until EOF
         loop {
             match lexer.next_token() {
@@ -73,6 +77,16 @@ fn main() {
                     eprintln!("Lexer error: {}", err);
                     process::exit(1);
                 }
+            }
+        }
+    } else if args.parse {
+        println!("Running parser...");
+        let mut parser = parser::Parser::new(lexer);
+        match parser.parse() {
+            Ok(ast) => println!("Parsed AST: {:?}", ast),
+            Err(err) => {
+                eprintln!("Parser error: {}", err);
+                process::exit(1);
             }
         }
     }
