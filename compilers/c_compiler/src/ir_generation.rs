@@ -26,7 +26,7 @@ fn generate_assembly_instructions_ast(stmt: StmtAST) -> Vec<AssemblyInstructionA
         StmtAST::Return(expr) => vec![
             AssemblyInstructionAST::Mov {
                 src: generate_assembly_expr_ast(expr),
-                dst: AssemblyOperandAST::Register(crate::reg::Register::RAX),
+                dst: AssemblyOperandAST::Register(crate::reg::Register::EAX),
             },
             AssemblyInstructionAST::Ret,
         ],
@@ -52,7 +52,7 @@ mod tests {
         };
 
         // SS: act
-        let assembly_ast = crate::code_gen::generate_assembly_program_ast(parse_ast);
+        let assembly_ast = crate::ir_generation::generate_assembly_program_ast(parse_ast);
 
         // SS: assert
         assert_eq!(
@@ -64,7 +64,7 @@ mod tests {
                         crate::assembly_ast::AssemblyInstructionAST::Mov {
                             src: crate::assembly_ast::AssemblyOperandAST::Immediate(2),
                             dst: crate::assembly_ast::AssemblyOperandAST::Register(
-                                crate::reg::Register::RAX
+                                crate::reg::Register::EAX
                             ),
                         },
                         crate::assembly_ast::AssemblyInstructionAST::Ret,

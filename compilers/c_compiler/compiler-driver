@@ -87,7 +87,8 @@ case "$STAGE" in
 
     link)
         # Step B: Compile to Assembly
-        if ! gcc -S -O -fno-asynchronous-unwind-tables "$PREPROCESSED_FILE" -o "$ASSEMBLY_FILE"; then
+#        if ! gcc -S -O -fno-asynchronous-unwind-tables "$PREPROCESSED_FILE" -o "$ASSEMBLY_FILE"; then
+        if ! "$MY_COMPILER" "$PREPROCESSED_FILE"; then
             rm -f "$PREPROCESSED_FILE" "$ASSEMBLY_FILE"
             exit 1
         fi

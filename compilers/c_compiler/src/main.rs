@@ -1,14 +1,21 @@
 use clap::{ArgGroup, Parser};
 mod assembly_ast;
-mod code_gen;
+mod emitter;
+mod file_emitter;
+mod ir_generation;
 mod lexer;
 mod parse_ast;
 mod parser;
 mod reg;
 mod tokens;
+mod x64_code_gen;
+mod string_emitter;
 
+use crate::emitter::Emitter;
+use crate::file_emitter::FileEmitter;
+use crate::x64_code_gen::X64CodeGen;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 
 #[derive(Parser)]
@@ -86,10 +93,20 @@ fn main() {
             Ok(ast) => {
                 println!("Parsed AST: {:?}", ast);
 
+                let assembly_ast = ir_generation::generate_assembly_program_ast(ast);
+
                 if args.codegen {
                     println!("Running codegen...");
-                    let assembly_ast = code_gen::generate_assembly_program_ast(ast);
                     println!("Generated Assembly AST: {:?}", assembly_ast);
+                } else if !args.parse {
+                    println!("Emitting assembly...");
+                    let input_path = Path::new(&args.input);
+                    let output_path = input_path.with_extension("s");
+                    let mut file_emitter = FileEmitter::new(Path::new(&output_path))
+                        .expect("Failed to create FileEmitter");
+                    let mut x86_code_gen = X64CodeGen::new(&mut file_emitter);
+                    x86_code_gen.emit(assembly_ast);
+                    file_emitter.finish().unwrap();
                 }
             }
             Err(err) => {
