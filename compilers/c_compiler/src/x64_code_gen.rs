@@ -12,19 +12,19 @@ impl<'a, E: Emitter> X64CodeGen<'a, E> {
         X64CodeGen { emitter }
     }
 
-    pub fn emit(&mut self, ast: AssemblyProgramAST) {
+    pub fn emit(&mut self, ast: &AssemblyProgramAST) {
         self.emitter.emit(".globl _main");
-        self.emit_function(ast.function_definition);
+        self.emit_function(&ast.function_definition);
     }
 
-    fn emit_function(&mut self, function_ast: AssemblyFunctionAST) {
+    fn emit_function(&mut self, function_ast: &AssemblyFunctionAST) {
         self.emitter.emit("_main:");
-        for instruction in function_ast.instructions {
-            self.emit_instruction(instruction);
+        for instruction in &function_ast.instructions {
+            self.emit_instruction(&instruction);
         }
     }
 
-    fn emit_instruction(&mut self, instruction: AssemblyInstructionAST) {
+    fn emit_instruction(&mut self, instruction: &AssemblyInstructionAST) {
         match instruction {
             AssemblyInstructionAST::Mov { src, dst } => {
                 let src_str = self.emit_operand(src);
@@ -38,7 +38,7 @@ impl<'a, E: Emitter> X64CodeGen<'a, E> {
         }
     }
 
-    fn emit_operand(&self, operand: AssemblyOperandAST) -> String {
+    fn emit_operand(&self, operand: &AssemblyOperandAST) -> String {
         match operand {
             AssemblyOperandAST::Immediate(val) => format!("${}", val),
             AssemblyOperandAST::Register(reg) => format!("%{}", reg),
@@ -71,7 +71,7 @@ mod tests {
         // SS: act
         let mut emitter = StringEmitter::new();
         let mut code_gen = X64CodeGen::new(&mut emitter);
-        code_gen.emit(assembly_ast);
+        code_gen.emit(&assembly_ast);
 
         // SS: assert
         let emitted_code = emitter.buffer;

@@ -7,9 +7,9 @@ mod lexer;
 mod parse_ast;
 mod parser;
 mod reg;
+mod string_emitter;
 mod tokens;
 mod x64_code_gen;
-mod string_emitter;
 
 use crate::emitter::Emitter;
 use crate::file_emitter::FileEmitter;
@@ -100,12 +100,14 @@ fn main() {
                     println!("Generated Assembly AST: {:?}", assembly_ast);
                 } else if !args.parse {
                     println!("Emitting assembly...");
-                    let input_path = Path::new(&args.input);
-                    let output_path = input_path.with_extension("s");
+                    let output_path = args.input.with_extension("s");
                     let mut file_emitter = FileEmitter::new(Path::new(&output_path))
-                        .expect("Failed to create FileEmitter");
+                        .unwrap_or_else(|err| {
+                            eprintln!("Could not create output file {:?}: {}", output_path, err);
+                            process::exit(1);
+                        });
                     let mut x86_code_gen = X64CodeGen::new(&mut file_emitter);
-                    x86_code_gen.emit(assembly_ast);
+                    x86_code_gen.emit(&assembly_ast);
                     file_emitter.finish().unwrap();
                 }
             }
