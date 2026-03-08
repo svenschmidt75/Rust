@@ -2,7 +2,7 @@ use clap::{ArgGroup, Parser};
 mod assembly_ast;
 mod emitter;
 mod file_emitter;
-mod ir_generation;
+mod generate_assembly_ast;
 mod lexer;
 mod parse_ast;
 mod parser;
@@ -93,7 +93,7 @@ fn main() {
             Ok(ast) => {
                 println!("Parsed AST: {:?}", ast);
 
-                let assembly_ast = ir_generation::generate_assembly_program_ast(ast);
+                let assembly_ast = generate_assembly_ast::generate_assembly_program_ast(ast);
 
                 if args.codegen {
                     println!("Running codegen...");

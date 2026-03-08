@@ -17,4 +17,11 @@ pub enum StmtAST {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExprAST {
     Constant(i64),
+    Unary(UnaryOperatorAST, Box<ExprAST>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum UnaryOperatorAST {
+    Complement,
+    Negate,
 }

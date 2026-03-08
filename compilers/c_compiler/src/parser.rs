@@ -1,5 +1,5 @@
 use crate::lexer::Lexer;
-use crate::parse_ast::{ExprAST, FunctionAST, ProgramAST, StmtAST};
+use crate::parse_ast::{ExprAST, FunctionAST, ProgramAST, StmtAST, UnaryOperatorAST};
 use crate::tokens::Tokens;
 
 pub(crate) struct Parser {
@@ -67,14 +67,37 @@ impl Parser {
     }
 
     fn parse_expr(&mut self) -> Result<ExprAST, String> {
-        let Tokens::Constant(val) = self.advance()? else {
-            return Err(format!(
-                "Line {}: Syntax error: Expected constant, but found {:?}",
+        let next_token = self.peek()?;
+        match next_token {
+            Tokens::Constant(val) => {
+                // SS: consume the constant token
+                self.advance()?;
+                Ok(ExprAST::Constant(val))
+            }
+            Tokens::Complement | Tokens::Negate => {
+                self.advance()?;
+                let expr_ast = self.parse_expr()?;
+                Ok(ExprAST::Unary(
+                    match next_token {
+                        Tokens::Complement => UnaryOperatorAST::Complement,
+                        Tokens::Negate => UnaryOperatorAST::Negate,
+                        _ => unreachable!(),
+                    },
+                    Box::new(expr_ast),
+                ))
+            }
+            Tokens::OpenParen => {
+                self.advance()?;
+                let expr_ast = self.parse_expr()?;
+                self.expect(")", Tokens::CloseParen)?;
+                Ok(expr_ast)
+            }
+            _ => Err(format!(
+                "Line {}: Syntax error: Expected expression, but found {:?}",
                 self.lexer.current_line,
                 self.current_symbol.as_ref().unwrap().to_string()
-            ));
-        };
-        Ok(ExprAST::Constant(val))
+            )),
+        }
     }
 
     fn expect(&mut self, expected_string: &str, token: Tokens) -> Result<Tokens, String> {

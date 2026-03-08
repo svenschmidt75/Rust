@@ -5,9 +5,13 @@ use std::sync::LazyLock;
 // SS: master regex
 static MASTER_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
+        r"(?P<comment>^//.*)|",
         r"(?P<int>^int\b)|",
         r"(?P<void>^void\b)|",
         r"(?P<return>^return\b)|",
+        r"(?P<decrement>^--)|",
+        r"(?P<negate>^-)|",
+        r"(?P<complement>^~)|",
         r"(?P<open_paren>^\()|",
         r"(?P<close_paren>^\))|",
         r"(?P<open_brace>^\{)|",
@@ -35,49 +39,68 @@ impl Lexer {
     }
 
     pub fn next_token(&mut self) -> Result<Tokens, String> {
-        self.skip_whitespace();
+        loop {
+            self.skip_whitespace();
 
-        if self.position >= self.input.len() {
-            return Ok(Tokens::EOF);
-        }
-
-        let remaining = &self.input[self.position..];
-
-        if let Some(caps) = MASTER_RE.captures(remaining) {
-            // Find which named group matched
-            if caps.name("int").is_some() {
-                self.position += 3;
-                return Ok(Tokens::Int);
-            } else if caps.name("void").is_some() {
-                self.position += 4;
-                return Ok(Tokens::Void);
-            } else if caps.name("return").is_some() {
-                self.position += 6;
-                return Ok(Tokens::Return);
-            } else if let Some(mat) = caps.name("identifier") {
-                self.position += mat.end();
-                return Ok(Tokens::Identifier(mat.as_str().to_string()));
-            } else if let Some(mat) = caps.name("constant") {
-                let val = mat.as_str().parse::<i64>().unwrap();
-                self.position += mat.end();
-                return Ok(Tokens::Constant(val));
+            if self.position >= self.input.len() {
+                return Ok(Tokens::EOF);
             }
 
-            // SS: final catch-all for punctuation
-            let mat = caps.get(0).unwrap();
-            self.position += mat.end();
+            let remaining = &self.input[self.position..];
 
-            return match mat.as_str() {
-                "(" => Ok(Tokens::OpenParen),
-                ")" => Ok(Tokens::CloseParen),
-                "{" => Ok(Tokens::OpenBrace),
-                "}" => Ok(Tokens::CloseBrace),
-                ";" => Ok(Tokens::Semicolon),
-                _ => unreachable!(),
-            };
+            return if let Some(caps) = MASTER_RE.captures(remaining) {
+                // SS: the first match (index 0) is the whole thing
+                let mat = caps.get(0).unwrap();
+                let text = mat.as_str();
+
+                // SS: advance position in text by the length of the match
+                self.position += mat.end();
+
+                if caps.name("comment").is_some() {
+                    // SS: skip comments entirely
+                    continue;
+                }
+                if caps.name("int").is_some() {
+                    return Ok(Tokens::Int);
+                }
+                if caps.name("void").is_some() {
+                    return Ok(Tokens::Void);
+                }
+                if caps.name("return").is_some() {
+                    return Ok(Tokens::Return);
+                }
+
+                if let Some(m) = caps.name("identifier") {
+                    return Ok(Tokens::Identifier(m.as_str().to_string()));
+                }
+
+                if let Some(m) = caps.name("constant") {
+                    let val = m
+                        .as_str()
+                        .parse::<i64>()
+                        .map_err(|_| "Integer literal too large".to_string())?;
+                    return Ok(Tokens::Constant(val));
+                }
+
+                // Punctuation
+                match text {
+                    "~" => Ok(Tokens::Complement),
+                    "--" => Ok(Tokens::Decrement),
+                    "-" => Ok(Tokens::Negate),
+                    "(" => Ok(Tokens::OpenParen),
+                    ")" => Ok(Tokens::CloseParen),
+                    "{" => Ok(Tokens::OpenBrace),
+                    "}" => Ok(Tokens::CloseBrace),
+                    ";" => Ok(Tokens::Semicolon),
+                    _ => Err(format!(
+                        "Line {}: Unrecognized token '{}'",
+                        self.current_line, text
+                    )),
+                }
+            } else {
+                Err(format!("Line {}: Unexpected character", self.current_line))
+            }
         }
-
-        Err(format!("Line {}: Unexpected character", self.current_line))
     }
 
     fn skip_whitespace(&mut self) {

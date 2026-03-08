@@ -36,6 +36,30 @@ fn generate_assembly_instructions_ast(stmt: StmtAST) -> Vec<AssemblyInstructionA
 fn generate_assembly_expr_ast(expr: ExprAST) -> AssemblyOperandAST {
     match expr {
         ExprAST::Constant(val) => AssemblyOperandAST::Immediate(val),
+        ExprAST::Unary(op, inner_expr) => {
+            let operand = generate_assembly_expr_ast(*inner_expr);
+            match op {
+                crate::parse_ast::UnaryOperatorAST::Complement => {
+                    // SS: for bitwise complement, we can use the NOT instruction
+                    // However, since we are only handling constants in this simple example,
+                    // we can compute the complement at compile time.
+                    if let AssemblyOperandAST::Immediate(val) = operand {
+                        AssemblyOperandAST::Immediate(!val)
+                    } else {
+                        panic!("Unexpected non-immediate operand for complement");
+                    }
+                }
+                crate::parse_ast::UnaryOperatorAST::Negate => {
+                    // SS: for negation, we can use the NEG instruction
+                    // Again, since we are only handling constants, we can compute it at compile time.
+                    if let AssemblyOperandAST::Immediate(val) = operand {
+                        AssemblyOperandAST::Immediate(-val)
+                    } else {
+                        panic!("Unexpected non-immediate operand for negate");
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -52,7 +76,7 @@ mod tests {
         };
 
         // SS: act
-        let assembly_ast = crate::ir_generation::generate_assembly_program_ast(parse_ast);
+        let assembly_ast = crate::generate_assembly_ast::generate_assembly_program_ast(parse_ast);
 
         // SS: assert
         assert_eq!(
