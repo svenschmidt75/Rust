@@ -1,27 +1,27 @@
 use crate::reg::Register;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct AssemblyProgramAST {
-    pub function_definition: AssemblyFunctionAST,
+pub struct ProgramAST {
+    pub function_definition: FunctionAST,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct AssemblyFunctionAST {
+pub struct FunctionAST {
     pub name: String,
-    pub instructions: Vec<AssemblyInstructionAST>,
+    pub instructions: Vec<InstructionAST>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum AssemblyInstructionAST {
+pub enum InstructionAST {
     Mov {
-        src: AssemblyOperandAST,
-        dst: AssemblyOperandAST,
+        src: OperandAST,
+        dst: OperandAST,
     },
     Ret,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum AssemblyOperandAST {
+pub enum OperandAST {
     Immediate(i64),
     Register(Register),
 }

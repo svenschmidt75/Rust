@@ -1,50 +1,48 @@
-use crate::assembly_ast::{
-    AssemblyFunctionAST, AssemblyInstructionAST, AssemblyOperandAST, AssemblyProgramAST,
-};
-use crate::parse_ast::{ExprAST, FunctionAST, ProgramAST, StmtAST};
+use crate::assembly_ast;
+use crate::parse_ast;
 
-pub fn generate_assembly_program_ast(parse_ast: ProgramAST) -> AssemblyProgramAST {
-    let ProgramAST {
+pub fn generate_program_ast(parse_ast: parse_ast::ProgramAST) -> assembly_ast::ProgramAST {
+    let parse_ast::ProgramAST {
         function_definition,
     } = parse_ast;
 
-    AssemblyProgramAST {
-        function_definition: generate_assembly_function_ast(function_definition),
+    assembly_ast::ProgramAST {
+        function_definition: generate_function_ast(function_definition),
     }
 }
 
-fn generate_assembly_function_ast(function_definition: FunctionAST) -> AssemblyFunctionAST {
-    let FunctionAST { name, body } = function_definition;
-    AssemblyFunctionAST {
+fn generate_function_ast(function_definition: parse_ast::FunctionAST) -> assembly_ast::FunctionAST {
+    let parse_ast::FunctionAST { name, body } = function_definition;
+    assembly_ast::FunctionAST {
         name,
-        instructions: generate_assembly_instructions_ast(body),
+        instructions: generate_instructions_ast(body),
     }
 }
 
-fn generate_assembly_instructions_ast(stmt: StmtAST) -> Vec<AssemblyInstructionAST> {
+fn generate_instructions_ast(stmt: parse_ast::StmtAST) -> Vec<assembly_ast::InstructionAST> {
     match stmt {
-        StmtAST::Return(expr) => vec![
-            AssemblyInstructionAST::Mov {
-                src: generate_assembly_expr_ast(expr),
-                dst: AssemblyOperandAST::Register(crate::reg::Register::EAX),
+        parse_ast::StmtAST::Return(expr) => vec![
+            assembly_ast::InstructionAST::Mov {
+                src: generate_expr_ast(expr),
+                dst: assembly_ast::OperandAST::Register(crate::reg::Register::EAX),
             },
-            AssemblyInstructionAST::Ret,
+            assembly_ast::InstructionAST::Ret,
         ],
     }
 }
 
-fn generate_assembly_expr_ast(expr: ExprAST) -> AssemblyOperandAST {
+fn generate_expr_ast(expr: parse_ast::ExprAST) -> assembly_ast::OperandAST {
     match expr {
-        ExprAST::Constant(val) => AssemblyOperandAST::Immediate(val),
-        ExprAST::Unary(op, inner_expr) => {
-            let operand = generate_assembly_expr_ast(*inner_expr);
+        parse_ast::ExprAST::Constant(val) => assembly_ast::OperandAST::Immediate(val),
+        parse_ast::ExprAST::Unary(op, inner_expr) => {
+            let operand = generate_expr_ast(*inner_expr);
             match op {
                 crate::parse_ast::UnaryOperatorAST::Complement => {
                     // SS: for bitwise complement, we can use the NOT instruction
                     // However, since we are only handling constants in this simple example,
                     // we can compute the complement at compile time.
-                    if let AssemblyOperandAST::Immediate(val) = operand {
-                        AssemblyOperandAST::Immediate(!val)
+                    if let assembly_ast::OperandAST::Immediate(val) = operand {
+                        assembly_ast::OperandAST::Immediate(!val)
                     } else {
                         panic!("Unexpected non-immediate operand for complement");
                     }
@@ -52,8 +50,8 @@ fn generate_assembly_expr_ast(expr: ExprAST) -> AssemblyOperandAST {
                 crate::parse_ast::UnaryOperatorAST::Negate => {
                     // SS: for negation, we can use the NEG instruction
                     // Again, since we are only handling constants, we can compute it at compile time.
-                    if let AssemblyOperandAST::Immediate(val) = operand {
-                        AssemblyOperandAST::Immediate(-val)
+                    if let assembly_ast::OperandAST::Immediate(val) = operand {
+                        assembly_ast::OperandAST::Immediate(-val)
                     } else {
                         panic!("Unexpected non-immediate operand for negate");
                     }
@@ -65,33 +63,33 @@ fn generate_assembly_expr_ast(expr: ExprAST) -> AssemblyOperandAST {
 
 #[cfg(test)]
 mod tests {
+    use crate::{assembly_ast, parse_ast, reg};
+
     #[test]
-    fn test_generate_assembly_program_ast() {
+    fn test_generate_program_ast() {
         // SS: arrange
-        let parse_ast = crate::parse_ast::ProgramAST {
-            function_definition: crate::parse_ast::FunctionAST {
+        let parse_ast = parse_ast::ProgramAST {
+            function_definition: parse_ast::FunctionAST {
                 name: "main".to_string(),
-                body: crate::parse_ast::StmtAST::Return(crate::parse_ast::ExprAST::Constant(2)),
+                body: parse_ast::StmtAST::Return(parse_ast::ExprAST::Constant(2)),
             },
         };
 
         // SS: act
-        let assembly_ast = crate::generate_assembly_ast::generate_assembly_program_ast(parse_ast);
+        let assembly_ast = crate::generate_assembly_ast::generate_program_ast(parse_ast);
 
         // SS: assert
         assert_eq!(
             assembly_ast,
-            crate::assembly_ast::AssemblyProgramAST {
-                function_definition: crate::assembly_ast::AssemblyFunctionAST {
+            assembly_ast::ProgramAST {
+                function_definition: crate::assembly_ast::FunctionAST {
                     name: "main".to_string(),
                     instructions: vec![
-                        crate::assembly_ast::AssemblyInstructionAST::Mov {
-                            src: crate::assembly_ast::AssemblyOperandAST::Immediate(2),
-                            dst: crate::assembly_ast::AssemblyOperandAST::Register(
-                                crate::reg::Register::EAX
-                            ),
+                        assembly_ast::InstructionAST::Mov {
+                            src: assembly_ast::OperandAST::Immediate(2),
+                            dst: assembly_ast::OperandAST::Register(reg::Register::EAX),
                         },
-                        crate::assembly_ast::AssemblyInstructionAST::Ret,
+                        assembly_ast::InstructionAST::Ret,
                     ],
                 }
             }

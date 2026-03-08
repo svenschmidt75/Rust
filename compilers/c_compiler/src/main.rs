@@ -10,6 +10,8 @@ mod reg;
 mod string_emitter;
 mod tokens;
 mod x64_code_gen;
+mod generate_tacky;
+mod tacky_ast;
 
 use crate::emitter::Emitter;
 use crate::file_emitter::FileEmitter;
@@ -93,7 +95,7 @@ fn main() {
             Ok(ast) => {
                 println!("Parsed AST: {:?}", ast);
 
-                let assembly_ast = generate_assembly_ast::generate_assembly_program_ast(ast);
+                let assembly_ast = generate_assembly_ast::generate_program_ast(ast);
 
                 if args.codegen {
                     println!("Running codegen...");
